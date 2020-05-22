@@ -1,39 +1,45 @@
 #!/usr/bin/python3
-import json, os
-import bs4
+import copy, json, os
+# import bs4
+CHANNEL_URLS_FILENAME = 'channelvideosytpages.json'
 
-fp = open('channelvideosytpages.json', 'r')
-content = fp.read()
-jsondictlist = json.loads(content)
-nameurldict = {}
+YT_URL_PREFIX = "https://www.youtube.com/"
+YT_URL_SUFIX  = "/videos"
 
-prefix = "https://www.youtube.com/"
-sufix = "/videos"
-def form_url(murl):
-  return prefix + murl + sufix
+class YtChannelYielder:
 
-for d in jsondictlist:
-  nname = d['nname']
-  murl  = d['murl']
-  nameurldict[nname] = form_url(murl)
-print(nameurldict)
+  def __init__(self):
+    self.channelsdata = []
+    self.nnames_set = set()
+    self.readin_jsondata()
 
-'''
-<span class="yt-subscription-button-subscriber-count-branded-horizontal subscribed yt-uix-tooltip" 
-  title="433 mil" tabindex="0" aria-label="433 mil inscritos">433 mil</span> 
-'''
-# look up data folder
-thisfolder_abspath = os.path.abspath('.')
-datafolder_abspath = os.path.join(thisfolder_abspath, 'data')
-entries = os.listdir(datafolder_abspath)
-files_w_abspath = []
-for entry in entries:
-  entry_abspath = os.path.join(datafolder_abspath, entry)
-  if os.path.isfile(entry_abspath):
-    files_w_abspath.append(entry_abspath)
+  def readin_jsondata(self):
+    if not os.path.isfile(CHANNEL_URLS_FILENAME):
+      return
+    content = open(CHANNEL_URLS_FILENAME, 'r').read()
+    jsondictlist = json.loads(content)
+    for i, d in enumerate(jsondictlist):
+      nname = d['nname']
+      if nname in self.nnames_set:
+        error_msg = '"name" %s is already in json database. ' %nname
+        raise KeyError(error_msg)
+      self.nnames_set.add(nname)
+      channeldict = {}
+      channeldict['nname'] = nname
+      murl = d['murl']
+      channeldict['murl'] = murl
+      self.channelsdata.append(channeldict)
+      print(i+1, '=>', channeldict)
 
-for entry_abspath in files_w_abspath:
-  content = open(entry_abspath).read()
-  bsoup = bs4.BeautifulSoup(content, 'html.parser')
-  result = bsoup.find({'class':'yt-subscription-button-subscriber-count-branded-horizontal subscribed'})
-  print(result)
+  def loopthru(self):
+    for i, record_dict in enumerate(self.channelsdata):
+      yield record_dict
+
+def process():
+  channels = YtChannelYielder()
+  # print ('after instanciation')
+  for each in channels.loopthru():
+    print(each)
+
+if __name__ == '__main__':
+  process()
