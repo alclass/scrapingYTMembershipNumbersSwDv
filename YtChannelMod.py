@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import copy, datetime, json, os
 import datefunctions.datefs as dtfs
+import filefunctions.pathfunctions as pathfs
 
 YT_URL_PREFIX = "https://www.youtube.com/"
 YT_URL_SUFIX  = "/videos"
@@ -8,18 +9,11 @@ YT_URL_SUFIX  = "/videos"
 def get_ytvideos_url(murl):
   return YT_URL_PREFIX + murl + YT_URL_SUFIX
 
-DATA_LOCALFOLDERNAME = 'data'
-def get_absfolderpath():
-  thisfolder_abspath = os.path.abspath('.')  # this about this (either '.' or a configured folder)
-  datafolder_abspath = os.path.join(thisfolder_abspath, DATA_LOCALFOLDERNAME)
-  return datafolder_abspath
-
-def get_absfilepath(filename):
-  return os.path.join(get_absfolderpath(), filename)
-
 class YtChannel:
 
   def __init__(self, nname, murl, refdate=None):
+    self.refdate = dtfs.get_refdate(refdate)
+    self.strdate = dtfs.get_strdate(refdate)
     self.nname = nname
     self.murl = murl
     if refdate is None:
@@ -29,19 +23,13 @@ class YtChannel:
     self._absfilepath = None
 
   @property
-  def refdate_str(self):
-    if self._refdate_str is None:
-      self._refdate_str = dtfs.UtilDater.get_refdate_inverted_fields_str(self.refdate)
-    return self._refdate_str
-
-  @property
   def datedpage_filename(self):
     return self.refdate_str + ' ' + self.nname + '.html'
 
   @property
   def absfilepath(self):
     if self._absfilepath is None:
-      self._absfilepath = get_absfilepath(self.datedpage_filename)
+      self._absfilepath = pathfs.get_datebased_ythtmlfiles_folderabspath()
     return self._absfilepath
 
   @property

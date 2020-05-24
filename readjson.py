@@ -1,10 +1,13 @@
 #!/usr/bin/python3
-import copy, json, os
-# import bs4
+import json, os
+# from collections import namedtuple, OrderedDict
+
 CHANNEL_URLS_FILENAME = 'channelvideosytpages.json'
 
 YT_URL_PREFIX = "https://www.youtube.com/"
 YT_URL_SUFIX  = "/videos"
+def get_url_from_murl(murl):
+  return YT_URL_PREFIX + murl + YT_URL_SUFIX
 
 class YtChannelYielder:
 
@@ -36,10 +39,18 @@ class YtChannelYielder:
       yield record_dict
 
 def process():
+  channeldict = {} # ChannelNT = namedtuple('ChannelNT', 'nname url')
   channels = YtChannelYielder()
-  # print ('after instanciation')
-  for each in channels.loopthru():
-    print(each)
+  for channeldictitem in channels.loopthru():
+    nname = channeldictitem['nname']
+    murl = channeldictitem['murl']
+    url = get_url_from_murl(murl)
+    channeldict[nname] = url
+  nnames = channeldict.keys()
+  nnames = sorted(nnames)
+  for i, nname in enumerate(nnames):
+    url = channeldict[nname]
+    print (i+1, nname, url)
 
 if __name__ == '__main__':
   process()

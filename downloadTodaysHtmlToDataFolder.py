@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-import datetime, os, requests
-import bs4
-import datefunctions.datefs as dtfs
+import os, requests, time
 import readjson
 import YtChannelMod
 
@@ -37,37 +35,14 @@ class DownloadYtVideoPages:
         error_msg = 'Page [%s] returned a not 200 status response' %ytchannel.videospageurl
         raise IOError(error_msg)
       fp = open(ytchannel.absfilepath, 'w')
-      fp.write(str(res.content))
-      print('Written ', ytchannel.datedpage_filename)
+      fp.write(res.text) # fp.write(str(res.content))
       fp.close()
-
-  def parse_htmls_on_data_folder(self):
-    n = len(self.ytchannels); seq = 0
-    print('Number of channels =>', n)
-    for ytchannel in self.ytchannels:
-      if not os.path.isfile(ytchannel.absfilepath):
-        continue
-      filename = ytchannel.datedpage_filename
-      # print('Parsing =>', filename)
-      extlessname = os.path.splitext(filename)[0]
-      content = open(ytchannel.absfilepath).read()
-      bsoup = bs4.BeautifulSoup(content, 'html.parser')
-      # result, if found, is a bs4.element.Tag object
-      result = bsoup.find('span', attrs={'class':SUBSCRIBERS_NUMBER_HTMLCLASSNAME})
-      if result is None:
-        print('Subscribers number not found for', extlessname)
-        continue
-      try:
-        arialabel = result['aria-label']
-        seq += 1
-        print (seq, '=>', extlessname, 'has', arialabel)
-      except IndexError:
-        print('Subscribers number not found for', extlessname)
+      print('Written ', ytchannel.datedpage_filename, ': wait 3 seconds.')
+      time.sleep(3)
 
 def process():
   downloader = DownloadYtVideoPages()
   downloader.download_ytvideopages()
-  downloader.parse_htmls_on_data_folder()
 
 if __name__ == '__main__':
   process()

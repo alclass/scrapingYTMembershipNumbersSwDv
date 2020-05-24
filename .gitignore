@@ -1,0 +1,8 @@
+data/
+venv/
+.idea/
+config.py
+*/*.bak
+*/*.html
+**/*.pyc
+

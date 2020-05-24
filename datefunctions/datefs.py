@@ -1,6 +1,17 @@
 #!/usr/bin/python3
 import datetime
 
+def get_refdate(p_refdate=None):
+  refdate = datetime.date.today()
+  if p_refdate is None or type(p_refdate) != datetime.date:
+    return refdate
+  return p_refdate
+
+def get_strdate(p_refdate):
+  refdate = get_refdate(p_refdate)
+  strdate = '%d-%s-%s' %(refdate.year, str(refdate.month).zfill(2), str(refdate.day).zfill(2))
+  return strdate
+
 class UtilDater:
 
   @classmethod
