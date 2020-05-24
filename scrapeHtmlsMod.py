@@ -4,7 +4,11 @@ import datefunctions.datefs as dtfs
 import readHtmlsOnFolder as readmod
 
 SUBSCRIBERS_NUMBER_HTMLCLASSNAME = 'yt-subscription-button-subscriber-count-branded-horizontal'
-SubscribersStatNT = collections.namedtuple('SubscribersStatNT', ['date', 'nname', 'nOfSubscribers', 'strline'])
+'''
+<span class="yt-subscription-button-subscriber-count-branded-horizontal subscribed yt-uix-tooltip" 
+  title="433 mil" tabindex="0" aria-label="433 mil inscritos">433 mil</span> 
+'''
+SubscribersStatNT = collections.namedtuple('SubscribersStatNT', ['date', 'sname', 'nOfSubscribers', 'strline'])
 
 def extract_number_from_arialabel(arialabel):
   numberstr = ''
@@ -26,22 +30,29 @@ def extract_number_from_arialabel(arialabel):
 
 class HTMLScraper:
 
-  def __init__(self, refdate):
+  def __init__(self, refdate=None):
     self.refdate = dtfs.get_refdate(refdate)
-    self.strdate = dtfs.get_strdate(self.refdate)
+    # self.strdate is @property
     self.reader = readmod.YtVideoPagesTraversal(refdate)
     self.counter = 0
     self.scrapingResuls = []
+    print ('Please, wait a moment; there are', self.reader.n_of_pages, 'pages to be processed.')
     self.scrape_to_inner_vars()
-    self.print_scraping_results()
+
+  @property
+  def strdate(self):
+    return dtfs.get_strdate(self.refdate)
 
   def scrape_to_inner_vars(self):
-    for htmlfilename_n_content in self.reader.yield_htmlfilename_n_content_one_by_one():
-      htmlfilename, content = htmlfilename_n_content
-      self.scrape_subscribers_number(htmlfilename, content)
+    for ytvideopagesobj in self.reader.ytvideopageobj_list:
+      self.counter += 1
+      htmlfilename = ytvideopagesobj.ytvideospagefilename
+      sname = ytvideopagesobj.sname
+      content = ytvideopagesobj.get_html_text()
+      self.scrape_subscribers_number(htmlfilename, sname, content)
       # self.scrape_individual_video_views(htmlfilename, content)
 
-  def scrape_subscribers_number(self, htmlfilename, content):
+  def scrape_subscribers_number(self, htmlfilename, sname, content):
     # print('Parsing =>', htmlfilename)
     extlessname = os.path.splitext(htmlfilename)[0]
     bsoup = bs4.BeautifulSoup(content, 'html.parser')
@@ -50,7 +61,6 @@ class HTMLScraper:
     if result is None:
       print('Subscribers number not found for', extlessname)
       return
-    nname    = extlessname[11:]
     statdate = extlessname[:10]
     strline  = '[not found]'
     try:
@@ -61,12 +71,12 @@ class HTMLScraper:
       nOfSubscribers = number # even if it's -1 (case it's not found)
     except IndexError:
       nOfSubscribers = -1
-    subsrecord = SubscribersStatNT(date=statdate, nname=nname, nOfSubscribers=nOfSubscribers, strline=strline)
+    subsrecord = SubscribersStatNT(date=statdate, sname=sname, nOfSubscribers=nOfSubscribers, strline=strline)
     self.scrapingResuls.append(subsrecord)
 
   def print_scraping_results(self):
     for i, subsrecord in enumerate(self.scrapingResuls):
-      print(i+1, subsrecord.date, subsrecord.nname, 'has', subsrecord.nOfSubscribers, subsrecord.strline)
+      print(i+1, subsrecord.date, subsrecord.sname, 'has', subsrecord.nOfSubscribers, subsrecord.strline)
 
   def saveJson(self):
     outlist = []
@@ -74,7 +84,7 @@ class HTMLScraper:
       ordereddictrecord = subsrecord._asdict() #__dict__ # .as_dict()
       dictrecord = dict(ordereddictrecord)
       outlist.append(dictrecord)
-    outfilename = 'test.json'
+    outfilename = self.strdate + ' test.json'
     outfile = open(outfilename, 'w', encoding='utf8')
     outtext = json.dumps(str(outlist))
     outfile.write(outtext)
@@ -89,7 +99,10 @@ class HTMLScraper:
       return
 
 def process():
-  HTMLScraper()
+  scraper = HTMLScraper()
+  scraper.print_scraping_results()
+  print ('len =', len(scraper.scrapingResuls))
+  print ('counter =', len(scraper.scrapingResuls))
 
 if __name__ == '__main__':
   process()

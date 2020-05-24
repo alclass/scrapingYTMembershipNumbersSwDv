@@ -1,15 +1,10 @@
 #!/usr/bin/python3
 import json, os
-# from collections import namedtuple, OrderedDict
+import config
+import filefunctions.pathfunctions as pathfs
+# from YtChannelMod import YtChannel
 
-CHANNEL_URLS_FILENAME = 'channelvideosytpages.json'
-
-YT_URL_PREFIX = "https://www.youtube.com/"
-YT_URL_SUFIX  = "/videos"
-def get_url_from_murl(murl):
-  return YT_URL_PREFIX + murl + YT_URL_SUFIX
-
-class YtChannelYielder:
+class JsonYtChannel:
 
   def __init__(self):
     self.channelsdata = []
@@ -17,20 +12,27 @@ class YtChannelYielder:
     self.readin_jsondata()
 
   def readin_jsondata(self):
-    if not os.path.isfile(CHANNEL_URLS_FILENAME):
+    try:
+      ytchannels_jsonabspath = config.get_ytchannels_jsonabspath()
+    except OSError:
       return
-    content = open(CHANNEL_URLS_FILENAME, 'r').read()
+    content = open(ytchannels_jsonabspath, 'r').read()
     jsondictlist = json.loads(content)
     for i, d in enumerate(jsondictlist):
-      nname = d['nname']
+      nname = d['nn']
       if nname in self.nnames_set:
         error_msg = '"name" %s is already in json database. ' %nname
         raise KeyError(error_msg)
       self.nnames_set.add(nname)
       channeldict = {}
       channeldict['nname'] = nname
-      murl = d['murl']
-      channeldict['murl'] = murl
+      ytchid = d['ytchid']
+      if ytchid is None or len(ytchid) < 2: # at least 'u1'
+        continue
+      elif '/' in ytchid:
+        error_msg = 'ytchid has a forward slash (/)'
+        raise ValueError(error_msg)
+      channeldict['ytchid'] = ytchid
       self.channelsdata.append(channeldict)
       print(i+1, '=>', channeldict)
 
@@ -40,11 +42,11 @@ class YtChannelYielder:
 
 def process():
   channeldict = {} # ChannelNT = namedtuple('ChannelNT', 'nname url')
-  channels = YtChannelYielder()
+  channels = JsonYtChannel()
   for channeldictitem in channels.loopthru():
     nname = channeldictitem['nname']
-    murl = channeldictitem['murl']
-    url = get_url_from_murl(murl)
+    ytchid = channeldictitem['ytchid']
+    url = pathfs.get_ytchannelvideospage_url_from_ytchid(ytchid)
     channeldict[nname] = url
   nnames = channeldict.keys()
   nnames = sorted(nnames)

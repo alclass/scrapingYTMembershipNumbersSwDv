@@ -1,8 +1,10 @@
 #!/usr/bin/python3
+import datetime
 from scrapeHtmlsMod import HTMLScraper
 
 def scrapePages():
-  scraper = HTMLScraper()
+  refdate = datetime.date(2020, 5, 23)
+  scraper = HTMLScraper(refdate)
   scraper.print_scraping_results()
   print('Saving JSON')
   scraper.saveJson()

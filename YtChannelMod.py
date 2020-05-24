@@ -1,62 +1,72 @@
 #!/usr/bin/python3
-import copy, datetime, json, os
+import datetime, os
 import datefunctions.datefs as dtfs
 import filefunctions.pathfunctions as pathfs
 
-YT_URL_PREFIX = "https://www.youtube.com/"
-YT_URL_SUFIX  = "/videos"
-
-def get_ytvideos_url(murl):
-  return YT_URL_PREFIX + murl + YT_URL_SUFIX
-
 class YtChannel:
 
-  def __init__(self, nname, murl, refdate=None):
+  def __init__(self, ytchid, nname='No name', refdate=None):
+    self.ytchid  = ytchid
+    self.nname   = nname
     self.refdate = dtfs.get_refdate(refdate)
-    self.strdate = dtfs.get_strdate(refdate)
-    self.nname = nname
-    self.murl = murl
-    if refdate is None:
-      refdate = datetime.date.today()
-    self.refdate = refdate
-    self._refdate_str = None
-    self._absfilepath = None
+
+  @property
+  def murl(self):
+    murl = pathfs.get_murl_from_ytchid(self.ytchid)
+    if murl is None:
+      # should never get here, but...
+      error_msg = 'A wrong ytchid [%s] (id for [u]ser or [c]hannel in YouTube) came from database. Please, correct data and rerun.' %str(self.ytchid)
+      raise ValueError(error_msg)
+    return murl
+
+  @property
+  def strdate(self):
+    return dtfs.get_strdate(self.refdate)
+
+  @property
+  def absfolderpath(self):
+      return pathfs.get_datebased_ythtmlfiles_folderabspath(self.refdate)
 
   @property
   def datedpage_filename(self):
-    return self.refdate_str + ' ' + self.nname + '.html'
+    return pathfs.datedpage_filename(self.strdate, self.nname, self.ytchid)
 
   @property
-  def absfilepath(self):
-    if self._absfilepath is None:
-      self._absfilepath = pathfs.get_datebased_ythtmlfiles_folderabspath()
-    return self._absfilepath
+  def datedpage_filepath(self):
+    return os.path.join(self.absfolderpath, self.datedpage_filename)
+
+  @property
+  def datedpage_exists(self):
+    if os.path.isfile(self.datedpage_filepath):
+      return True
+    return False
 
   @property
   def videospageurl(self):
-    if self.refdate_str != dtfs.UtilDater.get_refdate_inverted_fields_str():
-      return 'n/a (older date)'
-    ytvideosurl = get_ytvideos_url(self.murl)
+    ytvideosurl = pathfs.get_ytchannelvideospage_url_from_murl(self.murl)
     return ytvideosurl
 
   def __str__(self):
-    strdict = {'nname':self.nname, 'murl':self.murl,'videospageurl':self.videospageurl,
-               'datedpage_filename':self.datedpage_filename,
-               'absfilepath':self.absfilepath}
+    strdict = {
+      'nname':self.nname, 'murl':self.murl,'videospageurl':self.videospageurl,
+      'absfolderpath':self.absfolderpath, 'datedpage_filename':self.datedpage_filename,
+      'datedpage_filepath':self.datedpage_filepath,'datedpage_exists':self.datedpage_exists,
+    }
     outstr = '''  nname          = %(nname)s
   murl           = %(murl)s  
   videospageurl  = %(videospageurl)s
+  absfolderpath  = %(absfolderpath)s  
   dtdpg_filename = %(datedpage_filename)s
-  absfilepath    = %(absfilepath)s  
+  dtdpg_filepath = %(datedpage_filepath)s
+  datedpg_exists = %(datedpage_exists)s  
 ''' %(strdict)
     return outstr
 
-
 def test():
-  channel = YtChannel('Gabriela Prioli', 'channel/UCxKWYA49k16BoF8YzS1VbvA')
+  channel = YtChannel('cUCxKWYA49k16BoF8YzS1VbvA', 'Gabriela Prioli')
   print (channel)
   dt = datetime.date(2020, 5, 19)
-  channel = YtChannel('Gabriela Prioli', 'channel/UCxKWYA49k16BoF8YzS1VbvA', dt)
+  channel = YtChannel('cUCxKWYA49k16BoF8YzS1VbvA', 'Gabriela Prioli', dt)
   print (channel)
 
 def process():
