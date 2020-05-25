@@ -1,0 +1,59 @@
+#!/usr/bin/python3
+import os
+
+# Section 1 YouTube config parameters
+# ===================================
+YT_URL_PREFIX = 'https://www.youtube.com/'
+YT_URL_SUFIX = '/videos'
+
+# Section 2 Base directory for downloaded html files for local scraping
+# =====================================================================
+ytvideo_htmlfiles_baseabsdirs = [
+  '/media/friend/SAMSUNG/Ytvideos BRA Politics/z Other ytchannels/000_scrape_ytdata',
+  '/home/dados/DataArchival/YT_Scrape_Data/BRA_Politics_YTData',
+]
+
+def get_ytvideo_htmlfiles_baseabsdir():
+  for abspath in ytvideo_htmlfiles_baseabsdirs:
+    if os.path.isdir(abspath):
+      return abspath
+  return None
+
+# Section 3 Base directory for json "master data" (ie, ytchannel minimum info)
+# ============================================================================
+
+JSONDATA_RELFOLDER = 'ytchannels_jsondata'
+JSONDATA_FILENAME  = 'channelvideosytpages.json'
+
+def get_ytchannels_jsonfolderabspath():
+  abspath = os.path.join(get_ytvideo_htmlfiles_baseabsdir(), JSONDATA_RELFOLDER)
+  if not os.path.isdir(abspath):
+    os.makedirs(abspath)
+  return abspath
+
+def get_ytchannels_jsonabspath():
+  return os.path.join(get_ytchannels_jsonfolderabspath(), JSONDATA_FILENAME)
+
+# Section 4 DB parametes (do not add this config.py to git or any other vs)
+# ==========================================================================
+
+THIS_DATABASE = 'mysql'
+DATABASE_DICT = {
+  'mysql' : {
+    'ADDRESS'     : 'localhost',
+    'PORT'        : '3306',
+    'USER'        : 'user',
+    'PASSWORD'    : 'pass',
+    'DATABASENAME': 'name',
+  }
+}
+
+def adhoc_test():
+  print (get_ytvideo_htmlfiles_baseabsdir())
+  print (get_ytchannels_jsonabspath())
+
+def process():
+  adhoc_test()
+
+if __name__ == '__main__':
+  process()
