@@ -8,13 +8,13 @@ YT_URL_SUFIX = '/videos'
 
 # Section 2 Base directory for downloaded html files for local scraping
 # =====================================================================
-ytvideo_htmlfiles_baseabsdirs = [
+YTVIDEO_HTMLFILES_DIRS = [
   '/media/friend/SAMSUNG/Ytvideos BRA Politics/z Other ytchannels/000_scrape_ytdata',
   '/home/dados/DataArchival/YT_Scrape_Data/BRA_Politics_YTData',
-]
+] # '/home/dados/Divers_Data_Archival/YTData/000_scrape_ytdata',
 
 def get_ytvideo_htmlfiles_baseabsdir():
-  for abspath in ytvideo_htmlfiles_baseabsdirs:
+  for abspath in YTVIDEO_HTMLFILES_DIRS:
     if os.path.isdir(abspath):
       return abspath
   return None
