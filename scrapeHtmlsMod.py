@@ -37,6 +37,8 @@ class HTMLScraper:
     self.counter = 0
     # self.scrapingResuls = []
     print ('Please, wait a moment; there are', self.reader.n_of_pages, 'pages to be processed.')
+    self.ids_with_subsnumber_not_found = []
+    self.id_n_qty_tuplelist = []
     self.scrape_to_inner_vars()
 
   @property
@@ -60,6 +62,8 @@ class HTMLScraper:
     result = bsoup.find('span', attrs={'class':SUBSCRIBERS_NUMBER_HTMLCLASSNAME})
     if result is None:
       print('Subscribers number not found for', extlessname)
+      id_n_sname = (ytvideopageobj.ytchid, ytvideopageobj.sname)
+      self.ids_with_subsnumber_not_found.append(id_n_sname)
       return
     statdate = extlessname[:10]
     strline  = '[not found]'
@@ -71,17 +75,20 @@ class HTMLScraper:
       nOfSubscribers = number # even if it's -1 (case it's not found)
     except IndexError:
       nOfSubscribers = -1
-    # subsrecord = SubscribersStatNT(nOfSubscribers=nOfSubscribers, strline=strline)
-    # ytvideopageobj.scrapedrecord = subsrecord
-    # self.scrapingResuls.append(subsrecord)
     ytvideopageobj.nOfSubscribers = nOfSubscribers
     ytvideopageobj.nOfSubscribers_strline = strline
+    id_n_qty_tuple = (ytvideopageobj.ytchid, ytvideopageobj.nOfSubscribers)
+    self.id_n_qty_tuplelist.append(id_n_qty_tuple)
 
   def print_scraping_results(self):
     # for i, subsrecord in enumerate(self.scrapingResuls):
     for i, ytvideopageobj in enumerate(self.reader.ytvideopageobj_list):
       # subsrecord = ytvideopageobj.scrapedrecord
-      print(i+1, ytvideopageobj.refdate, ytvideopageobj.sname, 'has', ytvideopageobj.nOfSubscribers, ytvideopageobj.nOfSubscribers_strline)
+      try:
+        print(i+1, ytvideopageobj.refdate, ytvideopageobj.sname, 'has', ytvideopageobj.nOfSubscribers, ytvideopageobj.nOfSubscribers_strline)
+      except AttributeError:
+        print('Missing nOfSubscribers', i + 1, ytvideopageobj.refdate, ytvideopageobj.sname)
+        pass
 
   def saveJson(self):
     outlist = []
@@ -112,7 +119,8 @@ class HTMLScraper:
 def process():
   scraper = HTMLScraper()
   scraper.print_scraping_results()
-  print ('len =', len(scraper.reader.ytvideopageobj_list))
-
+  print ('len ytvideopageobj_list =', len(scraper.reader.ytvideopageobj_list))
+  print ('len id_n_qty_tuplelist =', len(scraper.id_n_qty_tuplelist))
+  print ('len ids_with_subsnumber_not_found =', len(scraper.ids_with_subsnumber_not_found), scraper.ids_with_subsnumber_not_found)
 if __name__ == '__main__':
   process()

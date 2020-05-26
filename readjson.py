@@ -34,7 +34,7 @@ class JsonYtChannel:
         raise ValueError(error_msg)
       channeldict['ytchid'] = ytchid
       self.channelsdata.append(channeldict)
-      print(i+1, '=>', channeldict)
+      # print(i+1, '=>', channeldict)
 
   def loopthru(self):
     for i, record_dict in enumerate(self.channelsdata):

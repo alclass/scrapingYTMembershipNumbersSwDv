@@ -13,14 +13,22 @@ session = Session()
 
 def insert():
   reader = readjson.JsonYtChannel()
+  n_added = 0
   for channeldict in reader.loopthru():
     nname = channeldict['nname']
     ytchid = channeldict['ytchid']
+    channel_in_db = session.query(Channel).filter(Channel.ytchannelid==ytchid).first()
+    if channel_in_db:
+      continue
     channel = Channel(ytchannelid=ytchid, nname=nname)
-    print (channel)
+    print ('Adding', channel)
     session.add(channel)
-  print('Committing...')
-  session.commit()
+    n_added += 1
+  if n_added > 0:
+    print('n_added =', n_added, '=> Committing...')
+    session.commit()
+  else:
+    print('n_added =', n_added, '=> No commits.')
 
 def process():
   insert()

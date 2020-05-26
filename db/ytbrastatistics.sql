@@ -32,7 +32,7 @@ CREATE TABLE `channels` (
   `id` int(10) UNSIGNED NOT NULL,
   `ytchannelid` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
   `nname` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `obs` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `obs` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='You Channels or Users';
