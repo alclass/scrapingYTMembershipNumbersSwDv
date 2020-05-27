@@ -1,10 +1,15 @@
 #!/usr/bin/python3
 import datetime
+from db.models_sqlalchemy import Channel
 from db.models_sqlalchemy import DailySubscribers
 from db.sqlalchemy_conn import sqlalchemy_engine
 from sqlalchemy.orm import sessionmaker
 
 Session = sessionmaker(bind=sqlalchemy_engine)
+
+def fetch_ytchannelids():
+  session = Session()
+  return session.query(Channel).all()
 
 class SubscriberInsertor:
 
@@ -12,8 +17,9 @@ class SubscriberInsertor:
     self.ytchid        = ytchid
     self.refdate       = refdate
     self.n_subscribers = n_subscribers
+    self.boolean_dbmodified = False
     self.session = Session()
-    self.insert()
+    self.boolean_dbmodified = self.insert()
 
   def update_if_needed(self, dailysubs):
     if dailysubs.subscribers == self.n_subscribers:
@@ -31,20 +37,29 @@ class SubscriberInsertor:
       first()
     if dailysubs:
       return self.update_if_needed(dailysubs)
-    dailysubs = DailySubscribers(ytchannelid=self.ytchid, date=self.refdate, subscribers=self.n_subscribers)
+    dailysubs = DailySubscribers(
+      ytchannelid = self.ytchid,
+      date        = self.refdate,
+      subscribers = self.n_subscribers
+    )
     print('Adding', dailysubs)
     self.session.add(dailysubs)
     self.session.commit()
     return True
 
-def test():
+def test1():
   ytchid = 'upgjr23'
   refdate = datetime.date(2020,5,2)
   n_subscribers = 200 * 1000
   SubscriberInsertor(ytchid, refdate, n_subscribers)
 
+def test2():
+  objs = fetch_ytchannelids()
+  for o in objs:
+    print(o)
+
 def process():
-  test()
+  test2()
 
 if __name__ == '__main__':
   process()

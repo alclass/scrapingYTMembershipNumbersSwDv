@@ -1,8 +1,4 @@
 #!/usr/bin/python3
-
-# from db.sqlalchemy_conn import sqlalchemy_engine
-# print(sqlalchemy_engine)
-
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 from sqlalchemy import Column, Integer, String, Date, ForeignKey
@@ -18,9 +14,6 @@ class Channel(Base):
 
   def __repr__(self):
     return '<Channel(ytchannelid="%s", nname="%s")>' %(self.ytchannelid, self.nname)
-
-#channel_ghira = Channel(ytchannelid='upgjr23', nname="Paulo Ghiraldelli")
-#print (channel_ghira)
 
 class DailySubscribers(Base):
 

@@ -2,6 +2,7 @@
 import os, requests, time
 import readjson
 import YtChannelMod
+import datefunctions.datefs as dtfs
 
 class DownloadYtVideoPages:
 
@@ -34,8 +35,9 @@ class DownloadYtVideoPages:
       fp = open(entry_abspath, 'w')
       fp.write(res.text) # fp.write(str(res.content)) # it was observed that res.text goes UTF8, before res.content went non-UTF8
       fp.close()
-      print('Written ', ytchannel.datedpage_filename, ': wait 3 seconds.')
-      time.sleep(3)
+      wait_secs = dtfs.get_random_config_download_wait_nsecs()
+      print('Written ', ytchannel.datedpage_filename, ': wait', wait_secs, 'seconds.')
+      time.sleep(wait_secs)
 
 def process():
   downloader = DownloadYtVideoPages()

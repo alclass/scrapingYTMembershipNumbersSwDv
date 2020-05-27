@@ -48,6 +48,11 @@ DATABASE_DICT = {
   }
 }
 
+# Section 5 Time parametes
+# =========================
+DOWNLOAD_WAIT_SECONDS_MIN = 4
+DOWNLOAD_WAIT_SECONDS_MAX = 7
+
 def adhoc_test():
   print (get_ytvideo_htmlfiles_baseabsdir())
   print (get_ytchannels_jsonabspath())

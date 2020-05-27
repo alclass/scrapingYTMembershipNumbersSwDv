@@ -1,14 +1,20 @@
 #!/usr/bin/python3
-import db.insert_update_subscribers as ins
+import datetime
 import scrapeHtmlsMod as scrap
-def insert_day(refdate):
+from db.insert_update_subscribers import SubscriberInsertor
 
-  ins.DailySubscribers
+def insert_day(ytchid, refdate, n_subscribers):
+  insertor = SubscriberInsertor(ytchid, refdate, n_subscribers)
+  print ('dbmodified', insertor.boolean_dbmodified)
 
 def insert():
-  scraper = scrap.HTMLScraper()
-  for id_n_qty_tuple in scraper.id_n_qty_tuplelist:
-    ytchid, nid_n_qty_tuple
+  refdate = datetime.date.today()
+  # refdate = refdate - datetime.timedelta(days=4)
+  scraper = scrap.HTMLScraper(refdate)
+  for i, id_n_qty_tuple in enumerate(scraper.id_n_qty_tuplelist):
+    ytchid, n_subscribers = id_n_qty_tuple
+    print (i+1, 'insert_day:', ytchid, refdate, n_subscribers)
+    insert_day(ytchid, refdate, n_subscribers)
 
 def process():
   insert()

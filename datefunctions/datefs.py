@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 import datetime
+import config
+import random
 
 def get_refdate(p_refdate=None):
   if p_refdate is None or type(p_refdate) != datetime.date:
@@ -27,7 +29,13 @@ def get_refdate_from_strdate(strdate=None):
     pass
   return get_refdate()
 
+def get_random_n_within_interval(n_min, n_max_plus_1):
+  return random.randrange(n_min, n_max_plus_1)
 
+def get_random_config_download_wait_nsecs():
+  n_min = config.DOWNLOAD_WAIT_SECONDS_MIN
+  n_max = config.DOWNLOAD_WAIT_SECONDS_MAX
+  return get_random_n_within_interval(n_min, n_max+1)
 
 def test():
   date_str = get_strdate()
@@ -40,6 +48,10 @@ def test():
 
 def process():
   test()
+  n_wait = get_random_config_nsecs_wait_downloads()
+  print('n_wait',n_wait)
+  n_wait = get_random_config_nsecs_wait_downloads()
+  print('n_wait',n_wait)
 
 if __name__ == '__main__':
   process()
