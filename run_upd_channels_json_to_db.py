@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 Session = sessionmaker(bind=sqlalchemy_engine)
 session = Session()
 
-def insert():
+def insert_or_update_json_to_db():
   reader = readjson.JsonYtChannel()
   n_added = 0
   for channeldict in reader.loopthru():
@@ -19,6 +19,13 @@ def insert():
     ytchid = channeldict['ytchid']
     channel_in_db = session.query(Channel).filter(Channel.ytchannelid==ytchid).first()
     if channel_in_db:
+      if channel_in_db.nname != nname:
+        oldname = channel_in_db.nname
+        channel_in_db.nname = nname
+        print ('Updating', oldname, 'to', nname)
+        session.commit()
+      else:
+        print('Channel ', nname, 'exists.')
       continue
     channel = Channel(ytchannelid=ytchid, nname=nname)
     print ('Adding', channel)
@@ -31,7 +38,7 @@ def insert():
     print('n_added =', n_added, '=> No commits.')
 
 def process():
-  insert()
+  insert_or_update_json_to_db()
 
 if __name__ == '__main__':
   process()

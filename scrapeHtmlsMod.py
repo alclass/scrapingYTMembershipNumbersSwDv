@@ -1,6 +1,7 @@
 #!/usr/bin/python3
-import bs4, collections, json, os, string
+import bs4, collections, json, os, re, string
 import datefunctions.datefs as dtfs
+import textfunctions.regexp_helpers as regexp
 import readHtmlsOnFolder as readmod
 
 SUBSCRIBERS_NUMBER_HTMLCLASSNAME = 'yt-subscription-button-subscriber-count-branded-horizontal'
@@ -8,7 +9,7 @@ SUBSCRIBERS_NUMBER_HTMLCLASSNAME = 'yt-subscription-button-subscriber-count-bran
 <span class="yt-subscription-button-subscriber-count-branded-horizontal subscribed yt-uix-tooltip" 
   title="433 mil" tabindex="0" aria-label="433 mil inscritos">433 mil</span> 
 '''
-SubscribersStatNT = collections.namedtuple('SubscribersStatNT', ['nOfSubscribers', 'strline'])
+# SubscribersStatNT = collections.namedtuple('SubscribersStatNT', ['nOfSubscribers', 'strline'])
 
 def extract_number_from_arialabel(arialabel):
   numberstr = ''
@@ -74,7 +75,11 @@ class HTMLScraper:
       number = extract_number_from_arialabel(arialabel)
       nOfSubscribers = number # even if it's -1 (case it's not found)
     except IndexError:
-      nOfSubscribers = -1
+      pass  # nOfSubscribers = -1
+    nOfSubscribers = regexp.find_nsubscribers_via_regexp(content)
+    if nOfSubscribers < 0:
+      print('Subscribers number not found for', extlessname)
+      return
     ytvideopageobj.nOfSubscribers = nOfSubscribers
     ytvideopageobj.nOfSubscribers_strline = strline
     id_n_qty_tuple = (ytvideopageobj.ytchid, ytvideopageobj.nOfSubscribers)
@@ -85,7 +90,7 @@ class HTMLScraper:
     for i, ytvideopageobj in enumerate(self.reader.ytvideopageobj_list):
       # subsrecord = ytvideopageobj.scrapedrecord
       try:
-        print(i+1, ytvideopageobj.refdate, ytvideopageobj.sname, 'has', ytvideopageobj.nOfSubscribers, ytvideopageobj.nOfSubscribers_strline)
+        print(i+1, ytvideopageobj.refdate, ytvideopageobj.sname, 'has', ytvideopageobj.nOfSubscribers) # , ytvideopageobj.nOfSubscribers_strline)
       except AttributeError:
         print('Missing nOfSubscribers', i + 1, ytvideopageobj.refdate, ytvideopageobj.sname)
         pass
@@ -122,5 +127,6 @@ def process():
   print ('len ytvideopageobj_list =', len(scraper.reader.ytvideopageobj_list))
   print ('len id_n_qty_tuplelist =', len(scraper.id_n_qty_tuplelist))
   print ('len ids_with_subsnumber_not_found =', len(scraper.ids_with_subsnumber_not_found), scraper.ids_with_subsnumber_not_found)
+
 if __name__ == '__main__':
   process()

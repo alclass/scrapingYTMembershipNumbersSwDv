@@ -1,23 +1,40 @@
 #!/usr/bin/python3
-import datetime
-import scrapeHtmlsMod as scrap
 from db.insert_update_subscribers import Session
 from db.models_sqlalchemy import Channel
 from db.models_sqlalchemy import DailySubscribers
 
-def fetch_all_ytchids():
-  session = Session()
-  channels = session.query(Channel).all()
-  for channel in channels:
-    dailysubs = session.query(DailySubscribers).\
-      filter(DailySubscribers.ytchannelid==channel.ytchannelid).all()
-    numbers = {}
-    for dailysub in dailysubs:
-      numbers[dailysub.date.day] = dailysub.subscribers
-    print(channel.nname, numbers)
+class SubscriberDays:
+
+  def __init__(self):
+    self.session = Session()
+    self.fetch_all_ytchids()
+    self.loop_thru_channels()
+
+  def fetch_all_ytchids(self):
+    self.channels = self.session.query(Channel).all()
+    print ('Fetched', len(self.channels), 'channels.')
+
+  def loop_thru_channels(self):
+    for channel in self.channels:
+      self.dailysubs = self.session.query(DailySubscribers).\
+        filter(DailySubscribers.ytchannelid==channel.ytchannelid).all()
+      print('Channel', channel.nname, 'has', len(self.dailysubs), 'daily subscribers records.')
+      if len(self.dailysubs) > 0:
+        self.tabulate_subscribers_per_day(channel)
+
+  def tabulate_subscribers_per_day(self, channel):
+      days_n_subscribers = []
+      for dailysub in self.dailysubs:
+        strmonth = str(dailysub.date.month)
+        strday   = str(dailysub.date.month)
+        mon_day = '%s/%s' %(strmonth, strday)
+        day_n_subscriber_tuple = (mon_day, dailysub.subscribers)
+        days_n_subscribers.append(day_n_subscriber_tuple)
+      days_n_subscribers = sorted(days_n_subscribers, key=lambda x : x[0])
+      print(channel.nname, days_n_subscribers)
 
 def process():
-  fetch_all_ytchids()
+  SubscriberDays()
 
 if __name__ == '__main__':
   process()

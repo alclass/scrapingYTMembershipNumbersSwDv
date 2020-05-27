@@ -36,7 +36,7 @@ class DownloadYtVideoPages:
       fp.write(res.text) # fp.write(str(res.content)) # it was observed that res.text goes UTF8, before res.content went non-UTF8
       fp.close()
       wait_secs = dtfs.get_random_config_download_wait_nsecs()
-      print('Written ', ytchannel.datedpage_filename, ': wait', wait_secs, 'seconds.')
+      print(seq, ' => written ', ytchannel.datedpage_filename, ': wait', wait_secs, 'seconds.')
       time.sleep(wait_secs)
 
 def process():
