@@ -11,6 +11,9 @@ from sqlalchemy.orm import sessionmaker
 Session = sessionmaker(bind=sqlalchemy_engine)
 session = Session()
 
+def process():
+  insert_or_update_json_to_db()
+
 def insert_or_update_json_to_db():
   reader = readjson.JsonYtChannel()
   n_added = 0
@@ -36,9 +39,6 @@ def insert_or_update_json_to_db():
     session.commit()
   else:
     print('n_added =', n_added, '=> No commits.')
-
-def process():
-  insert_or_update_json_to_db()
 
 if __name__ == '__main__':
   process()

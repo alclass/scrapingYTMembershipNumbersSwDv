@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import os
+import datetime, os
 import datefunctions.datefs as dtfs
 import filefunctions.pathfunctions as pathfs
 
@@ -8,7 +8,28 @@ class YtVideosPage:
   def __init__(self, ytchid, nname=None, refdate=None):
     self.ytchid  = ytchid
     self.nname   = nname
+    self._nOfSubscribers = None
     self.refdate = dtfs.get_refdate(refdate)
+
+  @property
+  def nOfSubscribers(self):
+    return self._nOfSubscribers
+
+  @nOfSubscribers.setter
+  def nOfSubscribers(self, n):
+    if n is None:
+      return
+    self._nOfSubscribers = n
+
+  def has_nOfSubscribers_been_set(self):
+    if self._nOfSubscribers is not None:
+      return True
+    return False
+
+  def is_nOfSubscribers_known(self):
+    if self._nOfSubscribers is not None and self._nOfSubscribers != -1:
+      return True
+    return False
 
   @property
   def sname(self):
@@ -44,23 +65,48 @@ class YtVideosPage:
     return os.path.join(abspath, filename)
 
   def get_html_text(self):
-    return open(self.ytvideospagefile_abspath).read()
+    try:
+      fp = open(self.ytvideospagefile_abspath, 'r', encoding='utf8')
+      return fp.read()
+    except OSError:
+      pass
+    return None
+
+  def get_htmltext_truncated(self, uptochar=50):
+    htmltrun = self.get_html_text()
+    if htmltrun is not None:
+      if len(htmltrun) > uptochar:
+        htmltrun = htmltrun[:uptochar]
+    else:
+      htmltrun = '[htmltext not found]'
+    return htmltrun
 
   def __str__(self):
+    htmltrun = self.get_htmltext_truncated(100)
     outdict = {
-      'ytchid':self.ytchid,'nname':self.nname,'sname':self.sname,
-      'filename':self.ytvideospagefilename, 'strdate': self.strdate
+      'ytchid'  :self.ytchid,'nname':self.nname,'sname':self.sname,
+      'filename':self.ytvideospagefilename,
+      'ytvideospagefile_abspath':self.ytvideospagefile_abspath,
+      'htmltrun': htmltrun,
+      'strdate' : self.strdate
     }
     outstr = '''YtVideosPage:
   ytchid   = %(ytchid)s
   nname    = %(nname)s
   sname    = %(sname)s
   filename = %(filename)s
+  abspath  = %(ytvideospagefile_abspath)s
+  htmltrun = %(htmltrun)s
   refdate = %(strdate)s
     ''' %outdict
     return outstr
 
 def adhoc_test():
+  refdate = datetime.date(2020, 5, 27)
+  ytchid = 'ubrunojonssen'
+  nname = 'Bruno Jonssen'
+  ytvideohtmlpage = YtVideosPage(ytchid, nname, refdate)
+  print ('ytvideohtmlpage', ytvideohtmlpage)
   pass
 
 def process():

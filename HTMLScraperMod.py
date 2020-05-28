@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import bs4, os
+import bs4, datetime, os
 import textfunctions.regexp_helpers as regexp
 from YtVideosPageMod import YtVideosPage
 
@@ -40,10 +40,22 @@ def extract_number_from_known_pieces(phrase):
 
 class GoParser:
 
-  def __init__(self, bsoup):
-    self.bsoup = bsoup  # bsoup is a Beautiful Soup object with the whole html in it
-    self.subscribersnumber = None
+  def __init__(self, content):
+    self.parse_has_run = False
+    self.content = content
+    self._subscribersnumber = None
     self.goparse()
+    self.parse_has_run = True
+
+  @property
+  def subscribersnumber(self):
+    if self.parse_has_run:
+      return self._subscribersnumber
+    if self.content is None:
+      return -1
+    if self._subscribersnumber is None:
+      self.goparse()
+    return self._subscribersnumber
 
   def goparse(self):
     '''
@@ -51,7 +63,7 @@ class GoParser:
     :return:
     '''
     self.try_approch_1_span_n_class()
-    if self.subscribersnumber is None:
+    if self._subscribersnumber is None:
       self.try_approch_2_id_subscriber_count()
 
   def try_approch_1_span_n_class(self):
@@ -59,28 +71,31 @@ class GoParser:
 
     :return:
     '''
-    result = self.bsoup.find('span', attrs={'class': SUBSCRIBERS_NUMBER_HTMLCLASSNAME})
+    bsoup = bs4.BeautifulSoup(self.content, 'html.parser')
+    result = bsoup.find('span', attrs={'class': SUBSCRIBERS_NUMBER_HTMLCLASSNAME})
     if result is None:
+      self._subscribersnumber = None
       return
+    # print ('=> RESULT', result.text)
     phrase = result.text
-    number = extract_number_from_known_pieces(phrase)
-    if number is None:
+    number = regexp.find_nsubscribers_via_two_words(phrase) # eg x mil
+    # number = extract_number_from_known_pieces(phrase)
+    if number is None or number == -1:
+      self._subscribersnumber = None
       return
-    self.subscribersnumber = number
+    self._subscribersnumber = number
 
   def try_approch_2_id_subscriber_count(self):
     '''
 
     :return:
     '''
-    result = self.bsoup.find('yt-formatted-string', attrs={'id': 'subscriber-count'})
-    if result is None:
-      return
-    phrase = result.text
-    number = extract_number_from_known_pieces(phrase)
+    number = regexp.find_nsubscribers_via_either_re_or_find(self.content)
     if number is None:
+      self._subscribersnumber = -1
       return
-    self.subscribersnumber = number
+    # it can be -1 from here (which means number was not found)
+    self._subscribersnumber = number
 
 class HTMLScraper:
 
@@ -95,16 +110,12 @@ class HTMLScraper:
     sname   = self.ytvideopageobj.sname
     content = self.ytvideopageobj.get_html_text()
     extlessname = os.path.splitext(htmlfilename)[0]
-    bsoup = bs4.BeautifulSoup(content, 'html.parser')
-    goparser = GoParser(bsoup)
+    goparser = GoParser(content)
     if goparser.subscribersnumber is None:
       print('Subscribers number not found for', extlessname)
       #self.ids_with_subsnumber_not_found.append(sname)
       return
     self.ytvideopageobj.nOfSubscribers = goparser.subscribersnumber
-    id_n_qty_tuple = (self.ytvideopageobj.ytchid, self.ytvideopageobj.nOfSubscribers)
-    self.ytvideopageobj.id_n_qty_tuplelist.append(id_n_qty_tuple)
-
 
   def scrape_individual_video_views(self, htmlfilename, content):
     '''
@@ -121,16 +132,45 @@ class HTMLScraper:
       print('Subscribers number not found for', extlessname)
       return
 
+  def __str__(self):
+    nOfSubscribers = self.ytvideopageobj.nOfSubscribers
+    outstr = '''
+    ytvideopageobj = %(ytvideopageobj)s
+    nOfSubscribers = %(nOfSubscribers)d 
+    ''' %{'ytvideopageobj': self.ytvideopageobj, 'nOfSubscribers':nOfSubscribers}
+    return outstr
+
 def adhoc_test():
-  # refdate = datetime.date(2020,5,26)
-  # scraper = HTMLScraper(refdate)
-
-  ytchid = 'ubrunojonssen'
-  nname = 'Bruno Jonssen'
-  ytvideopagesobj = YtVideosPage(ytchid, nname) # refdate
-
-  scraper = HTMLScraper(ytvideopagesobj)
-  print(scraper)
+  # 1
+  seq = 1
+  print('Test', seq)
+  print('-'*50)
+  ytchid  = 'ubrunojonssen'
+  nname   = 'Bruno Jonssen'
+  refdate = datetime.date(2020, 5, 27)
+  ytvideopagesobj = YtVideosPage(ytchid, nname, refdate)
+  htmlscraper = HTMLScraper(ytvideopagesobj)
+  print(htmlscraper)
+# 2
+  seq += 1
+  print('Test', seq)
+  print('-' * 50)
+  ytchid  = 'ubrunojonssen'
+  nname   = 'Bruno Jonssen'
+  refdate = datetime.date(2020, 5, 28)
+  ytvideopagesobj = YtVideosPage(ytchid, nname, refdate)
+  htmlscraper = HTMLScraper(ytvideopagesobj)
+  print(htmlscraper)
+# 3
+  seq += 1
+  print('Test', seq)
+  print('-' * 50)
+  ytchid  = 'upgjr23'
+  nname   = 'Paulo Ghiraldelli'
+  refdate = datetime.date(2020, 5, 28)
+  ytvideopagesobj = YtVideosPage(ytchid, nname, refdate)
+  htmlscraper = HTMLScraper(ytvideopagesobj)
+  print(htmlscraper)
 
 def process():
   adhoc_test()

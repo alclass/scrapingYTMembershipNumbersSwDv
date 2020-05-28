@@ -24,7 +24,7 @@ class SubscribersScraperToDB:
       self.refdate = self.refdate - datetime.timedelta(days=n_of_days_before)
 
   def insert(self):
-    scraper = scrap.HTMLScraper(self.refdate)
+    scraper = scrap.DateFolderScraper(self.refdate)
     for i, id_n_qty_tuple in enumerate(scraper.id_n_qty_tuplelist):
       ytchid, n_subscribers = id_n_qty_tuple
       print (i+1, 'insert_day:', ytchid, n_subscribers) # refdate is an instance var (self)

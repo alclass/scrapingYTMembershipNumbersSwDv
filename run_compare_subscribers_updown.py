@@ -26,8 +26,8 @@ class SubscriberDays:
       days_n_subscribers = []
       for dailysub in self.dailysubs:
         strmonth = str(dailysub.date.month)
-        strday   = str(dailysub.date.month)
-        mon_day = '%s/%s' %(strmonth, strday)
+        strday   = str(dailysub.date.day)
+        mon_day = '%s/%s' %(strday, strmonth)
         day_n_subscriber_tuple = (mon_day, dailysub.subscribers)
         days_n_subscribers.append(day_n_subscriber_tuple)
       days_n_subscribers = sorted(days_n_subscribers, key=lambda x : x[0])

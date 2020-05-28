@@ -25,16 +25,17 @@ class DateFolderScraper:
     for ytvideopagesobj in self.reader.ytvideopageobj_list:
       self.counter += 1
       scraper = HTMLScraper(ytvideopagesobj)
+      qty = scraper.ytvideopageobj.nOfSubscribers
+      ytchid = scraper.ytvideopageobj.ytchid
+      tupl = (ytchid, qty)
+      self.id_n_qty_tuplelist.append(tupl)
 
   def print_scraping_results(self):
     # for i, subsrecord in enumerate(self.scrapingResuls):
     for i, ytvideopageobj in enumerate(self.reader.ytvideopageobj_list):
       # subsrecord = ytvideopageobj.scrapedrecord
-      try:
-        print(i+1, ytvideopageobj.refdate, ytvideopageobj.sname, 'has', ytvideopageobj.nOfSubscribers) # , ytvideopageobj.nOfSubscribers_strline)
-      except AttributeError:
-        print('Missing nOfSubscribers', i + 1, ytvideopageobj.refdate, ytvideopageobj.sname)
-        pass
+      print(i+1, ytvideopageobj.refdate, ytvideopageobj.sname, 'has', ytvideopageobj.nOfSubscribers)
+
 
   def saveJson(self):
     outlist = []
