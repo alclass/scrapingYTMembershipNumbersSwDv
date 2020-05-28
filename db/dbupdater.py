@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import datetime
-from scrapeHtmlsMod import HTMLScraper
+from DateFolderScraperMod import HTMLScraper
 
 class DBWriter:
 

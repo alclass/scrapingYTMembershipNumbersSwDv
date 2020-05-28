@@ -7,7 +7,7 @@
   will scrape the day before yesterday if its related folder exists.
 '''
 import datetime, sys
-import scrapeHtmlsMod as scrap
+import DateFolderScraperMod as scrap
 from db.insert_update_subscribers import SubscriberInsertor
 
 class SubscribersScraperToDB:
