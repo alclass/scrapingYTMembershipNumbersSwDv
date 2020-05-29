@@ -4,5 +4,5 @@ venv/
 config.py
 */*.bak
 */*.html
+**/*.png
 **/*.pyc
-

@@ -8,13 +8,14 @@ class SubscriberDays:
   def __init__(self):
     self.days_n_subscribers = []
     self.session = Session()
-    self.channels = self.session.query(Channel).all()
+    self.channels = self.session.query(Channel).order_by(Channel.nname).all()
     self.loop_thru_channels()
 
   def loop_thru_channels(self):
     for channel in self.channels:
       self.dailysubs = self.session.query(DailySubscribers).\
-        filter(DailySubscribers.ytchannelid==channel.ytchannelid).all()
+        filter(DailySubscribers.ytchannelid==channel.ytchannelid).\
+        order_by(DailySubscribers.date).all()
       # print('Channel', channel.nname, 'has', len(self.dailysubs), 'daily subscribers records.')
       if len(self.dailysubs) > 0:
         self.tabulate_subscribers_per_day(channel)

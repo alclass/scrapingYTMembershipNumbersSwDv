@@ -56,7 +56,18 @@ class YtVideosPage:
       if filename is None:
         error_msg = 'Could not establish filename for ' + str(self)
         raise OSError(error_msg)
+      return filename
     return pathfs.datedpage_filename(self.strdate, self.nname, self.ytchid)
+
+  def get_statistic_fig_imgsrc_uptodate(self, ext='png'):
+    htmlfilename = self.ytvideospagefilename
+    name, _ = os.path.splitext(htmlfilename)
+    imagefilename = name + '.' + ext
+    return imagefilename
+
+  @property
+  def statimgfn(self):
+    return self.get_statistic_fig_imgsrc_uptodate()
 
   @property
   def ytvideospagefile_abspath(self):
@@ -87,6 +98,7 @@ class YtVideosPage:
       'ytchid'  :self.ytchid,'nname':self.nname,'sname':self.sname,
       'filename':self.ytvideospagefilename,
       'ytvideospagefile_abspath':self.ytvideospagefile_abspath,
+      'statimgfn': self.statimgfn,
       'htmltrun': htmltrun,
       'strdate' : self.strdate
     }
@@ -96,6 +108,7 @@ class YtVideosPage:
   sname    = %(sname)s
   filename = %(filename)s
   abspath  = %(ytvideospagefile_abspath)s
+  statimgfn= %(statimgfn)s 
   htmltrun = %(htmltrun)s
   refdate = %(strdate)s
     ''' %outdict
