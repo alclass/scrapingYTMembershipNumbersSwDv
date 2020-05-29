@@ -6,19 +6,16 @@ from db.models_sqlalchemy import DailySubscribers
 class SubscriberDays:
 
   def __init__(self):
+    self.days_n_subscribers = []
     self.session = Session()
-    self.fetch_all_ytchids()
-    self.loop_thru_channels()
-
-  def fetch_all_ytchids(self):
     self.channels = self.session.query(Channel).all()
-    print ('Fetched', len(self.channels), 'channels.')
+    self.loop_thru_channels()
 
   def loop_thru_channels(self):
     for channel in self.channels:
       self.dailysubs = self.session.query(DailySubscribers).\
         filter(DailySubscribers.ytchannelid==channel.ytchannelid).all()
-      print('Channel', channel.nname, 'has', len(self.dailysubs), 'daily subscribers records.')
+      # print('Channel', channel.nname, 'has', len(self.dailysubs), 'daily subscribers records.')
       if len(self.dailysubs) > 0:
         self.tabulate_subscribers_per_day(channel)
 
@@ -31,10 +28,34 @@ class SubscriberDays:
         day_n_subscriber_tuple = (mon_day, dailysub.subscribers)
         days_n_subscribers.append(day_n_subscriber_tuple)
       days_n_subscribers = sorted(days_n_subscribers, key=lambda x : x[0])
-      print(channel.nname, days_n_subscribers)
+      channel.days_n_subscribers = days_n_subscribers
+
+  def print_days_n_subscribers_per_channel(self):
+    print ('Fetched', len(self.channels), 'channels.')
+    print('-'*50)
+    for i, channel in enumerate(self.channels):
+      quantlist = list(map(lambda x: x[1], channel.days_n_subscribers))
+      mini, maxi, diff, delt = calc_min_max_dif_del(quantlist)
+      seq = i+1
+      print(seq, channel.nname, len(channel.days_n_subscribers), channel.days_n_subscribers, mini, maxi, diff, delt)
+
+def calc_min_max_dif_del(alist):
+  if alist is None or len(alist) == 0:
+    return (0, 0, 0, 0)
+  mini = 1000 ** 4;   maxi = -1
+  first = alist[0];   last = alist[-1]
+  delt = last - first
+  for n in alist:
+    if n > maxi:
+      maxi = n
+    if n < mini:
+      mini = n
+  diff = maxi - mini
+  return (mini, maxi, diff, delt)
 
 def process():
-  SubscriberDays()
+  sd = SubscriberDays()
+  sd.print_days_n_subscribers_per_channel()
 
 if __name__ == '__main__':
   process()
