@@ -1,8 +1,8 @@
 #!/usr/bin/python3
-import datetime, os, re
-import datefunctions.datefs as dtfs
-import filefunctions.pathfunctions as pathfs
-from YtVideosPageMod import YtVideosPage
+import datetime, os
+import fs.datefunctions.datefs as dtfs
+import fs.filefunctions.pathfunctions as pathfs
+from models.YtVideosPageMod import YtVideosPage
 
 class YtVideoPagesTraversal:
 

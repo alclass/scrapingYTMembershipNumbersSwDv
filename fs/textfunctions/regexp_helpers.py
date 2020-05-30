@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-import re, string
-import textfunctions.scraper_helpers as scraphlp
+import re
+import fs.textfunctions.scraper_helpers as scraphlp
 
 # regexp_str = r'\{\"text\"\:\s\"(\d+)[\s](\S+)[\s]inscritos\"\}'
 regexp_str = r'(\d+[\,|\.]*[\d+]*.\S*)\"\}' # inscritos

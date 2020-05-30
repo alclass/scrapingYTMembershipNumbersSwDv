@@ -1,14 +1,16 @@
 #!/usr/bin/python3
-from db.insert_update_subscribers import Session
-from db.models_sqlalchemy import Channel
-from db.models_sqlalchemy import DailySubscribers
+from fs.db.SubscriberInsertorMod import Session
+from fs.db.models_sqlalchemy import Channel
+from fs.db.models_sqlalchemy import DailySubscribers
+from models.YtVideosPageMod import transpose_sqlalchs_to_ytvideopages
 
 class SubscriberDays:
 
   def __init__(self):
     self.days_n_subscribers = []
     self.session = Session()
-    self.channels = self.session.query(Channel).order_by(Channel.nname).all()
+    channels = self.session.query(Channel).order_by(Channel.nname).all()
+    self.channels = transpose_sqlalchs_to_ytvideopages(channels)
     self.loop_thru_channels()
 
   def loop_thru_channels(self):
@@ -35,6 +37,8 @@ class SubscriberDays:
     print ('Fetched', len(self.channels), 'channels.')
     print('-'*50)
     for i, channel in enumerate(self.channels):
+      if channel.days_n_subscribers is None:
+        continue
       quantlist = list(map(lambda x: x[1], channel.days_n_subscribers))
       mini, maxi, diff, delt = calc_min_max_dif_del(quantlist)
       seq = i+1

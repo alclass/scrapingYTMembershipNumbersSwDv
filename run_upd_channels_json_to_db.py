@@ -1,12 +1,9 @@
 #!/usr/bin/python3
-import json, os
-import config
-import filefunctions.pathfunctions as pathfs
 # from YtChannelMod import YtChannel
 import readjson
-from db.models_sqlalchemy import Channel
+from fs.db.models_sqlalchemy import Channel
 
-from db.sqlalchemy_conn import sqlalchemy_engine
+from fs.db.sqlalchemy_conn import sqlalchemy_engine
 from sqlalchemy.orm import sessionmaker
 Session = sessionmaker(bind=sqlalchemy_engine)
 session = Session()
@@ -19,7 +16,7 @@ def insert_or_update_json_to_db():
   n_added = 0
   for channeldict in reader.loopthru():
     nname = channeldict['nname']
-    ytchid = channeldict['ytchid']
+    ytchid = channeldict['ytchannelid']
     channel_in_db = session.query(Channel).filter(Channel.ytchannelid==ytchid).first()
     if channel_in_db:
       if channel_in_db.nname != nname:

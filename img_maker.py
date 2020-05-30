@@ -1,8 +1,4 @@
 #!/usr/bin/python3
-import datetime, os
-import datefunctions.datefs as dtfs
-import filefunctions.pathfunctions as pathfs
-import matplotlib.pyplot as plt
 
 class ImgMaker:
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import json
-import datefunctions.datefs as dtfs
+import fs.datefunctions.datefs as dtfs
 import readHtmlsOnFolder as readmod
 from HTMLScraperMod import HTMLScraper
 
@@ -26,7 +26,7 @@ class DateFolderScraper:
       self.counter += 1
       scraper = HTMLScraper(ytvideopagesobj)
       qty = scraper.ytvideopageobj.nOfSubscribers
-      ytchid = scraper.ytvideopageobj.ytchid
+      ytchid = scraper.ytvideopageobj.ytchannelid
       tupl = (ytchid, qty)
       self.id_n_qty_tuplelist.append(tupl)
 
@@ -34,8 +34,13 @@ class DateFolderScraper:
     # for i, subsrecord in enumerate(self.scrapingResuls):
     for i, ytvideopageobj in enumerate(self.reader.ytvideopageobj_list):
       # subsrecord = ytvideopageobj.scrapedrecord
-      print(i+1, ytvideopageobj.refdate, ytvideopageobj.sname, 'has', ytvideopageobj.nOfSubscribers)
-
+      quant = ytvideopageobj.nOfSubscribers
+      print(i+1, ytvideopageobj.refdate, ytvideopageobj.sname, 'has', quant)
+      if quant < 1:
+        outmsg = '''
+        >>>>>>>>>>> %d <<<<<<<<<<<<<
+        ''' %quant
+        print (outmsg)
 
   def saveJson(self):
     outlist = []
@@ -51,11 +56,11 @@ class DateFolderScraper:
 def process():
   #refdate = datetime.date(2020,5,26)
   #scraper = HTMLScraper(refdate)
-  scraper = DateFolderScraper()
-  scraper.print_scraping_results()
-  print ('len ytvideopageobj_list =', len(scraper.reader.ytvideopageobj_list))
-  print ('len id_n_qty_tuplelist =', len(scraper.id_n_qty_tuplelist))
-  print ('len ids_with_subsnumber_not_found =', len(scraper.ids_with_subsnumber_not_found), scraper.ids_with_subsnumber_not_found)
+  datescraper = DateFolderScraper()
+  datescraper.print_scraping_results()
+  print ('len ytvideopageobj_list =', len(datescraper.reader.ytvideopageobj_list))
+  print ('len id_n_qty_tuplelist =', len(datescraper.id_n_qty_tuplelist))
+  # print ('len ids_with_subsnumber_not_found =', len(datescraper.ids_with_subsnumber_not_found), scraper.ids_with_subsnumber_not_found)
 
 if __name__ == '__main__':
   process()

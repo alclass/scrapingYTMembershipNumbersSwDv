@@ -1,8 +1,9 @@
 #!/usr/bin/python3
-import json, os
+import json
 import config
-import filefunctions.pathfunctions as pathfs
-# from YtChannelMod import YtChannel
+import fs.filefunctions.pathfunctions as pathfs
+
+JSON_KEY_FOR_YTCHANNELID = 'ytchid'
 
 class JsonYtChannel:
 
@@ -26,13 +27,13 @@ class JsonYtChannel:
       self.nnames_set.add(nname)
       channeldict = {}
       channeldict['nname'] = nname
-      ytchid = d['ytchid']
+      ytchid = d[JSON_KEY_FOR_YTCHANNELID]
       if ytchid is None or len(ytchid) < 2: # at least 'u1'
         continue
       elif '/' in ytchid:
-        error_msg = 'ytchid has a forward slash (/)'
+        error_msg = 'ytchannelid has a forward slash (/)'
         raise ValueError(error_msg)
-      channeldict['ytchid'] = ytchid
+      channeldict['ytchannelid'] = ytchid
       self.channelsdata.append(channeldict)
       # print(i+1, '=>', channeldict)
 
@@ -45,7 +46,7 @@ def process():
   channels = JsonYtChannel()
   for channeldictitem in channels.loopthru():
     nname = channeldictitem['nname']
-    ytchid = channeldictitem['ytchid']
+    ytchid = channeldictitem['ytchannelid']
     url = pathfs.get_ytchannelvideospage_url_from_ytchid(ytchid)
     channeldict[nname] = url
   nnames = channeldict.keys()

@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 import os, requests, time
 import readjson
-import YtChannelMod
-import datefunctions.datefs as dtfs
+import models.YtVideosPageMod as ytvidpagesmod
+import fs.datefunctions.datefs as dtfs
 
 class DownloadYtVideoPages:
 
@@ -15,8 +15,8 @@ class DownloadYtVideoPages:
     channelsdatareader = readjson.JsonYtChannel()
     for channeldict in channelsdatareader.loopthru():
       nname  = channeldict['nname']
-      ytchid = channeldict['ytchid']
-      ytchannel = YtChannelMod.YtChannel(ytchid, nname)
+      ytchid = channeldict['ytchannelid']
+      ytchannel = ytvidpagesmod.YtVideosPage(ytchid, nname)
       self.ytchannels.append(ytchannel)
 
   def download_ytvideopages(self):

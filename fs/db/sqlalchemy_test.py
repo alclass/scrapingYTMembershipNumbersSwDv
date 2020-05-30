@@ -33,7 +33,7 @@ class Channel(Base):
   obs = Column(String)
 
   def __repr__(self):
-    return '<Channel(nname="%s", ytchid="%s")>' %(self.nname, self.ytchannelid)
+    return '<Channel(nname="%s", ytchannelid="%s")>' %(self.nname, self.ytchannelid)
 
 channel_ghira = Channel(ytchannelid='upgjr23', nname="Paulo Ghiraldelli")
 print (channel_ghira)
@@ -49,7 +49,7 @@ class DailySubscribers(Base):
   ytchannel = relationship('Channel')
 
   def __repr__(self):
-    return '<DailySubscribers(ytchid="%s", subscribers=%d, date="%s")>' % (self.ytchannelid, self.subscribers, str(self.date))
+    return '<DailySubscribers(ytchannelid="%s", subscribers=%d, date="%s")>' % (self.ytchannelid, self.subscribers, str(self.date))
 
 daily19 = DailySubscribers(ytchannel=channel_ghira, subscribers=40, date='2020-05-19')
 daily20 = DailySubscribers(ytchannel=channel_ghira, subscribers=40, date='2020-05-20')

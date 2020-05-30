@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import datetime, os, re
-import datefunctions.datefs as dtfs
+import fs.datefunctions.datefs as dtfs
 
 import config
 

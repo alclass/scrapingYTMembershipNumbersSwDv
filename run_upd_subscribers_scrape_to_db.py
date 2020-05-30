@@ -8,12 +8,15 @@
 '''
 import datetime, sys
 import DateFolderScraperMod as scrap
-from db.insert_update_subscribers import SubscriberInsertor
+from fs.db.SubscriberInsertorMod import SubscriberInsertor
 
 class SubscribersScraperToDB:
 
   def __init__(self, n_of_days_before=None):
     self.refdate = datetime.date.today()
+    self.modified_processed = 0
+    self.channel_with_no_n_subscribers = 0
+    self.total_lookedup = 0
     self.ajust_refdate_if_need(n_of_days_before)
     self.insert()
 
@@ -31,8 +34,25 @@ class SubscribersScraperToDB:
       self.insert_day(ytchid, n_subscribers)
 
   def insert_day(self, ytchid, n_subscribers):
+    # TO-DO : log in file when a n_subscribers < 0 (or = -1) happens
+    self.total_lookedup += 1
+    if n_subscribers < 0:
+      self.channel_with_no_n_subscribers += 1
+      print (self.channel_with_no_n_subscribers, 'n_subscribers < 0 (or = -1) happened =>' , ytchid, n_subscribers)
+      return
     insertor = SubscriberInsertor(ytchid, self.refdate, n_subscribers)
-    print('dbmodified', insertor.boolean_dbmodified)
+    if insertor.boolean_dbmodified:
+      self.modified_processed += 1
+    print(self.modified_processed, 'dbmodified', insertor.boolean_dbmodified)
+
+  def report(self):
+    outstr = '''
+  Report:
+    modified_processed =  %d
+    channel_with_no_n_subscribers = %d 
+    total_lookedup = %d
+    ''' %(self.modified_processed, self.channel_with_no_n_subscribers, self.total_lookedup)
+    print (outstr)
 
 def show_help_n_exit():
   print (__doc__)
@@ -55,7 +75,8 @@ def get_args():
 
 def process():
   n_days_before = get_args()
-  SubscribersScraperToDB(n_days_before)
+  subs_s2db_o = SubscribersScraperToDB(n_days_before)
+  subs_s2db_o.report()
 
 if __name__ == '__main__':
   process()
