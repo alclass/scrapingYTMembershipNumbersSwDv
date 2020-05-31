@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """
 https://matplotlib.org/3.2.1/gallery/statistics/histogram_features.html
 
@@ -20,8 +21,6 @@ parameters.
 
 .. _section: http://docs.astropy.org/en/stable/visualization/histogram.html
 """
-
-import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -50,7 +49,7 @@ ax.set_title(r'Histogram of IQ: $\mu=100$, $\sigma=15$')
 # Tweak spacing to prevent clipping of ylabel
 fig.tight_layout()
 fig.savefig("ex2_mpl_histogram_features.png")
-# plt.show()
+plt.show()
 '''
 #############################################################################
 #

@@ -5,7 +5,9 @@ from sqlalchemy import Column, Integer, String, Date, ForeignKey
 from sqlalchemy.orm import relationship
 
 class Channel(Base):
-
+  '''
+  Channel class to channels sql-table
+  '''
   __tablename__ = 'channels'
   id = Column(Integer, primary_key=True)
   ytchannelid = Column(String, unique=True)
@@ -16,7 +18,9 @@ class Channel(Base):
     return '<Channel(ytchannelid="%s", nname="%s")>' %(self.ytchannelid, self.nname)
 
 class DailySubscribers(Base):
-
+  '''
+  DailySubscribers class to dailychannelsubscribernumbers sql-table
+  '''
   __tablename__ = 'dailychannelsubscribernumbers'
   id = Column(Integer, primary_key=True)
   subscribers = Column(Integer)
@@ -29,6 +33,10 @@ class DailySubscribers(Base):
     return '<DailySubscribers(ytchannelid="%s", date="%s". subscribers=%d)>' % (self.ytchannelid, str(self.date), self.subscribers)
 
 def test():
+  '''
+  This test does not take a Session object so it does not record to db
+  :return:
+  '''
   test_channel = Channel(ytchannelid='upgjr23', nname="Ghiraldelli Louco")
   print('test_channel', test_channel)
   daily19 = DailySubscribers(subscribers=40, date='2020-05-19', ytchannel=test_channel)

@@ -13,8 +13,13 @@ def ex1():
        title='About as simple as it gets, folks')
   ax.grid()
 
-  fig.savefig("ex1.png")
-  # plt.show()
+  filename = "ex1.png"
+  print('Saving matplotlib graphic', filename)
+  fig.savefig(filename)
+  plt.show() # show() works in Ubuntu 18.04 but it seems not to work in Ubuntu 20.04
 
+def process():
+  ex1()
 
-def ex2():
+if __name__ == '__main__':
+  process()
