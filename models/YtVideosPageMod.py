@@ -117,10 +117,6 @@ class YtVideosPage:
     return murl
 
   @property
-  def strdate(self):
-    return dtfs.get_strdate(self.refdate)
-
-  @property
   def absfolderpath(self):
     return pathfs.get_datebased_ythtmlfiles_folderabspath(self.refdate)
 

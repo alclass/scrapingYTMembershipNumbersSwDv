@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 import datetime, os
 import run_compare_subscribers_updown as comp
+import fs.statfunctions.statisticsMod as statmod
+import fs.db.SubscriberDaysMod as subsmod
 
 def recompose_date(strdaymonth):
   pp = strdaymonth.split('/')
@@ -12,7 +14,7 @@ def make_statistic_fig_imgsrc_uptodate(days_n_subscribers):
 
 class HtmlMaker:
   def __init__(self):
-    self.comparator = comp.SubscriberDays()
+    self.comparator = subsmod.SubscriberDays()
     self.make_htmltop()
     self.make_htmlbody()
     self.make_htmlbottom()
@@ -32,7 +34,15 @@ class HtmlMaker:
       make_statistic_fig_imgsrc_uptodate(channel.days_n_subscribers)
       refdate = recompose_date(dates[-1])
       blah = 'blah'
-      self.html += '<img src="%s"><br>\n' %blah # %channel.get_statistic_fig_imgsrc_uptodate(refdate)
+      subcribers_list = map(lambda x : x[1], channel.days_n_subscribers)
+      subcribers_list = list(subcribers_list)
+      mini, maxi, diff, delt = statmod.calc_min_max_dif_del(subcribers_list)
+      # self.html += '<img src="%s"><br>\n' %blah # %channel.get_statistic_fig_imgsrc_uptodate(refdate)
+      self.html += '<table>'
+      self.html += '<tr><th>min</th><th>max</th><th>dif</th><th>del</th></tr>\n'
+      self.html += '<tr><td>%d</td><td>%d</td><td>%d</td><td>%d</td></tr>\n' \
+        %(mini, maxi, diff, delt)
+      self.html += '</table><br>\n'
 
   def make_htmlbottom(self):
     self.html += '''
