@@ -94,6 +94,11 @@ def get_fileabspath_ontopof_basedir_ifexists(filename):
     return None
   return fileabspath
 
+STATICHTML_FOLDERNAME = 'ytchannels_statichtml'
+def get_statichtml_folderabspath():
+  baseabspath = config.get_ytvideo_htmlfiles_baseabsdir()
+  return os.path.join(baseabspath, STATICHTML_FOLDERNAME)
+
 def adhoc_test():
   result = get_fileabspath_ontopof_basedir('test.txt')
   print (result)

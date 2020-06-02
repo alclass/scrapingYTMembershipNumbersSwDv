@@ -21,27 +21,31 @@ def normalize(n_subscribers):
 
 def save_graphic_to_folder(ytvideospage):
   days = list(map(lambda x : x[0], ytvideospage.days_n_subscribers))
+  days = list(map(lambda x : x.split('-')[-1], days))
   n_subscribers = list(map(lambda x : x[1], ytvideospage.days_n_subscribers))
-  n_subscribers_norm, basemin = normalize(n_subscribers)
+  # n_subscribers_norm, basemin = normalize(n_subscribers)
   y_pos = np.arange(len(days))
 
-  plt.bar(y_pos, n_subscribers_norm, align='center', alpha=0.5)
-  fig, _ = plt.subplots()
+  plt.clf()
+  plt.bar(y_pos, n_subscribers, align='center', alpha=0.5)
+  # fig, _ = plt.subplots()
   plt.xticks(y_pos, days)
   plt.ylabel('N de Inscritos')
   plt.title('Inscritos Dia a Dia')
-
-  fig.savefig('henry.png')
-  plt.show()
+  pngfile_abspath = ytvideospage.barchartpngfile_abspath
+  print ('pngfile_abspath', pngfile_abspath)
+  plt.savefig(pngfile_abspath)
+  # plt.show()
 
 def generate_figure():
   session = Session()
-  channel = session.query(Channel).filter(Channel.nname.contains('Henry')).first()
-  if channel is None:
-    return
-  ytvideospage = YtVideosPage(channel.ytchannelid, channel.nname)
-  subsmod.SubscriberDayForChannel(ytvideospage)
-  save_graphic_to_folder(ytvideospage)
+  channels = session.query(Channel).order_by(Channel.nname).all()
+  for i, channel in enumerate(channels):
+    ytvideospage = YtVideosPage(channel.ytchannelid, channel.nname)
+    subsmod.SubscriberDayForChannel(ytvideospage)
+    seq = i + 1
+    print (seq, 'Saving png for', channel.nname)
+    save_graphic_to_folder(ytvideospage)
   session.close()
 
 def process():

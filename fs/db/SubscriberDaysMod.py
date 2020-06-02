@@ -24,10 +24,8 @@ class SubscriberDayForChannel:
   def tabulate_subscribers_per_day(self, dailysubs):
     days_n_subscribers = []
     for dailysub in dailysubs:
-      strmonth = str(dailysub.date.month)
-      strday = str(dailysub.date.day)
-      mon_day = '%s/%s' % (strday, strmonth)
-      day_n_subscriber_tuple = (mon_day, dailysub.subscribers)
+      strdate = str(dailysub.date)
+      day_n_subscriber_tuple = (strdate, dailysub.subscribers)
       days_n_subscribers.append(day_n_subscriber_tuple)
     days_n_subscribers = sorted(days_n_subscribers, key=lambda x: x[0])
     self.channel.days_n_subscribers = days_n_subscribers

@@ -2,6 +2,7 @@
 import datetime, os
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.pathfunctions as pathfs
+import config
 
 class YtVideosPage:
 
@@ -73,16 +74,6 @@ class YtVideosPage:
       return filename
     return pathfs.datedpage_filename(self.strdate, self.nname, self.ytchannelid)
 
-  def get_statistic_fig_imgsrc_uptodate(self, ext='png'):
-    htmlfilename = self.ytvideospagefilename
-    name, _ = os.path.splitext(htmlfilename)
-    imagefilename = name + '.' + ext
-    return imagefilename
-
-  @property
-  def statimgfn(self):
-    return self.get_statistic_fig_imgsrc_uptodate()
-
   @property
   def ytvideospagefile_abspath(self):
     abspath = pathfs.get_datebased_ythtmlfiles_folderabspath(self.refdate)
@@ -138,6 +129,26 @@ class YtVideosPage:
   def videospageurl(self):
     ytvideosurl = pathfs.get_ytchannelvideospage_url_from_murl(self.murl)
     return ytvideosurl
+
+  def get_dated_stat_fig_imgsrc_uptodate(self, ext='png'):
+    htmlfilename = self.ytvideospagefilename
+    name, _ = os.path.splitext(htmlfilename)
+    imagefilename = name + '.' + ext
+    return imagefilename
+
+  @property
+  def png_filename(self):
+    return '%s.png' %self.ytchannelid
+
+  @property
+  def barchartpngfile_abspath(self):
+    statichtml_folderabspath = pathfs.get_statichtml_folderabspath()
+    png_abspath = os.path.join(statichtml_folderabspath, self.png_filename)
+    return png_abspath
+
+  @property
+  def statimgfn(self):
+    return self.get_dated_stat_fig_imgsrc_uptodate()
 
   def str2(self):
     strdict = {
