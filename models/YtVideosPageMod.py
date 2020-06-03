@@ -9,7 +9,7 @@ class YtVideosPage:
   def __init__(self, ytchannelid, nname=None, refdate=None):
     self.ytchannelid     = ytchannelid
     self.nname           = nname
-    self.sname           = None
+    self._sname           = None
     self.refdate = dtfs.get_refdate(refdate)
     self._nOfSubscribers = None
     self._days_n_subscribers = []

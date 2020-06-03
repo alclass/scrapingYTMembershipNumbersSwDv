@@ -18,68 +18,7 @@ import bs4, datetime, os
 import fs.datefunctions.datefs as dtfs
 import fs.textfunctions.scraper_helpers as scraphlp
 from models.YtVideosPageMod import YtVideosPage
-
-class YtVideoItemInfo:
-
-  def __init__(self, ytvideoid, title, duration_m_s=None, views=None, published_time_ago=None, info_refdate=None):
-    self.ytvideoid = ytvideoid
-    self.title = title
-    self.duration_m_s = duration_m_s
-    self._views = views
-    self.published_time_ago = published_time_ago
-    self.info_refdate = info_refdate
-
-  @property
-  def views(self):
-    if self._views is None:
-      return 0
-    try:
-      return int(self._views)
-    except ValueError:
-      pass
-    return 0
-
-  @views.setter
-  def views(self, v):
-    if v is None:
-      return
-    try:
-      if type(v) in [int, float]:
-        self._views = int(v)
-        return
-      try:
-        if v.find('.') > -1:
-          v = v.replace('.','') # obs. v is supposed to never be a decimal (, and . are acceptable here)
-        elif v.find(',') > -1:
-          v = v.replace(',','') # obs. v is supposed to never be a decimal (, and . are acceptable here)
-      except AttributeError:
-        pass
-      self._views = int(v)
-    except ValueError:
-      pass
-    return
-
-  def asdict(self):
-    outdict = {
-    'ytvideoid'    : self.ytvideoid,
-    'title'        : self.title,
-    'duration_m_s' : self.duration_m_s,
-    'views'        : self.views,
-    'published_time_ago' : self.published_time_ago,
-    'info_refdate'       : self.info_refdate,
-    }
-    return outdict
-
-  def __str__(self):
-    outstr = '''[YtVideo Info]
-  ytvideoid = %(ytvideoid)s
-  title = %(title)s
-  duration_m_s = %(duration_m_s)s
-  views = %(views)d
-  published_time_ago = %(published_time_ago)s 
-  info_refdate = %(info_refdate)s
-''' %(self.asdict())
-    return outstr
+from models.YtVideoItemInfoMod import YtVideoItemInfo
 
 resultlist = []
 def parse_videopage_for_videoitems(htmlcontent):
@@ -102,10 +41,9 @@ def parse_videopage_for_videoitems(htmlcontent):
 
   for i, item in enumerate(bsoup.find_all('span', attrs={'class' : 'video-time'})):
     videoinfo = resultlist[i]
-    duration_m_s = item.text
+    duration_hms = item.text
     # print (i, duration_m_s)
-    videoinfo.duration_m_s = duration_m_s
-
+    videoinfo.set_duration_in_sec_as_hms(duration_hms)
 
   for i, item in enumerate(bsoup.find_all('ul', attrs={'class' : 'yt-lockup-meta-info'})):
     lis = item.find_all('li')

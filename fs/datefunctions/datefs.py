@@ -2,6 +2,7 @@
 import datetime
 import config
 import random
+import fs.textfunctions.scraper_helpers as scraphlp
 
 def get_refdate(p_refdate=None):
   if p_refdate is None or type(p_refdate) != datetime.date:
@@ -19,6 +20,25 @@ def get_refdate_from_strdate(strdate=None):
     return get_refdate()
   try:
     pp = strdate.split('-')
+    year = int(pp[0])
+    month = int(pp[1])
+    day = scraphlp.consume_left_side_int_number_w_optional_having_comma_or_point(pp[2])
+    return datetime.date(year, month, day)
+  except IndexError:
+    pass
+  except ValueError:
+    pass
+  return get_refdate()
+
+def return_refdate_as_datetimedate_or_today(refdate=None):
+  if refdate is None:
+    return get_refdate()
+  if type(refdate) == datetime.date:
+    return refdate
+  elif type(refdate) == datetime.datetime:
+    return datetime.date(refdate.year, refdate.month, refdate.day)
+  try:
+    pp = refdate.split('-')
     year = int(pp[0])
     month = int(pp[1])
     day = int(pp[2])
