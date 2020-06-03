@@ -19,6 +19,9 @@ def get_ytvideo_htmlfiles_baseabsdir():
       return abspath
   return None
 
+STATICHTML_FOLDERNAME = 'ytchannels_statichtml'
+STATICHTML_FILENAME = 'static_html_report.html'
+
 # Section 3 Base directory for json "master data" (ie, ytchannel minimum info)
 # ============================================================================
 

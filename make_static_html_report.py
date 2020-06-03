@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 import datetime, os
-import run_compare_subscribers_updown as comp
 import fs.statfunctions.statisticsMod as statmod
 import fs.db.SubscriberDaysMod as subsmod
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.pathfunctions as pathfs
+import fs.graphics.barchartmod as bar
 
 def make_statistic_fig_imgsrc_uptodate(days_n_subscribers):
   pass
@@ -28,6 +28,8 @@ class HtmlMaker:
       self.html += '<h3>[%d] %s (<a href="%s">enlace</a>)<h3><br>\n' %(seq, channel.nname, channel.videospageurl)
       dates = map(lambda x : x[0], channel.days_n_subscribers)
       dates = list(dates)
+      print(seq, 'Saving png for', channel.nname)
+      bar.save_graphic_to_folder(channel)  # ytvideospage
       make_statistic_fig_imgsrc_uptodate(channel.days_n_subscribers)
       # strefdate = dtfs.get_refdate_from_strdate(dates[-1])
       subcribers_list = map(lambda x : x[1], channel.days_n_subscribers)
@@ -50,11 +52,10 @@ class HtmlMaker:
     '''
 
   def save_to_conventioned_folder(self):
-    targetfolder_abspath = pathfs.get_statichtml_folderabspath()
-    outfilename = 'ztest_channels_with_statistics_imgs.html'
-    outfile_abspath = os.path.join(targetfolder_abspath, outfilename)
-    fp = open(outfile_abspath, 'w')
-    print('Writing file', outfilename)
+    statichtml_fileabspath = pathfs.get_statichtml_fileabspath()
+    statichtml_filename = pathfs.get_statichtml_filename()
+    fp = open(statichtml_fileabspath, 'w')
+    print('Writing file', statichtml_filename, 'at', statichtml_fileabspath)
     fp.write(str(self))
     fp.close()
 

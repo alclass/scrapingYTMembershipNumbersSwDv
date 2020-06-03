@@ -9,6 +9,7 @@ class YtVideosPage:
   def __init__(self, ytchannelid, nname=None, refdate=None):
     self.ytchannelid     = ytchannelid
     self.nname           = nname
+    self.sname           = None
     self.refdate = dtfs.get_refdate(refdate)
     self._nOfSubscribers = None
     self._days_n_subscribers = []
@@ -45,14 +46,26 @@ class YtVideosPage:
 
   @property
   def sname(self):
+    if self._sname is not None:
+      return self._sname
     if self.nname is None:
       upto10chars = len(self.ytchannelid)
       upto10chars = upto10chars if upto10chars < 11 else 10
       return self.ytchannelid[:upto10chars]
       # return pathfs.get_sname_from_filename(self.ytvideospagefilename)
-    if len(self.nname) < 10:
-      return self.nname
-    return self.nname[:10]
+    if len(self.nname) < 11:
+      self._sname = self.nname
+      return self._sname
+    self._sname = self.nname[:10]
+    return self._sname
+
+  @sname.setter
+  def sname(self, shortname):
+    if shortname is None:
+      return
+    if len(shortname) < 11:
+      self._sname = shortname
+    self._sname = shortname[:10]
 
   @property
   def strdate(self):
@@ -81,12 +94,23 @@ class YtVideosPage:
     return os.path.join(abspath, filename)
 
   def get_html_text(self):
-    try:
-      fp = open(self.ytvideospagefile_abspath, 'r', encoding='utf8')
-      return fp.read()
-    except OSError:
-      pass
-    return None
+    if not os.path.isfile(self.ytvideospagefile_abspath):
+      error_msg = 'File %s does not exist.' %self.ytvideospagefile_abspath
+      raise OSError(error_msg)
+    fp = open(self.ytvideospagefile_abspath, 'r', encoding='utf8')
+    return fp.read()
+
+  def find_set_n_get_sname_by_folder_or_None(self):
+    ending = ' [%s].html' %self.ytchannelid
+    abspath = pathfs.get_datebased_ythtmlfiles_folderabspath(self.refdate)
+    entries = os.listdir(abspath)
+    sought_entry = list(filter(lambda x : x.find(ending) > -1, entries))
+    if len(sought_entry) != 1:
+      return None
+    filename = sought_entry[0]
+    if len(filename) < 11 + 2 + len(ending):
+      return None
+    return filename[11 : - len(ending)]
 
   def get_htmltext_truncated(self, uptochar=50):
     htmltrun = self.get_html_text()
@@ -113,7 +137,7 @@ class YtVideosPage:
 
   @property
   def datedpage_filename(self):
-    return pathfs.datedpage_filename(self.strdate, self.nname, self.ytchannelid)
+    return pathfs.datedpage_filename(self.strdate, self.sname, self.ytchannelid)
 
   @property
   def datedpage_filepath(self):

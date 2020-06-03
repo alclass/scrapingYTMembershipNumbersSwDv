@@ -43,12 +43,19 @@ def get_datebased_ythtmlfiles_folderabspath(p_refdate=None):
     os.makedirs(datafolder_abspath)
   return datafolder_abspath
 
-def datedpage_filename(strdate, nname, ytchid):
-  if nname is None:
+def datedpage_filename(strdate, sname, ytchid):
+  '''
+    sname as an entering parameter should already have up to 10 chars
+  :param strdate:
+  :param sname:
+  :param ytchid:
+  :return:
+  '''
+  if sname is None:
     refdate = dtfs.get_refdate_from_strdate(strdate)
     return find_datedpage_filename_on_folder(ytchid, refdate)
-  truncatedname = nname
-  if len(truncatedname) > 10: truncatedname = nname[:10]
+  truncatedname = sname
+  if len(truncatedname) > 10: truncatedname = sname[:10]
   return strdate + ' ' + truncatedname + ' [' + ytchid + ']' + '.html'
 
 def find_datedpage_filename_on_folder(ytchid, refdate=None):
@@ -94,10 +101,15 @@ def get_fileabspath_ontopof_basedir_ifexists(filename):
     return None
   return fileabspath
 
-STATICHTML_FOLDERNAME = 'ytchannels_statichtml'
 def get_statichtml_folderabspath():
   baseabspath = config.get_ytvideo_htmlfiles_baseabsdir()
-  return os.path.join(baseabspath, STATICHTML_FOLDERNAME)
+  return os.path.join(baseabspath, config.STATICHTML_FOLDERNAME)
+
+def get_statichtml_filename():
+  return config.STATICHTML_FILENAME
+
+def get_statichtml_fileabspath():
+  return os.path.join(get_statichtml_folderabspath(), get_statichtml_filename())
 
 def adhoc_test():
   result = get_fileabspath_ontopof_basedir('test.txt')
