@@ -49,6 +49,23 @@ def return_refdate_as_datetimedate_or_today(refdate=None):
     pass
   return get_refdate()
 
+def transform_duration_in_sec_into_hms(duration_in_sec):
+  if duration_in_sec is None:
+    return 'w/inf'
+  if duration_in_sec < 60:
+    return '0:%s' %str(duration_in_sec).zfill(2)
+  elif duration_in_sec < 60 * 60:
+    minutes = duration_in_sec // 60
+    seconds = duration_in_sec % 60
+    return '%s:%s' %(str(minutes).zfill(2), str(seconds).zfill(2))
+  else:
+    hours = duration_in_sec // (60 * 60)
+    remaining = duration_in_sec - hours * (60 * 60)
+    minutes = remaining // 60
+    seconds = remaining % 60
+    return '%s:%s:%s' % (str(hours).zfill(2), str(minutes).zfill(2), str(seconds).zfill(2))
+  # return 'w/inf' the if-elif-else above make this point unreachable (the IDE confims)
+
 def get_random_n_within_interval(n_min, n_max_plus_1):
   return random.randrange(n_min, n_max_plus_1)
 
@@ -68,9 +85,9 @@ def test():
 
 def process():
   test()
-  n_wait = get_random_config_nsecs_wait_downloads()
+  n_wait = get_random_config_download_wait_nsecs()
   print('n_wait',n_wait)
-  n_wait = get_random_config_nsecs_wait_downloads()
+  n_wait = get_random_config_download_wait_nsecs()
   print('n_wait',n_wait)
 
 if __name__ == '__main__':

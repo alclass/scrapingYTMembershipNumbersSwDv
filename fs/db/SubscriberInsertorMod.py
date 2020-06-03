@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import datetime
-from fs.db.models_sqlalchemy import DailySubscribers
+from models.sqlalch_models.ytdailysubscribers_samodel import YTDailySubscribersSA
 from fs.db.sqlalchemy_conn import sqlalchemy_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -40,13 +40,13 @@ class SubscriberInsertor:
 
   def insert(self):
     session = Session()
-    dailysubs = session.query(DailySubscribers).\
-      filter(DailySubscribers.ytchannelid == self.ytchid). \
-      filter(DailySubscribers.date == self.refdate). \
+    dailysubs = session.query(YTDailySubscribersSA).\
+      filter(YTDailySubscribersSA.ytchannelid == self.ytchid). \
+      filter(YTDailySubscribersSA.date == self.refdate). \
       first()
     if dailysubs:
       return self.update_if_needed(dailysubs, session)
-    dailysubs = DailySubscribers(
+    dailysubs = YTDailySubscribersSA(
       ytchannelid = self.ytchid,
       date        = self.refdate,
       subscribers = self.n_subscribers

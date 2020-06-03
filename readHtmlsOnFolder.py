@@ -2,7 +2,7 @@
 import datetime, os
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.pathfunctions as pathfs
-from models.YtVideosPageMod import YtVideosPage
+from models.gen_models.YtVideosPageMod import YtVideosPage
 
 class YtVideoPagesTraversal:
 

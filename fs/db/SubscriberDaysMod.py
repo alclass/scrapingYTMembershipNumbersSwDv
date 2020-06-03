@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 from fs.db.SubscriberInsertorMod import Session
-from fs.db.models_sqlalchemy import Channel
-from fs.db.models_sqlalchemy import DailySubscribers
-from models.YtVideosPageMod import transpose_sqlalchs_to_ytvideopages
+from models.sqlalch_models.ytdailysubscribers_samodel import Channel
+from models.sqlalch_models.ytdailysubscribers_samodel import YTDailySubscribersSA
+from models.gen_models.YtVideosPageMod import transpose_sqlalchs_to_ytvideopages
 import fs.statfunctions.statisticsMod as statmod
 
 class SubscriberDayForChannel:
@@ -13,9 +13,9 @@ class SubscriberDayForChannel:
 
   def find_daily_subscribers(self):
     session = Session()
-    dailysubs = session.query(DailySubscribers). \
-      filter(DailySubscribers.ytchannelid == self.channel.ytchannelid). \
-      order_by(DailySubscribers.date).all()
+    dailysubs = session.query(YTDailySubscribersSA). \
+      filter(YTDailySubscribersSA.ytchannelid == self.channel.ytchannelid). \
+      order_by(YTDailySubscribersSA.date).all()
     # print('Channel', channel.nname, 'has', len(self.dailysubs), 'daily subscribers records.')
     if len(dailysubs) > 0:
       self.tabulate_subscribers_per_day(dailysubs)

@@ -4,10 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 # from matplotlib.ticker import MaxNLocator
 
-from models.YtVideosPageMod import YtVideosPage
+from models.gen_models.YtVideosPageMod import YtVideosPage
 import fs.db.SubscriberDaysMod as subsmod
 import fs.statfunctions.statisticsMod as statmod
-from fs.db.models_sqlalchemy import Channel
+from models.sqlalch_models.ytdailysubscribers_samodel import Channel
 from fs.db.sqlalchemy_conn import sqlalchemy_engine
 from sqlalchemy.orm import sessionmaker
 Session = sessionmaker(bind=sqlalchemy_engine)

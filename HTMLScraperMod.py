@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import bs4, datetime, os
 import fs.textfunctions.regexp_helpers as regexp
-from models.YtVideosPageMod import YtVideosPage
+from models.gen_models.YtVideosPageMod import YtVideosPage
 
 SUBSCRIBERS_NUMBER_HTMLCLASSNAME = 'yt-subscription-button-subscriber-count-branded-horizontal'
 '''

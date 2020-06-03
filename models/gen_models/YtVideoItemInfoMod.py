@@ -1,18 +1,17 @@
 #!/usr/bin/python3
-import bs4, datetime, os
 import fs.datefunctions.datefs as dtfs
-import fs.textfunctions.scraper_helpers as scraphlp
-from models.YtVideosPageMod import YtVideosPage
+
 
 class YtVideoItemInfo:
 
-  def __init__(self, ytvideoid, title, published_time_ago=None, info_refdate=None):
+  def __init__(self, ytvideoid, title, published_time_ago=None, info_refdate=None, ytchannel=None):
     self._duration_in_sec = None
     self._views = None
     self.ytvideoid = ytvideoid
     self.title = title
     self.published_time_ago = published_time_ago
     self.info_refdate = None; self.set_info_refdate_or_today(info_refdate)
+    self.ytchannel = ytchannel
 
   @property
   def duration_in_sec(self):
@@ -26,21 +25,7 @@ class YtVideoItemInfo:
 
   @property
   def duration_hms(self):
-    if self._duration_in_sec is None:
-      return 'w/inf'
-    if self._duration_in_sec < 60:
-      return '0:%d' %self._duration_in_sec
-    elif self._duration_in_sec < 60 * 60:
-      minutes = self._duration_in_sec // 60
-      seconds = self._duration_in_sec % 60
-      return '%d:%d' %(minutes, seconds)
-    else:
-      hours = self._duration_in_sec // (60 * 60)
-      remaining = self._duration_in_sec - hours * (60 * 60)
-      minutes = remaining // 60
-      seconds = remaining % 60
-      return '%d:%d:%d' % (hours, minutes, seconds)
-    return 'w/inf'
+    return dtfs.transform_duration_in_sec_into_hms(self._duration_in_sec)
 
   def set_duration_in_sec_as_hms(self, duration_hms):
     if duration_hms is None:

@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # from YtChannelMod import YtChannel
 import readjson
-from fs.db.models_sqlalchemy import Channel
+from models.sqlalch_models.ytdailysubscribers_samodel import Channel
 
 from fs.db.sqlalchemy_conn import sqlalchemy_engine
 from sqlalchemy.orm import sessionmaker

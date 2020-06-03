@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import os, requests, time
 import readjson
-import models.YtVideosPageMod as ytvidpagesmod
+import models.gen_models.YtVideosPageMod as ytvidpagesmod
 import fs.datefunctions.datefs as dtfs
 
 class DownloadYtVideoPages:

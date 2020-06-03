@@ -14,11 +14,11 @@
   </span>
 </h3>
 '''
-import bs4, datetime, os
+import bs4
 import fs.datefunctions.datefs as dtfs
 import fs.textfunctions.scraper_helpers as scraphlp
-from models.YtVideosPageMod import YtVideosPage
-from models.YtVideoItemInfoMod import YtVideoItemInfo
+from models.gen_models.YtVideosPageMod import YtVideosPage
+from models.gen_models.YtVideoItemInfoMod import YtVideoItemInfo
 
 resultlist = []
 def parse_videopage_for_videoitems(htmlcontent):
@@ -62,9 +62,8 @@ def parse_videopage_for_videoitems(htmlcontent):
   for videoinfo in resultlist:
     print(videoinfo)
 
-def scrape_html_on_folder():
+def scrape_html_on_folder(ytchannelid):
   refdate = dtfs.get_refdate()
-  ytchannelid = 'upgjr23'
   ytchannelvideospage = YtVideosPage(ytchannelid, None, refdate)
   sname = ytchannelvideospage.find_set_n_get_sname_by_folder_or_None()
   if sname is None:
@@ -81,7 +80,9 @@ def test1():
   print (o)
 
 def process():
-  scrape_html_on_folder()
+  # ytchannelid = 'upgjr23'
+  ytchannelid = 'ueduardoamoreira'
+  scrape_html_on_folder(ytchannelid)
   # test1()
 
 if __name__ == '__main__':
