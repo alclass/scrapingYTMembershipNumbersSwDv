@@ -38,7 +38,7 @@ class HtmlMaker:
       last = subcribers_list[-1]
       n_data = len(subcribers_list)
       mini, maxi, diff, delt = statmod.calc_min_max_dif_del(subcribers_list)
-      self.html += '<img src="%s">%s<br>\n' %(channel.png_filename, channel.nname) # %channel.get_statistic_fig_imgsrc_uptodate(refdate)
+      self.html += '<img src="./img/%s">%s<br>\n' %(channel.png_filename, channel.nname) # %channel.get_statistic_fig_imgsrc_uptodate(refdate)
       self.html += '<table border="1">'
       self.html += '<tr><th>n-data</th><th>first</th><th>last</th><th>min</th><th>max</th><th>dif</th><th>del</th></tr>\n'
       self.html += '<tr><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td><td>%d</td></tr>\n' \

@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from fs.db.SubscriberInsertorMod import Session
-from models.sqlalch_models.ytdailysubscribers_samodel import Channel
-from models.sqlalch_models.ytdailysubscribers_samodel import YTDailySubscribersSA
+from models.sa_models.ytchannelsubscribers_samodels import YTChannelSA
+from models.sa_models.ytchannelsubscribers_samodels import YTDailySubscribersSA
 from models.gen_models.YtVideosPageMod import transpose_sqlalchs_to_ytvideopages
 import fs.statfunctions.statisticsMod as statmod
 
@@ -35,7 +35,7 @@ class SubscriberDays:
   def __init__(self):
     self.days_n_subscribers = []
     session = Session()
-    channels = session.query(Channel).order_by(Channel.nname).all()
+    channels = session.query(YTChannelSA).order_by(YTChannelSA.nname).all()
     self.channels = transpose_sqlalchs_to_ytvideopages(channels)
     session.close()
     self.loop_thru_channels()

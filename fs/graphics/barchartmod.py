@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from models.gen_models.YtVideosPageMod import YtVideosPage
 import fs.db.SubscriberDaysMod as subsmod
 import fs.statfunctions.statisticsMod as statmod
-from models.sqlalch_models.ytdailysubscribers_samodel import Channel
+from models.sa_models.ytchannelsubscribers_samodels import YTChannelSA
 from fs.db.sqlalchemy_conn import sqlalchemy_engine
 from sqlalchemy.orm import sessionmaker
 Session = sessionmaker(bind=sqlalchemy_engine)
@@ -39,7 +39,7 @@ def save_graphic_to_folder(ytvideospage):
 
 def generate_figure():
   session = Session()
-  channels = session.query(Channel).order_by(Channel.nname).all()
+  channels = session.query(YTChannelSA).order_by(YTChannelSA.nname).all()
   for i, channel in enumerate(channels):
     ytvideospage = YtVideosPage(channel.ytchannelid, channel.nname)
     subsmod.SubscriberDayForChannel(ytvideospage)

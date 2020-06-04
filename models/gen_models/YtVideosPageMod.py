@@ -167,8 +167,11 @@ class YtVideosPage:
   @property
   def barchartpngfile_abspath(self):
     statichtml_folderabspath = pathfs.get_statichtml_folderabspath()
-    png_abspath = os.path.join(statichtml_folderabspath, self.png_filename)
-    return png_abspath
+    pngfolder_abspath = os.path.join(statichtml_folderabspath, 'img')
+    if not os.path.isdir(pngfolder_abspath):
+      os.makedirs(pngfolder_abspath)
+    pngfile_abspath = os.path.join(pngfolder_abspath, self.png_filename)
+    return pngfile_abspath
 
   @property
   def statimgfn(self):

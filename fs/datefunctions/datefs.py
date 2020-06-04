@@ -32,11 +32,13 @@ def get_refdate_from_strdate(strdate=None):
 
 def return_refdate_as_datetimedate_or_today(refdate=None):
   if refdate is None:
-    return get_refdate()
+    return datetime.date.today()
   if type(refdate) == datetime.date:
     return refdate
   elif type(refdate) == datetime.datetime:
     return datetime.date(refdate.year, refdate.month, refdate.day)
+  if type(refdate) != str:
+    refdate = str(refdate)
   try:
     pp = refdate.split('-')
     year = int(pp[0])
@@ -48,6 +50,13 @@ def return_refdate_as_datetimedate_or_today(refdate=None):
   except ValueError:
     pass
   return get_refdate()
+
+def calc_past_date_from_refdate_back_n_days(p_refdate, p_backdays=None):
+  refdate = return_refdate_as_datetimedate_or_today(p_refdate)
+  backdays = 1
+  if p_backdays is not None:
+    backdays = p_backdays
+  return refdate - datetime.timedelta(days=backdays)
 
 def transform_duration_in_sec_into_hms(duration_in_sec):
   if duration_in_sec is None:
