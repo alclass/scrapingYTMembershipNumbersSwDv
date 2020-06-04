@@ -51,6 +51,42 @@ def return_refdate_as_datetimedate_or_today(refdate=None):
     pass
   return get_refdate()
 
+def is_year_month_day_good(year, month, day=1):
+  try:
+    _ = datetime.date(year, month, day)  # if this op is complete, year_month is good
+    return True
+  except ValueError:
+    pass
+  return False
+
+def str_is_inversed_year_month(str_year_month):
+  if str_year_month is None:
+    return False
+  try:
+    pp = str_year_month.split('-')
+    year = int(pp[0]); month = int(pp[1]); day = 1
+    _ = datetime.date(year, month, day) # if this op is complete, year_month is good
+    return True
+  except IndexError:
+    pass
+  except ValueError:
+      pass
+  return False
+
+def str_is_inversed_date(strdate):
+  if strdate is None:
+    return False
+  try:
+    pp = strdate.split('-')
+    year = int(pp[0]); month = int(pp[1]); day = int(pp[1])
+    _ = datetime.date(year, month, day) # if this op is complete, date is good
+    return True
+  except IndexError:
+    pass
+  except ValueError:
+      pass
+  return False
+
 def calc_past_date_from_refdate_back_n_days(p_refdate, p_backdays=None):
   refdate = return_refdate_as_datetimedate_or_today(p_refdate)
   backdays = 1
