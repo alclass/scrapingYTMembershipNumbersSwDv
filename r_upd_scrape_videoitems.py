@@ -4,6 +4,14 @@
   Without parameter, it scrapes today's folder.
   An optional parameter --daysbefore=<n> scrapes n days before, if related folder exists.
 '''
+import bs4, os, sys
+import fs.datefunctions.datefs as dtfs
+import fs.textfunctions.scraper_helpers as scraphlp
+import fs.textfunctions.regexp_helpers as regexphlp
+import fs.filefunctions.autofinders as afind
+
+from models.gen_models.YtVideosPageMod import YtVideosPage
+from models.gen_models.YtVideoItemInfoMod import YtVideoItemInfo
 
 '''
 <h3 class="yt-lockup-title ">
@@ -20,12 +28,6 @@
   </span>
 </h3>
 '''
-import bs4, sys
-import fs.datefunctions.datefs as dtfs
-import fs.textfunctions.scraper_helpers as scraphlp
-from models.gen_models.YtVideosPageMod import YtVideosPage
-from models.gen_models.YtVideoItemInfoMod import YtVideoItemInfo
-
 
 class YTVideoItemScraper:
 
@@ -86,10 +88,50 @@ class YTVideoItemScraper:
       seq = i + 1
       print(seq, videoinfo)
 
+  def __str__(self):
+    outstr = 'Scraper(ytchannelid=%s, refdate=%s)' %(self.ytchannelid, self.refdate)
+    return outstr
+
 def test1():
   o = YtVideoItemInfo('ytid', 'title bla')
   o.views = '123,123'
   print (o)
+
+def walk_thru_dates():
+  level2_foldernames = afind.find_yyyymmdd_level2_foldernames()
+  for i, level2_foldername in enumerate(level2_foldernames):
+    seq = i+1
+    print (seq, level2_foldername)
+
+def walk_thru_date_folders():
+  dates_n_abspaths_od = afind.get_ordered_dict_with_dates_n_abspaths()
+  # print (dates_n_abspaths_od)
+  html_counter = 0
+  for strdate in dates_n_abspaths_od:
+    datefolder_abspath = dates_n_abspaths_od[strdate]
+    print ('-'*50)
+    print(strdate, datefolder_abspath)
+    print ('-'*50)
+    entries = os.listdir(datefolder_abspath)
+    entries = sorted(entries)
+    for htmlfilename in entries:
+      _, ext = os.path.splitext(htmlfilename)
+      if ext != '.html':
+        continue
+      html_counter += 1
+      print (html_counter, htmlfilename)
+      name_without_ext, _ = os.path.splitext(htmlfilename)
+      ytchannelid = regexphlp.find_ytchannelid_within_brackets_in_filename(name_without_ext)
+      scraper = YTVideoItemScraper(ytchannelid, strdate)
+      print(scraper)
+      scraper.scrape_html_on_folder()
+
+def test1():
+  # ytchannelid = 'upgjr23'
+  ytchannelid = 'ueduardoamoreira'
+  refdate = get_refdate_from_param_n_days_before_or_today()
+  videoitemscraper = YTVideoItemScraper(ytchannelid, refdate)
+  videoitemscraper.scrape_html_on_folder()
 
 def show_help_n_exit():
   print (__doc__)
@@ -115,15 +157,14 @@ def get_refdate_from_param_n_days_before_or_today():
   refdate = dtfs.return_refdate_as_datetimedate_or_today()
   if n_days_before is not None:
     refdate = dtfs.calc_past_date_from_refdate_back_n_days(refdate, n_days_before)
-  print ('refdate', refdate)
+  print ('param refdate', refdate)
   return refdate
 
 def process():
-  # test1()   # ytchannelid = 'upgjr23'
-  ytchannelid = 'ueduardoamoreira'
   refdate = get_refdate_from_param_n_days_before_or_today()
-  videoitemscraper = YTVideoItemScraper(ytchannelid, refdate)
-  videoitemscraper.scrape_html_on_folder()
+  # test1()
+  walk_thru_date_folders()
+  # walk_thru_dates()
 
 if __name__ == '__main__':
   process()

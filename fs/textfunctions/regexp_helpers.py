@@ -96,6 +96,15 @@ def find_nsubscribers_via_two_words(phrase):
     return int(nOfSubscribers * 1000 * 1000)
   return int(nOfSubscribers)
 
+regexp_ytchid_str = r'.+(\[[a-zA-Z0-9_\-]+\])$'
+re_ytchid_compiled = re.compile(regexp_ytchid_str)
+def find_ytchannelid_within_brackets_in_filename(name_without_ext):
+  match = re_ytchid_compiled.search(name_without_ext)
+  if match is None:
+    return None
+  result = str(match.group(1)) # + ' ' + str(match.group(2))
+  return result
+
 def adhoc_test():
   t = 'blah {"text": "437.6 k subscribers"} blah'
   print ('Sending =>', t)
@@ -105,6 +114,10 @@ def adhoc_test():
   t = 'blah {"text": "437,6 mi inscritos"}'
   print('Sending =>', t)
   result = find_nsubscribers_via_either_re_or_find(t)
+  print ('result', result)
+  t = 'bla [-cUlddjf_aj-dlf-_]'
+  print('Sending =>', t)
+  result = find_ytchannelid_within_brackets_in_filename(t)
   print ('result', result)
 
 def process():
