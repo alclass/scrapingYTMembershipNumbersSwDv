@@ -1,7 +1,8 @@
 #!/usr/bin/python3
-import datetime, os, re
+import copy, datetime, os, re
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.pathfunctions as pathfs
+import fs.textfunctions.regexp_helpers as regexp
 from collections import OrderedDict
 
 lambdajoinabspath      = lambda path_n_entry : os.path.join(path_n_entry[0], path_n_entry[1])
@@ -82,6 +83,146 @@ def get_ordered_dict_with_dates_n_abspaths():
     dates_n_paths_od[yyyymmdd] = dates_n_paths_dict[yyyymmdd]
   return dates_n_paths_od
 
+class HtmlInDateFolder:
+
+  def __init__(self, filename):
+    self.filename = filename
+    # properties derivable from filename and instanced, ie, built once:
+    self._refdate = None
+    self._sname  = None
+    self._ytchannelid = None
+    # properties derivable from filename and not-instanced, ie, built per request:
+    # => file_abspath
+    # => foldername
+    # => folder_abspath
+
+  def set_date_sname_n_ytchannelid(self):
+    name_without_ext, _ = os.path.splitext(self.filename)
+    ytchannelid = regexp.find_ytchannelid_within_brackets_in_filename(name_without_ext)
+    if ytchannelid is None:
+      return
+    self._ytchannelid = ytchannelid
+    strdate = name_without_ext[:10]
+    self._refdate = dtfs.get_refdate_from_strdate(strdate)
+    sname = name_without_ext[11: -(len(ytchannelid)+2-1)] # plus 2 is for [] (brackets)
+    sname = sname.strip(' ')
+    if len(sname) > 10:
+      error_msg = 'Error: when trying to extract sname (%s) from filename (%s) it came out bigger than 10 characters.' %(sname, self.filename)
+      raise ValueError
+    self._sname = sname
+
+  @property
+  def sname(self):
+    if self._sname is None:
+      self.set_date_sname_n_ytchannelid()
+    return self._sname
+
+  @property
+  def ytchannelid(self):
+    if self._ytchannelid is None:
+      self.set_date_sname_n_ytchannelid()
+    return self._ytchannelid
+
+  @property
+  def refdate(self):
+    if self._refdate is None:
+      self.set_date_sname_n_ytchannelid()
+    return self._refdate
+
+  # derivable : foldername
+  @property
+  def foldername(self):
+    if self.refdate is None:
+      return None
+    try:
+      yyyymm = str(self.refdate)[:7]
+      return yyyymm
+    except IndexError:
+      pass
+    return None
+
+  # derivable : folder_abspath
+  @property
+  def folder_abspath(self):
+    basedir_abspath = pathfs.get_ytvideo_htmlfiles_baseabsdir()
+    if self.foldername is None:
+      return None
+    return os.path.join(basedir_abspath, self.foldername)
+
+  # derivable : file_abspath
+  @property
+  def file_abspath(self):
+    return os.path.join(self.folder_abspath, self.filename)
+
+  def asdict(self):
+    asdict = {}
+    asdict['filename'] = self.filename
+    asdict['refdate'] = self.refdate
+    asdict['sname'] = self.sname
+    asdict['ytchannelid'] = self.ytchannelid
+    asdict['foldername'] = self.foldername
+    asdict['folder_abspath'] = self.folder_abspath
+    asdict['file_abspath'] = self.file_abspath
+    return asdict
+
+  def __str__(self):
+    outstr = '''DateHtmlsTraversor:
+  filename = %(filename)s
+  refdate  = %(refdate)s 
+  sname    = %(sname)s 
+  ytchannelid    = %(ytchannelid)s
+  foldername     = %(foldername)s
+  folder_abspath = %(folder_abspath)s
+  file_abspath   = %(file_abspath)s 
+''' %self.asdict()
+    return outstr
+
+class DatedHtmlsTraversor:
+
+  def __init__(self, dateini, datefim):
+    self.dateini = dtfs.get_refdate_from_strdate(dateini)
+    self.datefim = dtfs.get_refdate_from_strdate(datefim)
+    self.datepointer = copy.copy(self.dateini)
+    self.files_on_current_folder = []
+    # self.fill_in_current_folder()
+    self.traverse()
+
+  def fill_in_current_folder(self):
+    folder_abspath = pathfs.get_level2_folder_abspath_from_refdate(self.datepointer)
+    if not os.path.isdir(folder_abspath):
+      self.files_on_current_folder = []
+      return
+    self.files_on_current_folder = os.listdir()
+
+  def traverse(self):
+    print('traverse datepointer =', self.datepointer)
+    while self.datepointer <= self.datefim:
+      self.fill_in_current_folder()
+      if len(self.files_on_current_folder) == 0:
+        self.datepointer = self.datepointer + datetime.timedelta(days=1)
+        continue
+      while len(self.files_on_current_folder) > 0:
+        popped_filename = self.files_on_current_folder.pop()
+        print('popped_filename', popped_filename)
+        htmlfileobj = HtmlInDateFolder(popped_filename)
+        yield htmlfileobj
+      self.datepointer = self.datepointer + datetime.timedelta(days=1)
+    print ('Traverse is finished')
+    return None
+
+  def asdict(self):
+    asdict = {}
+    asdict['dateini'] = self.dateini
+    asdict['datefim'] = self.datefim
+    return asdict
+
+  def __str__(self):
+    outstr = '''DatedHtmlsTraversor:
+  dateini  = %(dateini)s 
+  dateini  = %(datefim)s 
+''' % self.asdict()
+    return outstr
+
 def adhoc_test():
   tupl = find_dateini_n_dateend_thru_yyyymmdd_level2_folders()
   level1abspathentries = find_1stlevel_yyyymm_dir_abspaths()
@@ -106,9 +247,22 @@ def test1():
     absentries.append(absentry)
   print('absentries via for-loop', absentries)
 
+def test_HtmlInDateFolder():
+  '''
+  filename = '2020-05-22 Eduardo Mo [ueduardoamoreira].html'
+  dht = HtmlInDateFolder(filename)
+  print('HtmlInDateFolder(filename)', dht)
+  '''
+  print ("DatedHtmlsTraversor('2020-05-22', '2020-06-05')")
+  traversor = DatedHtmlsTraversor('2020-05-22', '2020-06-05')
+  print(traversor)
+  for obj in traversor.traverse():
+    print (obj)
+
 def process():
+  test_HtmlInDateFolder()
   # test1()
-  adhoc_test()
+  # adhoc_test()
 
 if __name__ == '__main__':
   process()

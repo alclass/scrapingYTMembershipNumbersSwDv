@@ -101,6 +101,12 @@ def get_fileabspath_ontopof_basedir_ifexists(filename):
     return None
   return fileabspath
 
+def get_level2_folder_abspath_from_refdate(refdate):
+  basedir_abspath = get_ytvideo_htmlfiles_baseabsdir()
+  level1foldername = str(refdate)[:7]
+  level1folder_abspath = os.path.join(basedir_abspath, level1foldername)
+  return level1folder_abspath
+
 def get_statichtml_folderabspath():
   baseabspath = config.get_ytvideo_htmlfiles_baseabsdir()
   return os.path.join(baseabspath, config.STATICHTML_FOLDERNAME)
