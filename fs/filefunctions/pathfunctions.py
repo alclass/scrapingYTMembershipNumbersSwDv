@@ -102,10 +102,30 @@ def get_fileabspath_ontopof_basedir_ifexists(filename):
   return fileabspath
 
 def get_level2_folder_abspath_from_refdate(refdate):
+  yyyymmdd10char = str(refdate)
+  if len(yyyymmdd10char) != 10:
+    return None
   basedir_abspath = get_ytvideo_htmlfiles_baseabsdir()
-  level1foldername = str(refdate)[:7]
-  level1folder_abspath = os.path.join(basedir_abspath, level1foldername)
-  return level1folder_abspath
+  yyyymm7char = str(yyyymmdd10char)[:7]
+  is_good = dtfs.is_stryyyydashmm_good(yyyymm7char)
+  if not is_good:
+    return None
+  level1folder_abspath = os.path.join(basedir_abspath, yyyymm7char)
+  level2folder_abspath = os.path.join(level1folder_abspath, yyyymmdd10char)
+  return level2folder_abspath
+
+def does_filename_have_ext_from_extlist(filename, extlist=None):
+  if extlist is None:
+    extlist = ['htm', 'html']
+  elif type(extlist) == str:
+    extlist = [extlist]
+  elif type(extlist) != list:
+    extlist = ['htm', 'html']
+  _, ext = os.path.splitext(filename)
+  ext = ext.lstrip('.')
+  if ext in extlist:
+    return True
+  return False
 
 def get_statichtml_folderabspath():
   baseabspath = config.get_ytvideo_htmlfiles_baseabsdir()

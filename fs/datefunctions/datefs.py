@@ -30,6 +30,22 @@ def get_refdate_from_strdate(strdate=None):
     pass
   return get_refdate()
 
+def is_stryyyydashmm_good(yyyymm7char):
+  if yyyymm7char is None:
+    return False
+  try:
+    pp = yyyymm7char.split('-')
+    year = int(pp[0])
+    month = int(pp[1])
+    day = 1
+    _ = datetime.date(year, month, day)
+    return True
+  except IndexError:
+    pass
+  except ValueError: # but for int() and for datetime.date()
+    pass
+  return False
+
 def return_refdate_as_datetimedate_or_today(refdate=None):
   if refdate is None:
     return datetime.date.today()

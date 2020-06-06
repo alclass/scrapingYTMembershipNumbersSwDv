@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import copy, datetime, os, re
+import copy, datetime, glob, os
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.pathfunctions as pathfs
 import fs.textfunctions.regexp_helpers as regexp
@@ -10,6 +10,10 @@ lambdaentryisfolder    = lambda ppath : os.path.isdir(ppath)
 lambdastrformdate      = lambda word : dtfs.str_is_inversed_date(word)
 lambdafilterinyyyymm   = lambda word : dtfs.str_is_inversed_year_month(word)
 lambdafilterinyyyymmdd = lambda word : dtfs.str_is_inversed_date(word)
+lambdaentryhashtmlext  = lambda word : pathfs.does_filename_have_ext_from_extlist(word, extlist=['htm', 'html'])
+
+class InvalidNamedHtmlOnFolder(ValueError):
+  pass
 
 def find_1stlevel_yyyymm_dir_foldernames(level1abspath):
   '''
@@ -87,28 +91,53 @@ class HtmlInDateFolder:
 
   def __init__(self, filename):
     self.filename = filename
+    self.verify_filename()
     # properties derivable from filename and instanced, ie, built once:
     self._refdate = None
-    self._sname  = None
+    self._sname = None
     self._ytchannelid = None
+    self.filename_is_out_of_convention = False
+    self.instanciate_derivable()
+
+  def verify_filename(self):
+    if self.filename is None:
+      error_msg = 'Error: HtmlInDateFolder received parameter filename as None'
+      raise ValueError(error_msg)
+    if os.sep in self.filename: # filename can not have os.sep in it
+      _, self.filename = os.path.split(self.filename)
+
+
+  def instanciate_derivable(self):
+    '''
+    # properties derivable from filename and not-instanced, ie, built once are:
+      refdate, sname and ytchannelid
+    Obs: it suffices to issue one of them that the others are instanced too
+
     # properties derivable from filename and not-instanced, ie, built per request:
     # => file_abspath
     # => foldername
     # => folder_abspath
+    :return:
+    '''
+    _ = self._ytchannelid
 
   def set_date_sname_n_ytchannelid(self):
     name_without_ext, _ = os.path.splitext(self.filename)
-    ytchannelid = regexp.find_ytchannelid_within_brackets_in_filename(name_without_ext)
-    if ytchannelid is None:
-      return
-    self._ytchannelid = ytchannelid
     strdate = name_without_ext[:10]
     self._refdate = dtfs.get_refdate_from_strdate(strdate)
-    sname = name_without_ext[11: -(len(ytchannelid)+2-1)] # plus 2 is for [] (brackets)
-    sname = sname.strip(' ')
-    if len(sname) > 10:
+    ytchannelid = regexp.find_ytchannelid_within_brackets_in_filename(name_without_ext)
+    if ytchannelid is None:
+      self.filename_is_out_of_convention = True
+      return
+      # error_msg = 'Error: datedhtml could not find ytchannelid (%s)' %(self.filename) # do not use str(self) here for it enters an infinite recursion
+      # raise InvalidNamedHtmlOnFolder(error_msg)
+    ytchannelid = ytchannelid.lstrip('[').rstrip(']')
+    self._ytchannelid = ytchannelid
+    sname = name_without_ext[11: -(len(ytchannelid)+2)] # plus 2 is for [] (brackets)
+    _sname = sname.strip(' ')
+    if len(_sname) > 10:
       error_msg = 'Error: when trying to extract sname (%s) from filename (%s) it came out bigger than 10 characters.' %(sname, self.filename)
-      raise ValueError
+      raise ValueError(error_msg)
     self._sname = sname
 
   @property
@@ -133,7 +162,9 @@ class HtmlInDateFolder:
   @property
   def foldername(self):
     if self.refdate is None:
-      return None
+      error_msg = 'Error: HtmlInDateFolder has refdate as None; refdate is fundamental for knowing foldername nad folderpath.'
+      raise InvalidNamedHtmlOnFolder(error_msg)
+      # return None
     try:
       yyyymm = str(self.refdate)[:7]
       return yyyymm
@@ -152,17 +183,19 @@ class HtmlInDateFolder:
   # derivable : file_abspath
   @property
   def file_abspath(self):
+    if self.folder_abspath is None:
+      return None
     return os.path.join(self.folder_abspath, self.filename)
 
   def asdict(self):
     asdict = {}
     asdict['filename'] = self.filename
-    asdict['refdate'] = self.refdate
-    asdict['sname'] = self.sname
+    asdict['refdate']  = self.refdate
+    asdict['sname']    = self.sname
     asdict['ytchannelid'] = self.ytchannelid
-    asdict['foldername'] = self.foldername
+    asdict['foldername']  = self.foldername
     asdict['folder_abspath'] = self.folder_abspath
-    asdict['file_abspath'] = self.file_abspath
+    asdict['file_abspath']   = self.file_abspath
     return asdict
 
   def __str__(self):
@@ -184,18 +217,17 @@ class DatedHtmlsTraversor:
     self.datefim = dtfs.get_refdate_from_strdate(datefim)
     self.datepointer = copy.copy(self.dateini)
     self.files_on_current_folder = []
-    # self.fill_in_current_folder()
-    self.traverse()
+    # self.traverse()
 
   def fill_in_current_folder(self):
     folder_abspath = pathfs.get_level2_folder_abspath_from_refdate(self.datepointer)
     if not os.path.isdir(folder_abspath):
       self.files_on_current_folder = []
       return
-    self.files_on_current_folder = os.listdir()
+    self.files_on_current_folder = os.listdir(folder_abspath)
+    self.files_on_current_folder = list(filter(lambdaentryhashtmlext, self.files_on_current_folder))
 
   def traverse(self):
-    print('traverse datepointer =', self.datepointer)
     while self.datepointer <= self.datefim:
       self.fill_in_current_folder()
       if len(self.files_on_current_folder) == 0:
@@ -203,8 +235,10 @@ class DatedHtmlsTraversor:
         continue
       while len(self.files_on_current_folder) > 0:
         popped_filename = self.files_on_current_folder.pop()
-        print('popped_filename', popped_filename)
+        # print('popped_filename', popped_filename)
         htmlfileobj = HtmlInDateFolder(popped_filename)
+        if htmlfileobj.filename_is_out_of_convention:
+          continue
         yield htmlfileobj
       self.datepointer = self.datepointer + datetime.timedelta(days=1)
     print ('Traverse is finished')
@@ -247,7 +281,7 @@ def test1():
     absentries.append(absentry)
   print('absentries via for-loop', absentries)
 
-def test_HtmlInDateFolder():
+def test_traversor():
   '''
   filename = '2020-05-22 Eduardo Mo [ueduardoamoreira].html'
   dht = HtmlInDateFolder(filename)
@@ -256,11 +290,12 @@ def test_HtmlInDateFolder():
   print ("DatedHtmlsTraversor('2020-05-22', '2020-06-05')")
   traversor = DatedHtmlsTraversor('2020-05-22', '2020-06-05')
   print(traversor)
-  for obj in traversor.traverse():
-    print (obj)
+  for i, obj in enumerate(traversor.traverse()):
+    seq = i + 1
+    print (seq, '==>', obj)
 
 def process():
-  test_HtmlInDateFolder()
+  test_traversor()
   # test1()
   # adhoc_test()
 

@@ -49,15 +49,19 @@ class YtVideosPage:
     if self._sname is not None:
       return self._sname
     if self.nname is None:
-      upto10chars = len(self.ytchannelid)
-      upto10chars = upto10chars if upto10chars < 11 else 10
-      return self.ytchannelid[:upto10chars]
+      wname = self.ytchannelid
+      if len(wname) > 10:
+        wname = wname[:10]
+      wname = wname.strip(' ')
+      self._sname = wname
+      return
       # return pathfs.get_sname_from_filename(self.ytvideospagefilename)
-    if len(self.nname) < 11:
-      self._sname = self.nname
-      return self._sname
-    self._sname = self.nname[:10]
-    return self._sname
+    wname = self.nname
+    if len(wname) > 10:
+      wname = wname[:10]
+    wname = wname.strip(' ')
+    self._sname = wname
+    return
 
   @sname.setter
   def sname(self, shortname):
