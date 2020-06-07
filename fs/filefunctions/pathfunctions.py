@@ -76,20 +76,6 @@ def extract_ytchid_from_filename(filename):
     return ytchid
   return None
 
-def get_sname_from_filename(filename):
-  if filename is None or len(filename) < 12:
-    return None
-  pos = filename.find('[')
-  if pos < 12:
-    return None
-  # strips yyyy-mm-dd at the beginning
-  trunk = filename[11 : pos]
-  # strips enclosing ' ' (left [lstrip] and right [rstrip])
-  trunk = trunk.strip(' ')
-  if len(trunk) == 0:
-    return None
-  return trunk
-
 def get_fileabspath_ontopof_basedir(filename):
   datafolder_abspath = get_ytvideo_htmlfiles_baseabsdir()
   if datafolder_abspath is None:
@@ -129,6 +115,20 @@ def does_filename_have_ext_from_extlist(filename, extlist=None):
   if ext in extlist:
     return True
   return False
+
+def get_sname_from_filename(filename):
+  if filename is None or len(filename) < 12:
+    return None
+  pos = filename.find('[')
+  if pos < 12:
+    return None
+  # strips yyyy-mm-dd at the beginning
+  trunk = filename[11 : pos]
+  # strips enclosing ' ' (left [lstrip] and right [rstrip])
+  trunk = trunk.strip(' ')
+  if len(trunk) == 0:
+    return None
+  return trunk
 
 def get_statichtml_folderabspath():
   baseabspath = config.get_ytvideo_htmlfiles_baseabsdir()

@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 import json
 import fs.datefunctions.datefs as dtfs
-import readHtmlsOnFolder as readmod
-from HTMLScraperMod import HTMLScraper
+from models.scrapers import YtVideoPagesTraversalMod as readmod
+from models.scrapers.SubscriberScraperMod import HTMLScraper
 
 class DateFolderScraper:
 
@@ -54,7 +54,7 @@ class DateFolderScraper:
     outfile.close()
 
 def process():
-  #refdate = datetime.date(2020,5,26)
+  #refdate = datetime.infodate(2020,5,26)
   #scraper = HTMLScraper(refdate)
   datescraper = DateFolderScraper()
   datescraper.print_scraping_results()

@@ -49,7 +49,7 @@ class DailySubscribers(Base):
   ytchannel = relationship('Channel')
 
   def __repr__(self):
-    return '<DailySubscribers(ytchannelid="%s", subscribers=%d, date="%s")>' % (self.ytchannelid, self.subscribers, str(self.date))
+    return '<DailySubscribers(ytchannelid="%s", subscribers=%d, infodate="%s")>' % (self.ytchannelid, self.subscribers, str(self.date))
 
 daily19 = DailySubscribers(ytchannel=channel_ghira, subscribers=40, date='2020-05-19')
 daily20 = DailySubscribers(ytchannel=channel_ghira, subscribers=40, date='2020-05-20')

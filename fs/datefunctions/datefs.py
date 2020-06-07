@@ -16,7 +16,12 @@ def get_strdate(p_refdate=None):
   return strdate
 
 def get_refdate_from_strdate(strdate=None):
-  if strdate is None or len(strdate) != 10:
+  if strdate is None:
+    return get_refdate()
+  if type(strdate) in [datetime.date, datetime.datetime]:
+    return strdate
+  strdate = str(strdate)
+  if len(strdate) != 10:
     return get_refdate()
   try:
     pp = strdate.split('-')
@@ -42,7 +47,7 @@ def is_stryyyydashmm_good(yyyymm7char):
     return True
   except IndexError:
     pass
-  except ValueError: # but for int() and for datetime.date()
+  except ValueError: # but for int() and for datetime.infodate()
     pass
   return False
 
@@ -95,7 +100,7 @@ def str_is_inversed_date(strdate):
   try:
     pp = strdate.split('-')
     year = int(pp[0]); month = int(pp[1]); day = int(pp[1])
-    _ = datetime.date(year, month, day) # if this op is complete, date is good
+    _ = datetime.date(year, month, day) # if this op is complete, infodate is good
     return True
   except IndexError:
     pass
@@ -140,7 +145,7 @@ def test():
   print('default date_str', date_str)
   d = datetime.date(2020, 5, 19)
   date_str = get_strdate(d)
-  print('given datetime.date to date_str', date_str, 'type', type(date_str))
+  print('given datetime.infodate to date_str', date_str, 'type', type(date_str))
   recup_date = get_refdate_from_strdate(date_str)
   print('recup_date', recup_date, 'type', type(recup_date))
 

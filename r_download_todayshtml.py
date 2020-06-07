@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import os, requests, time
 from fs.db.jsondb import readjson
-from HTMLScraperMod import HTMLScraper
+from models.scrapers.SubscriberScraperMod import HTMLScraper
 import models.gen_models.YtVideosPageMod as ytvidpagesmod
 import fs.datefunctions.datefs as dtfs
 

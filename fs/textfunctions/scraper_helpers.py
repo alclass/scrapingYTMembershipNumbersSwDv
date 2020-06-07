@@ -1,23 +1,5 @@
 #!/usr/bin/python3
-import os, string
-
-def consume_left_side_int_number_w_optional_having_comma_or_point(word):
-  if word is None:
-    return None
-  if type(word) == int: # or type(word) == float:
-    return word
-  numberstr = ''
-  for c in word:
-    if c in string.digits:
-      numberstr += c
-    elif c in [',','.']:
-      continue
-    else:
-      break
-  if numberstr == '':
-    return None
-  intnumber = int(numberstr)
-  return intnumber
+import string
 
 def consume_left_side_float_number(word):
   '''
@@ -41,6 +23,24 @@ def consume_left_side_float_number(word):
     return None
   floatnumber = float(numberstr)
   return floatnumber
+
+def consume_left_side_int_number_w_optional_having_comma_or_point(word):
+  if word is None:
+    return None
+  if type(word) == int: # or type(word) == float:
+    return word
+  numberstr = ''
+  for c in word:
+    if c in string.digits:
+      numberstr += c
+    elif c in [',','.']:
+      continue
+    else:
+      break
+  if numberstr == '':
+    return None
+  intnumber = int(numberstr)
+  return intnumber
 
 def extract_number_from_phrase_unit_mil_mi(arialabel):
   '''

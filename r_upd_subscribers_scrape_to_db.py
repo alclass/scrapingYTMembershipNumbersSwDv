@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 ''' => Help: this script scrapes a days' directory for subscriber amount for channels.
-  The default is to scrape the current day date.
+  The default is to scrape the current day infodate.
   An argument (--daysbefore=<n>) may be used to achieve a number of days in the past.
   Example:
     #thisscript --daysbefore=2
   will scrape the day before yesterday if its related folder exists.
 '''
 import datetime, sys
-import DateFolderScraperMod as scrap
+from models.scrapers import DateFolderScraperMod as scrap
 from models.procdb.SubscriberInsertorMod import SubscriberInsertor
 
 class SubscribersScraperToDB:

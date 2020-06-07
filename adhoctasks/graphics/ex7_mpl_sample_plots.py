@@ -279,7 +279,7 @@ You can plot timeseries data with major and minor ticks and custom
 tick formatters for both.
 
 .. figure:: ../../gallery/text_labels_and_annotations/images/sphx_glr_date_001.png
-   :target: ../../gallery/text_labels_and_annotations/date.html
+   :target: ../../gallery/text_labels_and_annotations/infodate.html
    :align: center
    :scale: 50
 

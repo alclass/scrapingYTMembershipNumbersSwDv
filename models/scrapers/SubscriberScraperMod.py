@@ -38,7 +38,7 @@ def extract_number_from_known_pieces(phrase):
       return int(number) * 1000 * 1000
   return int(number)
 
-class GoParser:
+class SubscriberScraper:
 
   def __init__(self, content):
     self.parse_has_run = False
@@ -110,12 +110,11 @@ class HTMLScraper:
     sname   = self.ytvideopageobj.sname
     content = self.ytvideopageobj.get_html_text()
     extlessname = os.path.splitext(htmlfilename)[0]
-    goparser = GoParser(content)
-    if goparser.subscribersnumber is None:
+    subs_scraper = SubscriberScraper(content)
+    if subs_scraper.subscribersnumber is None:
       print('Subscribers number not found for', extlessname)
-      #self.ids_with_subsnumber_not_found.append(sname)
       return
-    self.ytvideopageobj.nOfSubscribers = goparser.subscribersnumber
+    self.ytvideopageobj.nOfSubscribers = subs_scraper.subscribersnumber
 
   def scrape_individual_video_views(self, htmlfilename, content):
     '''

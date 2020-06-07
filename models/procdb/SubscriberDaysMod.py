@@ -15,7 +15,7 @@ class SubscriberDayForChannel:
     session = Session()
     dailysubs = session.query(YTDailySubscribersSA). \
       filter(YTDailySubscribersSA.ytchannelid == self.channel.ytchannelid). \
-      order_by(YTDailySubscribersSA.date).all()
+      order_by(YTDailySubscribersSA.infodate).all()
     # print('Channel', channel.nname, 'has', len(self.dailysubs), 'daily subscribers records.')
     if len(dailysubs) > 0:
       self.tabulate_subscribers_per_day(dailysubs)
@@ -24,7 +24,7 @@ class SubscriberDayForChannel:
   def tabulate_subscribers_per_day(self, dailysubs):
     days_n_subscribers = []
     for dailysub in dailysubs:
-      strdate = str(dailysub.date)
+      strdate = str(dailysub.infodate)
       day_n_subscriber_tuple = (strdate, dailysub.subscribers)
       days_n_subscribers.append(day_n_subscriber_tuple)
     days_n_subscribers = sorted(days_n_subscribers, key=lambda x: x[0])

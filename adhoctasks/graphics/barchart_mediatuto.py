@@ -5,13 +5,13 @@ https://medium.com/dunder-data/create-a-bar-chart-race-animation-in-python-with-
 
 COVID-19 deaths data
 
-For this bar chart race, we’ll use a small dataset produced by John Hopkins University containing the total deaths by date for six countries during the currently ongoing coronavirus pandemic. Let’s read it in now.
+For this bar chart race, we’ll use a small dataset produced by John Hopkins University containing the total deaths by infodate for six countries during the currently ongoing coronavirus pandemic. Let’s read it in now.
 
 '''
 
 import pandas as pd
-df = pd.read_csv('data/covid19.csv', index_col='date',
-                  parse_dates=['date'])
+df = pd.read_csv('data/covid19.csv', index_col='infodate',
+                  parse_dates=['infodate'])
 df.tail()
 s = df.loc['2020-03-29']
 '''
@@ -71,8 +71,8 @@ df2.index = df2.index * 5
 last_idx = df2.index[-1] + 1
 df_expanded = df2.reindex(range(last_idx))
 
-df_expanded['date'] = df_expanded['date'].fillna(method='ffill')
-df_expanded = df_expanded.set_index('date')
+df_expanded['infodate'] = df_expanded['infodate'].fillna(method='ffill')
+df_expanded = df_expanded.set_index('infodate')
 
 df_rank_expanded = df_expanded.rank(axis=1, method='first')
 

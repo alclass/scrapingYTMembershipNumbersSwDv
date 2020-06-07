@@ -42,7 +42,7 @@ class SubscriberInsertor:
     session = Session()
     dailysubs = session.query(YTDailySubscribersSA).\
       filter(YTDailySubscribersSA.ytchannelid == self.ytchid). \
-      filter(YTDailySubscribersSA.date == self.refdate). \
+      filter(YTDailySubscribersSA.infodate == self.refdate). \
       first()
     if dailysubs:
       return self.update_if_needed(dailysubs, session)

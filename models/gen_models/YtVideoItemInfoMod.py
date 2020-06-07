@@ -4,7 +4,18 @@ import models.procdb.db_fetches_sa as fetch
 
 class YtVideoItemInfo:
   '''
-    class YtVideoItemInfo
+  This is a helper class to unite the scraped video items page info to the SqlAlchemy db-model
+    for inserting or updating.
+
+  The main attributes are:
+    duration_in_sec
+    views
+    publishdate
+    published_time_ago
+    info
+    ytchannel
+
+  Notice that views is recorded in a separate table due to its changing value through dates.
   '''
 
   def __init__(self, ytvideoid, title, ytchannelid, info_refdate=None):
@@ -17,7 +28,7 @@ class YtVideoItemInfo:
     self.ytvideoid = ytvideoid
     self.title = title
     self.published_time_ago = None
-    self.info_refdate = None; self.set_info_refdate_or_today(info_refdate)
+    self.infodate = None; self.set_info_refdate_or_today(info_refdate)
     if ytchannelid is None:
       error_msg = 'YtVideoItemInfo() init ytchannelid (%s) received as None' %ytchannelid
       raise ValueError(error_msg)
@@ -94,7 +105,7 @@ class YtVideoItemInfo:
     return
 
   def set_info_refdate_or_today(self, info_refdate=None):
-    self.info_refdate = dtfs.return_refdate_as_datetimedate_or_today(info_refdate)
+    self.infodate = dtfs.return_refdate_as_datetimedate_or_today(info_refdate)
 
   @property
   def publishdate(self):
@@ -104,10 +115,13 @@ class YtVideoItemInfo:
 
   def set_publishdate_with_time_ago(self):
     '''
-        self.published_time_ago = published_time_ago
+    Notice:
+      1) this method is to help find the publishdate;
+      2) in the future, if publishdate can be more exactly determine, field published_time_ago may be dropped
 
-    3 semanas atrás
-    :param info_refdate:
+    Example of content for published_time_ago: 3 semanas atrás
+
+    :param infodate:
     :return:
     '''
     self._publishdate = None
@@ -125,31 +139,30 @@ class YtVideoItemInfo:
           n = 0
         else:
           n = 1
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.info_refdate, n)
+        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n)
       elif word.find('dia') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.info_refdate, n)
+        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n)
       elif word.find('day') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.info_refdate, n)
+        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n)
       elif word.find('semana') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.info_refdate, n*7)
+        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n * 7)
       elif word.find('week') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.info_refdate, n*7)
+        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n * 7)
       elif word.find('mês') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.info_refdate, n*7)
+        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n * 7)
       elif word.find('mes') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.info_refdate, n*7)
+        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n * 7)
       elif word.find('month') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.info_refdate, n * 7)
+        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n * 7)
       elif word.find('ano') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.info_refdate, n*7)
+        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n * 7)
       elif word.find('year') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.info_refdate, n*7)
+        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n * 7)
       self._publishdate = d
       return
     except ValueError:
       pass
     return
-
 
   def asdict(self):
     outdict = {
@@ -160,7 +173,7 @@ class YtVideoItemInfo:
     'views'      : str(self.views),
     'publishdate': self.publishdate,
     'published_time_ago' : self.published_time_ago,
-    'info_refdate'       : self.info_refdate,
+    'infodate'       : self.infodate,
     }
     return outdict
 
@@ -172,7 +185,7 @@ class YtVideoItemInfo:
   views       = %(views)s
   publishdate = %(publishdate)s 
   published_time_ago = %(published_time_ago)s 
-  info_refdate = %(info_refdate)s
+  infodate = %(infodate)s
 ''' %(self.asdict())
     return outstr
 
