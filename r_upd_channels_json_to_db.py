@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 # from YtChannelMod import YtChannel
-import readjson
+from fs.db.jsondb import readjson
 from models.sa_models.ytchannelsubscribers_samodels import YTChannelSA
 
-from fs.db.sqlalchemy_conn import sqlalchemy_engine
+from fs.db.sqlalchdb.sqlalchemy_conn import sqlalchemy_engine
 from sqlalchemy.orm import sessionmaker
 Session = sessionmaker(bind=sqlalchemy_engine)
 

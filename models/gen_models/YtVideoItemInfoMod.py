@@ -1,16 +1,34 @@
 #!/usr/bin/python3
 import fs.datefunctions.datefs as dtfs
+import models.procdb.db_fetches_sa as fetch
 
 class YtVideoItemInfo:
+  '''
+    class YtVideoItemInfo
+  '''
 
-  def __init__(self, ytvideoid, title, info_refdate=None, ytchannel=None):
+  def __init__(self, ytvideoid, title, ytchannelid, info_refdate=None):
     self._duration_in_sec = None
     self._views = None
     self._publishdate = None
+    if len(ytvideoid) != 11:
+      error_msg = 'YtVideoItemInfo() init received ytvideoid (%s) not having 11 chars' %ytvideoid
+      raise ValueError(error_msg)
     self.ytvideoid = ytvideoid
     self.title = title
     self.published_time_ago = None
     self.info_refdate = None; self.set_info_refdate_or_today(info_refdate)
+    if ytchannelid is None:
+      error_msg = 'YtVideoItemInfo() init ytchannelid (%s) received as None' %ytchannelid
+      raise ValueError(error_msg)
+    start_letter = ytchannelid[0]
+    if start_letter not in ['c', 'u']:
+      error_msg = "YtVideoItemInfo() init start_letter not in ['c', 'u'] for ytchannelid (%s)" %ytchannelid
+      raise ValueError(error_msg)
+    ytchannel = fetch.FetchYtVideosPageByItsIdInDB(ytchannelid)
+    if ytchannel is None:
+      error_msg = 'YtVideoItemInfo() init could not fetch ytchannel (videospage) by its ytchannelid (%s)' %ytchannelid
+      raise ValueError(error_msg)
     self.ytchannel = ytchannel
 
   @property
@@ -93,6 +111,8 @@ class YtVideoItemInfo:
     :return:
     '''
     self._publishdate = None
+    if self.published_time_ago is None:
+      return
     pp = self.published_time_ago.split(' ')
     try:
       n = int(pp[0])
@@ -136,8 +156,8 @@ class YtVideoItemInfo:
     'ytvideoid' : self.ytvideoid,
     'title'     : self.title,
     'duration_hms'   : self.duration_hms,
-    'duration_in_sec': self.duration_in_sec,
-    'views'      : self.views,
+    'duration_in_sec': str(self.duration_in_sec),
+    'views'      : str(self.views),
     'publishdate': self.publishdate,
     'published_time_ago' : self.published_time_ago,
     'info_refdate'       : self.info_refdate,
@@ -148,8 +168,8 @@ class YtVideoItemInfo:
     outstr = '''[YtVideo Info]
   ytvideoid = %(ytvideoid)s
   title = %(title)s
-  duration_hms (in sec) = %(duration_hms)s (%(duration_in_sec)d)
-  views       = %(views)d
+  duration_hms (in sec) = %(duration_hms)s (%(duration_in_sec)s)
+  views       = %(views)s
   publishdate = %(publishdate)s 
   published_time_ago = %(published_time_ago)s 
   info_refdate = %(info_refdate)s

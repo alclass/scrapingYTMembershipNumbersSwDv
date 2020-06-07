@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import fs.db.SubscriberDaysMod as subsmod
+import models.procdb.SubscriberDaysMod as subsmod
 
 def process():
   sd = subsmod.SubscriberDays()

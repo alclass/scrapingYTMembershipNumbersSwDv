@@ -36,14 +36,14 @@ class YTVideoItemInfoSA(Base):
   '''
   Channel class to channels sql-table
   '''
-  __tablename__ = 'ytvideoitems'
+  __tablename__ = 'individualvideostats'
   id = Column(Integer, primary_key=True)
   ytvideoid = Column(String(11), unique=True)
   title = Column(String)
   duration_in_sec = Column(Integer, nullable=True)
   views = Column(Integer, nullable=True)
   publishdate = Column(Date, nullable=True)
-  published_time_ago = Column(String(11), unique=True)
+  published_time_ago = Column(String(30), unique=True)
   info_refdate = Column(Date, nullable=True)
   changelog = Column(Text, nullable=True)
 

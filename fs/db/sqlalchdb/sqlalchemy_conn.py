@@ -26,5 +26,8 @@ databasename = config.DATABASE_DICT[this_db]['DATABASENAME']
 
 engine_line = this_db + '://' + user + ':' + password + '@' + address + '/' + databasename
 
+if engine_line.startswith('mysql'):
+  engine_line = engine_line + '?charset=utf8mb4'
+
 sqlalchemy_engine = create_engine(engine_line)
 # print (engine_line)

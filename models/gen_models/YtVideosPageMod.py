@@ -2,7 +2,6 @@
 import datetime, os
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.pathfunctions as pathfs
-import config
 
 class YtVideosPage:
 
@@ -47,29 +46,30 @@ class YtVideosPage:
   @property
   def sname(self):
     if self._sname is not None:
+      if len(self._sname) > 10:
+        self._sname = self._sname[:10]
+      if self._sname.endswith(' '):
+        self._sname = self._sname.strip(' ')
       return self._sname
-    if self.nname is None:
-      wname = self.ytchannelid
+    wname = self.nname
+    if wname is not None:
       if len(wname) > 10:
         wname = wname[:10]
       wname = wname.strip(' ')
       self._sname = wname
-      return
-      # return pathfs.get_sname_from_filename(self.ytvideospagefilename)
-    wname = self.nname
-    if len(wname) > 10:
-      wname = wname[:10]
-    wname = wname.strip(' ')
-    self._sname = wname
-    return
+      return self._sname
+    # try to find it in folders
+    sname = pathfs.get_sname_from_filename(self.ytvideospagefilename)
 
   @sname.setter
   def sname(self, shortname):
     if shortname is None:
       return
-    if len(shortname) < 11:
-      self._sname = shortname
-    self._sname = shortname[:10]
+    self._sname = shortname
+    if len(shortname) > 10:
+      self._sname = shortname[:10]
+    if self._sname.endswith(' '):
+      self._sname = self._sname.strip(' ')
 
   @property
   def strdate(self):
@@ -81,15 +81,21 @@ class YtVideosPage:
   Notice an import difference here:
     1) if nname is None, filename should exist on folder and should be retrieve by dir lookup
     2) if nname is given, filename is returned even if it does not exist, for it is about to be created
-  :return:
-    '''
-    if self.nname is None:
+
       filename = pathfs.find_datedpage_filename_on_folder(self.ytchannelid, self.refdate)
       if filename is None:
         error_msg = 'Could not establish filename for ' + str(self)
         raise OSError(error_msg)
       return filename
-    return pathfs.datedpage_filename(self.strdate, self.nname, self.ytchannelid)
+
+  :return:
+    '''
+    if self._sname is None:
+      self.find_set_n_get_sname_by_folder_or_None()
+      if self._sname is None:
+        error_msg = 'Error: sname could not be established in @property ytvideospagefilename [class YtVideosPage]'
+        raise ValueError(error_msg)
+    return pathfs.datedpage_filename(self.strdate, self._sname, self.ytchannelid)
 
   @property
   def ytvideospagefile_abspath(self):
@@ -114,7 +120,11 @@ class YtVideosPage:
     filename = sought_entry[0]
     if len(filename) < 11 + 2 + len(ending):
       return None
-    return filename[11 : - len(ending)]
+    sname = filename[11 : - len(ending)]
+    if len(sname) > 10: sname = sname[:10]
+    if sname.endswith(' '): sname = sname.strip(' ')
+    self._sname = sname
+    return sname
 
   def get_htmltext_truncated(self, uptochar=50):
     htmltrun = self.get_html_text()
@@ -141,10 +151,18 @@ class YtVideosPage:
 
   @property
   def datedpage_filename(self):
+    sname = self.sname
+    if sname is None:
+      error_msg = '@property datedpage has sname as None (strdate=%s, sname=%s, ytchannelid=%s)' %(self.strdate, self.sname, self.ytchannelid)
+      raise ValueError(error_msg)
     return pathfs.datedpage_filename(self.strdate, self.sname, self.ytchannelid)
 
   @property
   def datedpage_filepath(self):
+    datedagefn = self.datedpage_filename
+    if datedagefn is None:
+      error_msg = '@property datedpage_filepath returned None'
+      raise ValueError(error_msg)
     return os.path.join(self.absfolderpath, self.datedpage_filename)
 
   @property

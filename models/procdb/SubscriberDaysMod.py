@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from fs.db.SubscriberInsertorMod import Session
+from models.procdb.SubscriberInsertorMod import Session
 from models.sa_models.ytchannelsubscribers_samodels import YTChannelSA
 from models.sa_models.ytchannelsubscribers_samodels import YTDailySubscribersSA
 from models.gen_models.YtVideosPageMod import transpose_sqlalchs_to_ytvideopages

@@ -56,6 +56,7 @@ def datedpage_filename(strdate, sname, ytchid):
     return find_datedpage_filename_on_folder(ytchid, refdate)
   truncatedname = sname
   if len(truncatedname) > 10: truncatedname = sname[:10]
+  if truncatedname.endswith(' '): truncatedname.strips(' ')
   return strdate + ' ' + truncatedname + ' [' + ytchid + ']' + '.html'
 
 def find_datedpage_filename_on_folder(ytchid, refdate=None):
@@ -81,7 +82,9 @@ def get_sname_from_filename(filename):
   pos = filename.find('[')
   if pos < 12:
     return None
+  # strips yyyy-mm-dd at the beginning
   trunk = filename[11 : pos]
+  # strips enclosing ' ' (left [lstrip] and right [rstrip])
   trunk = trunk.strip(' ')
   if len(trunk) == 0:
     return None

@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import os, requests, time
-import readjson
+from fs.db.jsondb import readjson
+from HTMLScraperMod import HTMLScraper
 import models.gen_models.YtVideosPageMod as ytvidpagesmod
 import fs.datefunctions.datefs as dtfs
 
@@ -39,14 +40,19 @@ class DownloadYtVideoPages:
       fp = open(entry_abspath, 'w')
       fp.write(res.text) # fp.write(str(res.content)) # it was observed that res.text goes UTF8, before res.content went non-UTF8
       fp.close()
-      wait_secs = dtfs.get_random_config_download_wait_nsecs()
-      print(self.n_downloaded, ' => written ', ytchannel.datedpage_filename, ': wait', wait_secs, 'seconds.')
+
+      scraper = HTMLScraper(ytchannel) # ytvideopagesobj is ytchannel
+      qty = scraper.ytvideopageobj.nOfSubscribers
+
+      wait_secs = dtfs.get_random_config_download_wait_nsecs() # takes a different one every moment
+      datedpagefn = ytchannel.datedpage_filename
+      print(self.n_downloaded, ' => written ', datedpagefn,': %d inscritos' %qty)
+      print(':: wait', wait_secs, 'seconds.')
       time.sleep(wait_secs)
 
   def report(self):
     print('Report:')
     print('n_exists =', self.n_exists, '; n_downloaded =', self.n_downloaded, '; n_fail_200 =', self.n_fail_200, '; total_channels =', self.total_channels)
-
 
 def process():
   downloader = DownloadYtVideoPages()

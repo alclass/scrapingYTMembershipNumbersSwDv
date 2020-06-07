@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import datetime
 from models.sa_models.ytchannelsubscribers_samodels import YTDailySubscribersSA
-from fs.db.sqlalchemy_conn import sqlalchemy_engine
+from fs.db.sqlalchdb.sqlalchemy_conn import sqlalchemy_engine
 from sqlalchemy.orm import sessionmaker
 
 Session = sessionmaker(bind=sqlalchemy_engine)

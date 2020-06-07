@@ -8,7 +8,7 @@
 '''
 import datetime, sys
 import DateFolderScraperMod as scrap
-from fs.db.SubscriberInsertorMod import SubscriberInsertor
+from models.procdb.SubscriberInsertorMod import SubscriberInsertor
 
 class SubscribersScraperToDB:
 

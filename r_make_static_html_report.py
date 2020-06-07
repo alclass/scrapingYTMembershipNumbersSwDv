@@ -1,8 +1,6 @@
 #!/usr/bin/python3
-import datetime, os
 import fs.statfunctions.statisticsMod as statmod
-import fs.db.SubscriberDaysMod as subsmod
-import fs.datefunctions.datefs as dtfs
+import models.procdb.SubscriberDaysMod as subsmod
 import fs.filefunctions.pathfunctions as pathfs
 import fs.graphics.barchartmod as bar
 

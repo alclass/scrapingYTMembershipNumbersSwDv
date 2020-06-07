@@ -6,12 +6,14 @@
 '''
 import bs4, os, sys
 import fs.datefunctions.datefs as dtfs
+import fs.filefunctions.autofinders as autofind
 import fs.textfunctions.scraper_helpers as scraphlp
-import fs.textfunctions.regexp_helpers as regexphlp
-import fs.filefunctions.autofinders as afind
+import fs.textfunctions.regexp_helpers as regexp
 
 from models.gen_models.YtVideosPageMod import YtVideosPage
 from models.gen_models.YtVideoItemInfoMod import YtVideoItemInfo
+# from models.sa_models.ytchannelsubscribers_samodels import YTVideoItemInfoSA
+from models.procdb.VideoItemInsertorMod import VideoItemInsertor
 
 '''
 <h3 class="yt-lockup-title ">
@@ -29,18 +31,23 @@ from models.gen_models.YtVideoItemInfoMod import YtVideoItemInfo
 </h3>
 '''
 
+total_videoinfos = 0 # global here: TO-DO: improve this later on (ie, see if it's possible to avoid global)
+
 class YTVideoItemScraper:
 
-  def __init__(self, ytchannelid, refdate=None):
+  def __init__(self, ytchannelid, refdate=None, sname=None):
     self.resultlist = []
     self.ytchannelid = ytchannelid
     self.refdate = dtfs.return_refdate_as_datetimedate_or_today(refdate)
-    self.ytchannelvideospage = YtVideosPage(self.ytchannelid, None, self.refdate)
-    sname = self.ytchannelvideospage.find_set_n_get_sname_by_folder_or_None()
     if sname is None:
+      sname = self.ytchannelvideospage.find_set_n_get_sname_by_folder_or_None()
       print(self.ytchannelid, 'file does exist on data folder.')
+      # TO-DO: log info in a logfile
       return
-    print ('['+sname+']')
+    self.sname = sname
+    self.ytchannelvideospage = YtVideosPage(self.ytchannelid, None, self.refdate)
+    self.ytchannelvideospage.sname = self.sname
+    print ('['+self.sname+']', self.ytchannelid, self.refdate)
 
   def scrape_html_on_folder(self):
     self.htmlcontent = self.ytchannelvideospage.get_html_text()
@@ -53,15 +60,23 @@ class YTVideoItemScraper:
       child = item.find('a') # , attrs=['title']
       if child is None:
         return
-      href_ytvideoid = str(child['href'])
-      ytvideoid = href_ytvideoid[len('/ watch?v=') : ]
+      ytvideoid = str(child['href'])
+      pos = ytvideoid.find('=')
+      if pos > -1:
+        ytvideoid = ytvideoid[pos+1:] # it has prefix '/ watch?v='
       title = str(child['title'])
+      if len(title) > 200: # in db it allows up to 255 chars: TO-DO: revise later on
+        title = title[:200]
       print('-'*50)
       print (i, 'ytvideoid', ytvideoid)
       print('title', title)
       child = item.find('span', attrs={'class' : 'accessible-description'})
-      print ('accessible-description', str(child.text))
-      videoinfo = YtVideoItemInfo(ytvideoid, title, self.refdate, self.ytchannelid)
+      try:
+        print ('accessible-description', str(child.text))
+      except AttributeError as e:
+        pass
+      videoinfo = YtVideoItemInfo(ytvideoid, title, self.ytchannelid, self.refdate)
+      print(i, videoinfo)
       self.resultlist.append(videoinfo)
 
     for i, item in enumerate(bsoup.find_all('span', attrs={'class' : 'video-time'})):
@@ -88,26 +103,34 @@ class YTVideoItemScraper:
       seq = i + 1
       print(seq, videoinfo)
 
+  def save_to_db(self):
+    global total_videoinfos
+    total_videoinfos += 1
+    for i, videoinfo in enumerate(self.resultlist):
+      seq = i + 1
+      vis = VideoItemInsertor(videoinfo)
+      vis.insert()
+      print(total_videoinfos, seq, 'Saving', videoinfo.ytvideoid, videoinfo.title)
+
   def __str__(self):
     outstr = 'Scraper(ytchannelid=%s, refdate=%s)' %(self.ytchannelid, self.refdate)
     return outstr
 
 def test1():
-  o = YtVideoItemInfo('ytid', 'title bla')
-  o.views = '123,123'
-  print (o)
+  pass
 
 def walk_thru_dates():
-  level2_foldernames = afind.find_yyyymmdd_level2_foldernames()
+  level2_foldernames = autofind.find_yyyymmdd_level2_foldernames()
   for i, level2_foldername in enumerate(level2_foldernames):
     seq = i+1
     print (seq, level2_foldername)
 
 def walk_thru_date_folders():
-  dates_n_abspaths_od = afind.get_ordered_dict_with_dates_n_abspaths()
+  dates_n_abspaths_od = autofind.get_ordered_dict_with_dates_n_abspaths()
   # print (dates_n_abspaths_od)
   html_counter = 0
-  for strdate in dates_n_abspaths_od:
+  for i, strdate in enumerate(dates_n_abspaths_od):
+    seq_dates = i + 1
     datefolder_abspath = dates_n_abspaths_od[strdate]
     print ('-'*50)
     print(strdate, datefolder_abspath)
@@ -121,10 +144,17 @@ def walk_thru_date_folders():
       html_counter += 1
       print (html_counter, htmlfilename)
       name_without_ext, _ = os.path.splitext(htmlfilename)
-      ytchannelid = regexphlp.find_ytchannelid_within_brackets_in_filename(name_without_ext)
-      scraper = YTVideoItemScraper(ytchannelid, strdate)
+      # ytchannelid = regexphlp.find_ytchannelid_within_brackets_in_filename(name_without_ext)
+      refdate, sname, ytchannelid = regexp.find_triple_date_sname_n_ytchid_in_filename(name_without_ext)
+      # YtVideoItemInfo(ytvideoid, title, ytchannelid, info_refdate)
+      # YTVideoItemScraper(ytchannelid, refdate = None, sname = None)
+      scraper = YTVideoItemScraper(ytchannelid, refdate, sname)
       print(scraper)
       scraper.scrape_html_on_folder()
+      scraper.save_to_db()
+    #if seq_dates > 1:
+    print (seq_dates, 'st/nd/rd/th date: on:', strdate)
+    # return
 
 def test1():
   # ytchannelid = 'upgjr23'

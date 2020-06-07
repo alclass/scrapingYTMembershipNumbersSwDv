@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import re
+import os, re
 import fs.textfunctions.scraper_helpers as scraphlp
 
 # regexp_str = r'\{\"text\"\:\s\"(\d+)[\s](\S+)[\s]inscritos\"\}'
@@ -103,7 +103,24 @@ def find_ytchannelid_within_brackets_in_filename(name_without_ext):
   if match is None:
     return None
   result = str(match.group(1)) # + ' ' + str(match.group(2))
+  result = result.lstrip('[').rstrip(']')
   return result
+
+def find_triple_date_sname_n_ytchid_in_filename(name_without_ext):
+  if name_without_ext is None:
+    return None, None, None
+  if name_without_ext.find('.') > -1:
+    name_without_ext, _ = os.path.splitext(name_without_ext)
+  try:
+    strdate = name_without_ext[:10]
+    ytchid = find_ytchannelid_within_brackets_in_filename(name_without_ext)
+    sname = name_without_ext[11: -(len(ytchid)+2+1)]
+    if len(sname) > 10: sname = sname[:10]
+    if sname.endswith(' '): sname = sname.strip(' ')
+    return strdate, sname, ytchid
+  except IndexError:
+    pass
+  return None, None, None
 
 def adhoc_test():
   t = 'blah {"text": "437.6 k subscribers"} blah'

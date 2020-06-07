@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import string
+import os, string
 
 def consume_left_side_int_number_w_optional_having_comma_or_point(word):
   if word is None:
