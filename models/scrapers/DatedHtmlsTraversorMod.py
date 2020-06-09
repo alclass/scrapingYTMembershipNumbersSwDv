@@ -181,18 +181,52 @@ class DatedHtmlsTraversor:
     # self.traverse()
 
   def init_dates(self, dateini=None, datefim=None):
-    if dateini is None:
-      dateini = dtfs.return_refdate_as_datetimedate_or_today()
-    if datefim is None:
-      datefim = dtfs.return_refdate_as_datetimedate_or_today()
-    self.dateini = dtfs.get_refdate_from_strdate(dateini)
-    self.datefim = dtfs.get_refdate_from_strdate(datefim)
+    '''
+    Conditions:
+      1) if ini is greater than fim, an exception (error) will be raised;
+      2) if fim is greater than today, an exception (error) will also be raised;
+      3) if a date not in format yyyy-mm-dd is entered, an exception (error) will be raised;
+      4) if a wrong date is entered, an exception (error) will also be raised.
+
+    :param dateini:
+    :param datefim:
+    :return:
+    '''
+    if dateini is None and datefim is None:
+      self.dateini = dtfs.return_refdate_as_datetimedate_or_today()
+      self.datefim = dtfs.return_refdate_as_datetimedate_or_today()
+    elif dateini is None:
+      rdatefim = dtfs.get_refdate_from_strdate_or_None(datefim)
+      if rdatefim is None:
+        error_msg = 'parameter datefim (%s) is an invalid date. Please, retry with a valid date.' %rdatefim
+        raise ValueError(error_msg)
+      self.datefim = rdatefim
+      self.dateini = copy.copy(rdatefim)
+    elif datefim is None:
+      rdateini = dtfs.get_refdate_from_strdate_or_None(dateini)
+      if rdateini is None:
+        error_msg = 'parameter dateini (%s) is an invalid date. Please, retry with a valid date.' %rdateini
+        raise ValueError(error_msg)
+      self.dateini = rdateini
+      self.datefim = copy.copy(rdateini)
+    else:
+      rdateini = dtfs.get_refdate_from_strdate_or_None(dateini)
+      if rdateini is None:
+        error_msg = 'parameter dateini (%s) is an invalid date. Please, retry with a valid date.' %rdateini
+        raise ValueError(error_msg)
+      self.dateini = rdateini
+      rdatefim = dtfs.get_refdate_from_strdate_or_None(datefim)
+      if rdatefim is None:
+        error_msg = 'parameter datefim (%s) is an invalid date. Please, retry with a valid date.' %rdatefim
+        raise ValueError(error_msg)
+      self.datefim = rdatefim
+
     today = datetime.date.today()
     if self.datefim > today:
-      error_msg = 'Error: self.datefim (%s) > today (%s)' %(self.dateini, self.datefim)
+      error_msg = 'Error: datafim is greater than today: self.datefim (%s) > today (%s). Please, correct datafim and retry.' %(self.dateini, self.datefim)
       raise ValueError(error_msg)
     if self.dateini > self.datefim:
-      error_msg = 'Error: self.dateini (%s) > self.datefim (%s)' %(self.dateini, self.datefim)
+      error_msg = 'Error: dataini is greater than datafim: self.dateini (%s) > self.datefim (%s). Please, invert them and retry.' %(self.dateini, self.datefim)
       raise ValueError(error_msg)
     self.datepointer = copy.copy(self.dateini)
 

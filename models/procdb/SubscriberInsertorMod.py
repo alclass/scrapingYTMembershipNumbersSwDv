@@ -48,7 +48,7 @@ class SubscriberInsertor:
       return self.update_if_needed(dailysubs, session)
     dailysubs = YTDailySubscribersSA(
       ytchannelid = self.ytchid,
-      date        = self.refdate,
+      infodate        = self.refdate,
       subscribers = self.n_subscribers
     )
     print('Adding', dailysubs)

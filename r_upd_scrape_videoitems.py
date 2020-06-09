@@ -1,4 +1,33 @@
 #!/usr/bin/python3
+'''
+Usage:
+      $this_script [-h] [--ini=<yyyy-mm-dd>] [--fim=<yyyy-mm-dd>]
+  Parameters:
+    - h                       shows this help message
+    --ini=<yyyy-mm-dd date>   sets initial-date
+    --fim=<yyyy-mm-dd date>   sets final-date
+
+Optional parameters:
+  1) if no parameters are used, both ini and fim would be set to today's date and processing will occur only for today's date;
+  2) if either one of --ini or --fim is not used, the processing will occur for given day only, not a range of days.
+
+Erroneous date conditions:
+  1) if ini is greater than fim, an exception (error) will be raised;
+  2) if fim is greater than today, an exception (error) will also be raised;
+  3) if a date not in format yyyy-mm-dd is entered, an exception (error) will be raised;
+  4) if a wrong date is entered, an exception (error) will also be raised.
+
+Examples:
+      1) $this_script --ini=2020-05-23 --fim=2020-05-30
+  will consider the 8-day range with 2020-05-23 and fim=2020-05-30, ie 2020-05-23, 2020-05-24, 2020-05-25 and so on up to 2020-05-30;
+      2) $this_script --fim=2020-05-25
+  will consider the 1-day 2020-05-25 for processing;
+      3) $this_script --ini=2020-05-30 --fim=2020-05-23
+  will trigger an error as explained above
+      4) $this_script
+  will consider today (1-day) for processing;
+'''
+
 import sys
 import fs.datefunctions.datefs as dtfs
 from models.scrapers.YTVideoItemScraperMod import YTVideoItemScraper
@@ -22,32 +51,36 @@ def show_help_n_exit():
   sys.exit()
 
 def get_args():
+  outdict = {'dateini':None, 'datefim':None}
   for arg in sys.argv:
     if arg.startswith('-h'):
       show_help_n_exit()
-    elif arg.startswith('--daysbefore='):
+    elif arg.startswith('--ini='):
       try:
-        pos = len('--daysbefore=')
-        rightside = arg[pos:]
-        n_days_before = int(rightside)
-      except ValueError:
-        print ('Error: parameter --daysbefore=<n> expects an integer as input (entered %s).' %rightside)
-        sys.exit()
-      return n_days_before
-  return None
+        pos = len('--ini=')
+        param = arg[pos:]
+        paramdate = dtfs.get_refdate_from_strdate_or_None(param)
+        outdict['dateini'] = paramdate
+      except IndexError:
+        pass
+    elif arg.startswith('--fim='):
+      try:
+        pos = len('--fim=')
+        param = arg[pos:]
+        paramdate = dtfs.get_refdate_from_strdate_or_None(param)
+        outdict['datefim'] = paramdate
+      except IndexError:
+        pass
+  return outdict
 
-def get_refdate_from_param_n_days_before_or_today():
-  n_days_before = get_args()
-  refdate = dtfs.return_refdate_as_datetimedate_or_today()
-  if n_days_before is not None:
-    refdate = dtfs.calc_past_date_from_refdate_back_n_days(refdate, n_days_before)
-  print ('param refdate', refdate)
-  return refdate
+def get_dateini_n_datefim_from_cli_params():
+  datesdict = get_args()
+  dateini = datesdict['dateini']
+  datefim = datesdict['datefim']
+  return dateini, datefim
 
 def process():
-  # refdate = get_refdate_from_param_n_days_before_or_today()
-  dateini = '2020-05-25' # '2020-05-22'
-  datefim = None # '2020-05-24' # None
+  dateini, datefim = get_dateini_n_datefim_from_cli_params()
   traversor = DatedHtmlsTraversor(dateini, datefim)
   print(traversor)
   for i, videospageinfo in enumerate(traversor.traverse()):

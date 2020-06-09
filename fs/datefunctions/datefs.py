@@ -15,6 +15,23 @@ def get_strdate(p_refdate=None):
   strdate = '%d-%s-%s' %(refdate.year, str(refdate.month).zfill(2), str(refdate.day).zfill(2))
   return strdate
 
+def get_refdate_from_strdate_or_None(strdate):
+  if strdate is None:
+    return None
+  strdate = str(strdate)
+  try:
+    pp = strdate.split('-')
+    year  = int(pp[0])
+    month = int(pp[1])
+    day   = int(pp[2])
+    rdate = datetime.date(year, month, day)
+    return rdate
+  except IndexError:
+    pass
+  except ValueError:
+    pass
+  return None
+
 def get_refdate_from_strdate(strdate=None):
   if strdate is None:
     return get_refdate()
