@@ -40,7 +40,7 @@ class YTVideoItemInfoSA(Base):
   title = Column(String)
   duration_in_sec = Column(Integer, nullable=True)
   publishdate = Column(Date, nullable=True)
-  published_time_ago = Column(String(30), unique=True)
+  published_time_ago = Column(String(30))
   infodate = Column(Date, nullable=True)
   changelog = Column(Text, nullable=True)
 
@@ -51,6 +51,9 @@ class YTVideoItemInfoSA(Base):
     return '<YTVideoItemInfoSA(ytvideoid="%s", title="%s")>' %(self.ytvideoid, self.title)
 
 class YTVideoViewsSA(Base):
+  '''
+  video views taken from a videospage per date
+  '''
 
   __tablename__ = 'videosviews'
 
@@ -60,6 +63,13 @@ class YTVideoViewsSA(Base):
 
   ytvideoid = Column(String(11), ForeignKey('individualvideostats.ytvideoid'))
   ytvideo = relationship(YTVideoItemInfoSA)
+
+  @property
+  def ytchannel(self):
+    if self.ytvideo:
+      if self.ytvideo.ytchannel:
+        return self.ytvideo.ytchannel
+    return 'w/o inf'
 
   def __repr__(self):
     return '<YTVideoViewsSA(ytvideoid="%s", views="%s")>' %(self.ytvideoid, self.views)
@@ -81,10 +91,13 @@ def adhoc_test():
   # videoiteminfo_sa.ytchannel = ytchannel_sa
   print ('videoiteminfo_sa', videoiteminfo_sa)
   videoviews_sa = YTVideoViewsSA()
+  videoviews_sa.ytvideoid = 'vid12345678'
   videoviews_sa.views = 12345
   videoviews_sa.infodate = datetime.date(2020, 5, 30)
-  # videoviews_sa.ytvideo = videoiteminfo_sa
+  videoviews_sa.ytvideo = videoiteminfo_sa
   print ('videoviews_sa', videoviews_sa)
+  print ('videoviews_sa.ytvideo', videoviews_sa.ytvideo)
+  print ('videoviews_sa.ytchannel', videoviews_sa.ytchannel)
 
 def process():
   adhoc_test()

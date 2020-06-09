@@ -24,7 +24,7 @@ def find_1stlevel_yyyymm_dir_foldernames(level1abspath=None):
   '''
   if level1abspath is None:
     level1abspath = pathfs.get_ytvideo_htmlfiles_baseabsdir()
-  if not os.path.isdir():
+  if not os.path.isdir(level1abspath):
     os.makedirs(level1abspath)
   entries = os.listdir(level1abspath)
   entries = list(filter(lambdafilterinyyyymm, entries))

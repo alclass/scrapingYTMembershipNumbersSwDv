@@ -6,6 +6,7 @@ Usage:
     - h                       shows this help message
     --ini=<yyyy-mm-dd date>   sets initial-date
     --fim=<yyyy-mm-dd date>   sets final-date
+    --all                     runs for all dates in database
 
 Optional parameters:
   1) if no parameters are used, both ini and fim would be set to today's date and processing will occur only for today's date;
@@ -26,10 +27,13 @@ Examples:
   will trigger an error as explained above
       4) $this_script
   will consider today (1-day) for processing;
+      5) $this_script --all
+  will process for all dates inside the database;
 '''
 
 import sys
 import fs.datefunctions.datefs as dtfs
+import fs.filefunctions.autofinders as autofind
 from models.scrapers.YTVideoItemScraperMod import YTVideoItemScraper
 from models.scrapers.DatedHtmlsTraversorMod import DatedHtmlsTraversor
 
@@ -50,11 +54,25 @@ def show_help_n_exit():
   print (__doc__)
   sys.exit()
 
+def find_ini_fim_full_date_range_in_data_n_confim():
+  dateini, datefim = autofind.find_dateini_n_dateend_thru_yyyymmdd_level2_folders()
+  screen_msg = 'Please confirm dateini as %s and datefim as %s:' %(dateini, datefim)
+  print(screen_msg)
+  ans = input('Confirm (Y/n) [default is Y, type in N/n to unconfirm] ? ')
+  if ans in ['N', 'n']:
+    sys.exit()
+  return dateini, datefim
+
 def get_args():
   outdict = {'dateini':None, 'datefim':None}
+  sys.argv.append('--all')
   for arg in sys.argv:
     if arg.startswith('-h'):
       show_help_n_exit()
+    elif arg.startswith('--all'):
+      dtini, dtfim = find_ini_fim_full_date_range_in_data_n_confim()
+      outdict = {'dateini': dtini, 'datefim': dtfim}
+      return outdict
     elif arg.startswith('--ini='):
       try:
         pos = len('--ini=')

@@ -6,8 +6,6 @@
 '''
 import bs4, os
 import fs.textfunctions.scraper_helpers as scraphlp
-import fs.textfunctions.regexp_helpers as regexp
-from models.gen_models.YtVideosPageMod import YtVideosPage
 from models.gen_models.YtVideoItemInfoMod import YtVideoItemInfo
 from models.procdb.VideoItemInsertorMod import VideoItemInsertor
 
@@ -45,6 +43,8 @@ class YTVideoItemScraper:
     :param htmlvideospagemetainfo:
     '''
 
+    self.total_videoinfo_insmod = 0;    self.total_videoinfo_records = 0
+    self.total_videoviews_insmod = 0;   self.total_videoviews_records = 0
     self.resultlist = []
     self.htmlvideospagemetainfo = htmlvideospagemetainfo
 
@@ -110,8 +110,28 @@ class YTVideoItemScraper:
     for i, videoinfo in enumerate(self.resultlist):
       seq = i + 1
       vis = VideoItemInsertor(videoinfo)
-      was_db_modified = vis.insert()
-      print(total_videoinfos, seq, 'Saving', videoinfo.ytvideoid, videoinfo.title, 'MODIFIED', was_db_modified)
+      was_db_modified = vis.inserts()
+      if was_db_modified:
+        print('MODIFIED', total_videoinfos, seq, 'Saving', videoinfo.ytvideoid, videoinfo.title)
+      else:
+        print('NOT MODIFIED', total_videoinfos, seq, 'Saving', videoinfo.ytvideoid, videoinfo.title)      self.increment_counters(vis)
+
+  def increment_counters(self, vis):
+
+      self.total_videoinfo_insmod   += vis.total_videoinfo_insmod
+      self.total_videoinfo_records  += vis.total_videoinfo_records
+      self.total_videoviews_insmod  += vis.total_videoviews_insmod
+      self.total_videoviews_records += vis.total_videoviews_records
+
+  def report(self):
+    outstr = '''Report VideoItemInsertor:
+  total_videoinfo_insmod = %d;  self.total_videoinfo_records = %d
+  total_videoviews_insmod = %d; self.total_videoviews_records = %d    
+    ''' % (
+      self.total_videoinfo_insmod, self.total_videoinfo_records,
+      self.total_videoviews_insmod, self.total_videoviews_records,
+    )
+    print(outstr)
 
   def __str__(self):
     outstr = 'Scraper(ytchannelid=%s, refdate=%s)' %(self.htmlvideospagemetainfo.ytchannelid, self.htmlvideospagemetainfo.refdate)
