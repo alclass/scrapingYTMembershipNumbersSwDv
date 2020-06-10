@@ -5,8 +5,8 @@ In other to make mysql work with sqlalchemy, two things were done:
   2) after that, mysqlclient was installed via pip.
 
 Because in this machine, a virtualenv is taken by the IDE (PyCharm),
- mysqlclient was installed both globally (so that app could be run without activating
- virtualenv and then also installed locally. so that PyCharm could also run app).
+ mysqlclient was installed both globally (so that flaskapp could be run without activating
+ virtualenv and then also installed locally. so that PyCharm could also run flaskapp).
 
 SqlAlchemy
 
