@@ -111,10 +111,19 @@ class YTVideoItemScraper:
       seq = i + 1
       vis = VideoItemInsertor(videoinfo)
       was_db_modified = vis.inserts()
+      self.increment_counters(vis)
+      tviim = self.total_videoinfo_insmod
+      tviir = self.total_videoinfo_records
+      tvvim = self.total_videoviews_insmod
+      tvvir = self.total_videoviews_records
+      tvinf = total_videoinfos
+      screen_msg = 'seq=%(seq)d tvinf=%(tvinf)d tviim=%(tviim)d tviir=%(tviir)d tviim=%(tvvim)d tviir=%(tviir)d\n' \
+        %{'seq':seq, 'tvinf':tvinf, 'tviim':tviim, 'tviir':tviir, 'tvvim':tvvim, 'tvvir':tvvir}
+      screen_msg += 'Saving %s %s' %(videoinfo.ytvideoid, videoinfo.title)
       if was_db_modified:
-        print('MODIFIED', total_videoinfos, seq, 'Saving', videoinfo.ytvideoid, videoinfo.title)
+        print(' >>> MODIFIED :', screen_msg)
       else:
-        print('NOT MODIFIED', total_videoinfos, seq, 'Saving', videoinfo.ytvideoid, videoinfo.title)      self.increment_counters(vis)
+        print('NOT >>> MODIFIED', screen_msg)
 
   def increment_counters(self, vis):
 

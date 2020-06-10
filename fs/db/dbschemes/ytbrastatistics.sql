@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `channels` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `ytchannelid_idx` (`ytchannelid`),
   UNIQUE KEY `nname_idx` (`nname`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='You Channels or Users';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='YT Channels or Users';
 
 -- --------------------------------------------------------
 
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS `videosviews` (
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `ytvideoid_fk` (`ytvideoid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='video views taken from a videospage per date';
 
 --
 -- Restrições para despejos de tabelas
