@@ -22,7 +22,7 @@ def get_ytchannelvideospage_url_from_ytchid(ytchid):
   return get_ytchannelvideospage_url_from_murl(murl)
 
 def get_ytvideo_htmlfiles_baseabsdir():
-  return config.get_ytvideo_htmlfiles_baseabsdir()
+  return config.get_ytvideo_datafolderbase_absdir()
 
 def get_datebased_ythtmlfiles_folderabspath(p_refdate=None):
   refdate = dtfs.get_refdate(p_refdate)
@@ -131,7 +131,7 @@ def get_sname_from_filename(filename):
   return trunk
 
 def get_statichtml_folderabspath():
-  baseabspath = config.get_ytvideo_htmlfiles_baseabsdir()
+  baseabspath = config.get_ytvideo_datafolderbase_absdir()
   return os.path.join(baseabspath, config.STATICHTML_FOLDERNAME)
 
 def get_statichtml_filename():

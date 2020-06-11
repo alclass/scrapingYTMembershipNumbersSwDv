@@ -1,32 +1,36 @@
-from flask import render_template
+from flask import render_template, flash, redirect, url_for
 from flaskapp import app
+from flaskapp.forms import LoginForm
 
-html_to_interpolate = '''
-<html>
-  <head>
-    <title>Home Page - Microblog</title>    
-  </head>
-  <body>
-      <h1>Hello, %(username)s!</h1>    
-    </body>
-</html>
-'''
-
-def interpolate():
+def get_data():
   userdict = {'username': 'Miguel'}
-  html_text = html_to_interpolate %userdict
-  return html_text
+  posts = [
+    {
+      'author' : {'username': 'Miguel'},
+      'body': 'Beautiful day in Portland!',
+    },
+    {
+      'author': {'username': 'Susan'},
+      'body': 'The Avengers movie was so cool!',
+    },
+  ]
+  return userdict, posts
 
 @app.route('/')
 @app.route('/index')
 def index():
-  userdict = {'username': 'Miguel'}
-  return render_template('index.html', title='Home Page', user=userdict) # interpolate() # 'hello, world!'
+  userdict, postsdata = get_data()
+  return render_template('index.html', title='Home Page', user=userdict, posts=postsdata)
 
-'''
-def adhoc_test():
-  print(interpolate())
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+  form = LoginForm()
+  if form.validate_on_submit():
+    flash('Login requested for user {}, remember_me={}'.format(
+      form.username.data, form.remember_me.data
+    ))
+    redirect(url_for('index'))
+  return render_template('login.html', title='Sign In', form=form)
 
-if __name__ == '__main__':
-  adhoc_test()
-'''
+def testview():
+  return 'hi'

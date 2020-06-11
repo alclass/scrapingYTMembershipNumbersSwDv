@@ -26,5 +26,15 @@ https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world
     Chapter 23: Application Programming Interfaces (APIs)
 '''
 from flask import Flask
+from config import FlaskConfig
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
 app = Flask(__name__)
-from flaskapp import routes
+app.config.from_object(FlaskConfig)
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
+from flaskapp import routes, models
+
+

@@ -56,6 +56,17 @@ DATABASE_DICT = {
 DOWNLOAD_WAIT_SECONDS_MIN = 4
 DOWNLOAD_WAIT_SECONDS_MAX = 7
 
+# Section 6 Flask parametes
+# =========================
+
+class FlaskConfig:
+  '''
+  Pattern from Grinberg's Flask book.
+  In Flask:
+    from config.from_object(<thismodule>.FlaskConfig)
+  '''
+  SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess' # CSRF_SECRET_KEY
+
 def adhoc_test():
   print (get_ytvideo_htmlfiles_baseabsdir())
   print (get_ytchannels_jsonabspath())
