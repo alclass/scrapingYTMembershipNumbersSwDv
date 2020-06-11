@@ -65,7 +65,7 @@ def find_ini_fim_full_date_range_in_data_n_confim():
 
 def get_args():
   outdict = {'dateini':None, 'datefim':None}
-  sys.argv.append('--all')
+  # sys.argv.append('--all')
   for arg in sys.argv:
     if arg.startswith('-h'):
       show_help_n_exit()

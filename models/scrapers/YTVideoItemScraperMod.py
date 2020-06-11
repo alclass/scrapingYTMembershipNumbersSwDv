@@ -117,8 +117,8 @@ class YTVideoItemScraper:
       tvvim = self.total_videoviews_insmod
       tvvir = self.total_videoviews_records
       tvinf = total_videoinfos
-      screen_msg = 'seq=%(seq)d tvinf=%(tvinf)d tviim=%(tviim)d tviir=%(tviir)d tviim=%(tvvim)d tviir=%(tviir)d\n' \
-        %{'seq':seq, 'tvinf':tvinf, 'tviim':tviim, 'tviir':tviir, 'tvvim':tvvim, 'tvvir':tvvir}
+      screen_msg = 'seq=%(seq)d tot_vidinf=%(tvinf)d vidinf_imod=%(tviim)d vidinf_irec=%(tviir)d vidviews_imod=%(tvvim)d tvidviews_irec=%(tviir)d\n' \
+        %{'seq':seq, 'tvinf':tvinf, 'tviim':tviim, 'tviir':tviir, 'tvvim':tvvim, 'tviir':tvvir}
       screen_msg += 'Saving %s %s' %(videoinfo.ytvideoid, videoinfo.title)
       if was_db_modified:
         print(' >>> MODIFIED :', screen_msg)
