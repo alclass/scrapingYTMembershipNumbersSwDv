@@ -13,7 +13,7 @@ YTVIDEO_HTMLFILES_DIRS = [
   '/home/dados/DataArchival/YT_Scrape_Data/BRA_Politics_YTData',
 ] # '/home/dados/Divers_Data_Archival/YTData/000_scrape_ytdata',
 
-def get_ytvideo_htmlfiles_baseabsdir():
+def get_ytvideo_datafolderbase_absdir():
   for abspath in YTVIDEO_HTMLFILES_DIRS:
     if os.path.isdir(abspath):
       return abspath
@@ -29,7 +29,7 @@ JSONDATA_RELFOLDER = 'ytchannels_jsondata'
 JSONDATA_FILENAME  = 'channelvideosytpages.json'
 
 def get_ytchannels_jsonfolderabspath():
-  abspath = os.path.join(get_ytvideo_htmlfiles_baseabsdir(), JSONDATA_RELFOLDER)
+  abspath = os.path.join(get_ytvideo_datafolderbase_absdir(), JSONDATA_RELFOLDER)
   if not os.path.isdir(abspath):
     os.makedirs(abspath)
   return abspath
@@ -65,10 +65,10 @@ class FlaskConfig:
   In Flask:
     from config.from_object(<thismodule>.FlaskConfig)
   '''
-  SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess' # CSRF_SECRET_KEY
+  SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess' # it's used as a CSRF SECRET_KEY
 
 def adhoc_test():
-  print (get_ytvideo_htmlfiles_baseabsdir())
+  print (get_ytvideo_datafolderbase_absdir())
   print (get_ytchannels_jsonabspath())
 
 def process():
