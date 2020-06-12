@@ -1,6 +1,7 @@
 from flask import render_template, flash, redirect, url_for
 from flaskapp import app
 from flaskapp.forms import LoginForm
+from flaskapp import views
 
 def get_data():
   userdict = {'username': 'Miguel'}
@@ -32,5 +33,11 @@ def login():
     redirect(url_for('index'))
   return render_template('login.html', title='Sign In', form=form)
 
+@app.route('/clist')
+def ytchannel_lister():
+  # ytchannels = get_data()
+  return views.output_ytchannel_lister()
+
+@app.route('/tview')
 def testview():
-  return 'hi'
+  return 'testview hi'

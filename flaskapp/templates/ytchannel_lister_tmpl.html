@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Sign In</h1>
+<h1>Login</h1>
+
+  {% for ytchannel in ytchannels %}
+    <p style="color:red;">{{ ytchannel.nname }}</p>
+  {% endfor %}
+
+{% endblock %}
