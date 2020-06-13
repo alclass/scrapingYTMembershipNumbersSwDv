@@ -35,8 +35,11 @@ def login():
 
 @app.route('/clist')
 def ytchannel_lister():
-  # ytchannels = get_data()
   return views.output_ytchannel_lister()
+
+@app.route('/channel/<ytchannelid>')
+def ytchannel(ytchannelid):
+  return views.output_ytchannel_videos(ytchannelid=ytchannelid)
 
 @app.route('/tview')
 def testview():

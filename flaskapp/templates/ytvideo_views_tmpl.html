@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Sign In</h1>
+<h1>Login</h1>
+
+  {% for videoviewsobj in videoviewsobjs %}
+    <p style="color:red;">{{ videoviewsobj[0].ytvideoid }}
+      {{ videoviewsobj[0].title }}
+      => {{ videoviewsobj[1].views }} on {{ videoviewsobj[1].infodate }}
+    </p>
+  {% endfor %}
+
+{% endblock %}

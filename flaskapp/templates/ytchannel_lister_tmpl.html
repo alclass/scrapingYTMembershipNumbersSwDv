@@ -6,7 +6,9 @@
 <h1>Login</h1>
 
   {% for ytchannel in ytchannels %}
-    <p style="color:red;">{{ ytchannel.nname }}</p>
+    <p style="color:red;">{{ ytchannel.nname }} =>
+      <a href="/channel/{{ ytchannel.ytchannelid }}">link to channel's videos</a>
+    </p>
   {% endfor %}
 
 {% endblock %}
