@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 style="color:red;">Vídeos {{ vinfo.title }}</h1>
+<table border="1">
+  <tr>
+    <th>seq</th>
+    <th>views</th>
+    <th>date</th>
+  </tr>
+  {% for vview in vinfo.vviewlist %}
+    <tr>
+      <td>
+        {{ loop.index }}
+      </td>
+      <td>
+        {{ vview.views }}
+      </td>
+      <td>
+        {{ vview.infodate }}
+      </td>
+    </tr>
+  {% endfor %}
+</table>
+
+<p>
+  <img src="{{ vinfo.local_matplot_png }}" alt="matplot_png"> Evolução de visualizações
+</p>

@@ -1,7 +1,10 @@
 from flask import render_template
 from sqlalchemy.orm import sessionmaker
 import models.sa_models.ytchannelsubscribers_samodels as samodels
+import models.procdb.sqlalch_fetches as fetch
 from fs.db.sqlalchdb.sqlalchemy_conn import sqlalchemy_engine
+from models.sa_models.ytchannelsubscribers_samodels import YTChannelSA
+from models.sa_models.ytchannelsubscribers_samodels import YTVideoItemInfoSA
 
 Session = sessionmaker(bind=sqlalchemy_engine)
 
@@ -12,22 +15,24 @@ def output_ytchannel_lister():
     all()
   return render_template('ytchannel_lister_tmpl.html', title='ytchannels list', ytchannels=ytchannels)
 
-def fetch_ytchannels_videos(ytchannelid):
-
-  session = Session()
-  ytchannel = session.query(samodels.YTChannelSA, samodels.YTVideoItemInfoSA). \
-    filter(samodels.YTChannelSA.ytchannelid == samodels.YTVideoItemInfoSA.ytchannelid). \
-    first()
-  print(ytchannel)
-
-  videoviewsobj = session.query(samodels.YTVideoItemInfoSA, samodels.YTVideoViewsSA). \
-    filter(samodels.YTVideoItemInfoSA.ytchannelid == ytchannelid). \
-    filter(samodels.YTVideoViewsSA.ytvideoid == samodels.YTVideoItemInfoSA.ytvideoid). \
-    order_by(samodels.YTVideoViewsSA.infodate). \
-    all()
-  session.close()
-  return videoviewsobj
-
 def output_ytchannel_videos(ytchannelid):
-  videoviewsobjs = fetch_ytchannels_videos(ytchannelid)
-  return render_template('ytvideo_views_tmpl.html', title='video views statistics', videoviewsobjs=videoviewsobjs)
+  ytChannelVideosAndItsViews = fetch.fetchYtChannelVideosAndItsViews(ytchannelid)
+  return render_template('ytvideo_views_tmpl.html', title='video views statistics', ytChannelVideosAndItsViews=ytChannelVideosAndItsViews)
+
+def videos_per_channel(ytchannelid):
+  session = Session()
+  ytchannel = session.query(YTChannelSA).filter(YTChannelSA.ytchannelid == ytchannelid).first()
+  # session.close()
+  return render_template('videos_per_channel_tmpl.html', title='videos_per_channel', ytchannel=ytchannel)
+
+def views_per_video(ytvideoid):
+  session = Session()
+  vinfo = session.query(YTVideoItemInfoSA).filter(YTVideoItemInfoSA.ytvideoid == ytvideoid).first()
+  return render_template('views_per_video_tmpl.html', title='views_per_video', ytvideoid=ytvideoid)
+
+def process():
+  pass
+
+
+if __name__ == '__main__':
+  process()

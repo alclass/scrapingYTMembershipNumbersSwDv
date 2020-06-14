@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 style="color:red;">Vídeos {{ ytchannel.nname }}</h1>
+  {% for vinfo in ytchannel.vinfolist %}
+        <a href="{{ url_for('static', filename='img/test.png') }}">
+
+    <p style="color:orange;"> => {{ loop.index }} </a> =>
+      <a href="{{ vinfo.ytvideo_url }}">{{ vinfo.title }}</a> on {{ vinfo.infodate }}</p>
+    <p>{{ vinfo.matplot_image_abspath }} </p>
+      <table border="1">
+        <tr>
+          <th>seq</th>
+          <th>views</th>
+          <th>date</th>
+        </tr>
+
+          {% for vview in vinfo.vviewlist %}
+        <tr>
+          <td>
+            {{ loop.index }}
+          </td>
+          <td>
+            {{ vview.views }}
+          </td>
+          <td>
+            {{ vview.infodate }}
+          </td>
+        </tr>
+          {% endfor %}
+      </table>
+  {% endfor %}
+{% endblock %}

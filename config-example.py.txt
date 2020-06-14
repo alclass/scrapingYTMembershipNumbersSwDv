@@ -1,10 +1,11 @@
 #!/usr/bin/python3
-import os
+import os, pathlib
 
 # Section 1 YouTube config parameters
 # ===================================
 YT_URL_PREFIX = 'https://www.youtube.com/'
 YT_URL_SUFIX = '/videos'
+YTVIDEO_URL_BASE_TO_INTERPOLATE = 'https://www.youtube.com/watch?v=%s'
 
 # Section 2 Base directory for downloaded html files for local scraping
 # =====================================================================
@@ -21,6 +22,13 @@ def get_ytvideo_datafolderbase_absdir():
 
 STATICHTML_FOLDERNAME = 'ytchannels_statichtml'
 STATICHTML_FILENAME = 'static_html_report.html'
+FLASKAPP_FOLDERNAME = 'flaskapp'
+
+def get_apps_baseabspath():
+  return pathlib.Path(__file__).parent.absolute()
+
+def get_flaskapp_abspath():
+  return os.path.join(get_apps_baseabspath(), FLASKAPP_FOLDERNAME)
 
 # Section 3 Base directory for json "master data" (ie, ytchannel minimum info)
 # ============================================================================
@@ -70,6 +78,7 @@ class FlaskConfig:
 def adhoc_test():
   print (get_ytvideo_datafolderbase_absdir())
   print (get_ytchannels_jsonabspath())
+  print (get_apps_baseabspath())
 
 def process():
   adhoc_test()

@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 import os, requests, time
 from fs.db.jsondb import readjson
-from models.scrapers.SubscriberScraperMod import HTMLScraper
 import models.gen_models.YtVideosPageMod as ytvidpagesmod
 import fs.datefunctions.datefs as dtfs
+
+from models.scrapers.SubscriberScraperMod import HTMLScraper
 
 class DownloadYtVideoPages:
 
@@ -35,18 +36,21 @@ class DownloadYtVideoPages:
         self.n_fail_200 += 1
         error_msg = 'Page [%s] returned a not 200 status response' %ytchannel.videospageurl
         print(error_msg)
+        # instead of raising an exception, log message to a file
         # raise IOError(error_msg)
       self.n_downloaded += 1
       fp = open(entry_abspath, 'w')
       fp.write(res.text) # fp.write(str(res.content)) # it was observed that res.text goes UTF8, before res.content went non-UTF8
       fp.close()
 
-      scraper = HTMLScraper(ytchannel) # ytvideopagesobj is ytchannel
-      qty = scraper.ytvideopageobj.nOfSubscribers
+      # TO-DO: method scraper.scrape_by_whole_html(text) should be able to scrape all items once top to bottom
+      #scraper = HTMLScraper(ytchannel) # ytvideopagesobj is ytchannel
+      #scraper.scrape_by_whole_html(res.text)
+      #qty = scraper.ytvideopageobj.nOfSubscribers
 
       wait_secs = dtfs.get_random_config_download_wait_nsecs() # takes a different one every moment
       datedpagefn = ytchannel.datedpage_filename
-      print(self.n_downloaded, ' => written ', datedpagefn,': %d inscritos' %qty)
+      print(self.n_downloaded, ' => written ', datedpagefn) # ,': %d inscritos' %qty
       print(':: wait', wait_secs, 'seconds.')
       time.sleep(wait_secs)
 

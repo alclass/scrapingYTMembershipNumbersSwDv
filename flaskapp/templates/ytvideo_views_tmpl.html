@@ -2,14 +2,16 @@
 
 {% block content %}
 
-<h1>Sign In</h1>
-<h1>Login</h1>
+<h1>Ytvideo Info and Views</h1>
 
-  {% for videoviewsobj in videoviewsobjs %}
-    <p style="color:red;">{{ videoviewsobj[0].ytvideoid }}
-      {{ videoviewsobj[0].title }}
-      => {{ videoviewsobj[1].views }} on {{ videoviewsobj[1].infodate }}
-    </p>
+<h1 style="color:red;">{{ ytChannelVideosAndItsViews.ytchannel.nname }}</h1>
+
+{% for ytchannelid in ytChannelVideosAndItsViews.vvideos_views_dict %}
+  foo<br>
+  {% for tuplelist in ytChannelVideosAndItsViews.vvideos_views_dict[ytchannelid] %}
+    bar<br>
+    <p style="color:red;">{{ tuplelist[0].title }} => {{ tuplelist[1].views }} on {{ tuplelist[1].infodate }}</p>
   {% endfor %}
+{% endfor %}
 
 {% endblock %}

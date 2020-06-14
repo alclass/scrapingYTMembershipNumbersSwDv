@@ -37,9 +37,20 @@ def login():
 def ytchannel_lister():
   return views.output_ytchannel_lister()
 
+# videos_per_channel
+@app.route('/channel/<ytchannelid>/videos/')
+def videos_per_channel(ytchannelid):
+  return views.videos_per_channel(ytchannelid=ytchannelid)
+
+# views per video
+@app.route('/video/<ytvideo>')
+def views_per_video(ytvideo):
+  return views.views_per_video(ytvideo=ytvideo)
+
 @app.route('/channel/<ytchannelid>')
 def ytchannel(ytchannelid):
   return views.output_ytchannel_videos(ytchannelid=ytchannelid)
+
 
 @app.route('/tview')
 def testview():

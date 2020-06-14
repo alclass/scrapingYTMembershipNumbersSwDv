@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import fs.datefunctions.datefs as dtfs
-import models.procdb.db_fetches_sa as fetch
+import models.procdb.sqlalch_fetches as fetch
 
 class YtVideoItemInfo:
   '''

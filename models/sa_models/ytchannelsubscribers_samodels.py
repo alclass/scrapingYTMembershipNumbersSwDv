@@ -1,9 +1,10 @@
 #!/usr/bin/python3
-import datetime # for adhoc test
+import datetime, os # for adhoc test
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text
 from sqlalchemy.orm import relationship
+import config
 
 class YTChannelSA(Base):
 
@@ -13,6 +14,9 @@ class YTChannelSA(Base):
   ytchannelid = Column(String, unique=True)
   nname = Column(String)
   obs = Column(Text, nullable=True)
+
+  daily_subscribers = relationship('YTDailySubscribersSA', backref='ytchannel', lazy='dynamic')
+  vinfolist = relationship('YTVideoItemInfoSA', backref='ytchannel', lazy='dynamic')
 
   def __repr__(self):
     return '<Channel(ytchannelid="%s", nname="%s")>' %(self.ytchannelid, self.nname)
@@ -26,11 +30,12 @@ class YTDailySubscribersSA(Base): # YTDailySubscribersSA <= DailySubscribers
   infodate = Column(Date)
 
   ytchannelid = Column(String, ForeignKey('channels.ytchannelid'))
-  ytchannel = relationship(YTChannelSA)
+  #ytchannel = relationship(YTChannelSA)
 
   def __repr__(self):
-    return '<DailySubscribers(ytchannelid="%s", infodate="%s". subscribers=%d)>' % (self.ytchannelid, str(self.infodate), self.subscribers)
+    return '<DailySubscribers(ytchid="%s", infdt="%s". subs=%d)>' % (self.ytchannelid, str(self.infodate), self.subscribers)
 
+YT_VIDEO_URL_BASE_TO_INTERPOLATE = 'https://www.youtube.com/watch?v=%s'
 class YTVideoItemInfoSA(Base):
 
   __tablename__ = 'individualvideostats'
@@ -44,11 +49,43 @@ class YTVideoItemInfoSA(Base):
   infodate = Column(Date, nullable=True)
   changelog = Column(Text, nullable=True)
 
+  vviewlist = relationship('YTVideoViewsSA', backref='vinfo', lazy='dynamic')
   ytchannelid = Column(String, ForeignKey('channels.ytchannelid'))
-  ytchannel = relationship(YTChannelSA)
+  #ytchannel = relationship(YTChannelSA)
+
+  @property
+  def ytvideo_url(self):
+    return self.get_ytvideo_url()
+
+  def get_ytvideo_url(self):
+    try:
+      yturlbasetointerpolate = config.YTVIDEO_URL_BASE_TO_INTERPOLATE
+    except AttributeError:
+      yturlbasetointerpolate = 'https://www.youtube.com/watch?v=%s' # fallback_yturlbasetointerpolate
+    return yturlbasetointerpolate %self.ytvideoid
+
+  @property
+  def local_matplot_png(self):
+    return self.get_local_matplot_png()
+
+  @property
+  def matplot_image_filename(self):
+    return '%s.png' %self.ytvideoid
+
+  @property
+  def matplot_image_abspath(self):
+    flaskapp_abspath = config.get_flaskapp_abspath()
+    imagefolder_abspath = os.path.join(flaskapp_abspath, 'img')
+    image_abspath = os.path.join(imagefolder_abspath, self.matplot_image_filename)
+    return image_abspath
+
+  def get_local_matplot_png(self):
+    url = 'http://127.0.0.1:5000/img/%s' %self.matplot_image_filename
+    url = 'http://127.0.0.1:5000/img/test.png'
+    return url
 
   def __repr__(self):
-    return '<YTVideoItemInfoSA(ytvideoid="%s", title="%s")>' %(self.ytvideoid, self.title)
+    return '<YTVideoItemInfoSA(ytvid="%s", title="%s", infdt="%s")>' %(self.ytvideoid, self.title, self.infodate)
 
 class YTVideoViewsSA(Base):
   '''
@@ -62,17 +99,10 @@ class YTVideoViewsSA(Base):
   infodate = Column(Date, nullable=True)
 
   ytvideoid = Column(String(11), ForeignKey('individualvideostats.ytvideoid'))
-  ytvideo = relationship(YTVideoItemInfoSA)
-
-  @property
-  def ytchannel(self):
-    if self.ytvideo:
-      if self.ytvideo.ytchannel:
-        return self.ytvideo.ytchannel
-    return 'w/o inf'
+  # videoinfolist = relationship(YTVideoItemInfoSA)
 
   def __repr__(self):
-    return '<YTVideoViewsSA(ytvideoid="%s", views="%s")>' %(self.ytvideoid, self.views)
+    return '<YTVideoViewsSA(ytvideoid="%s", views="%s", infdt="%s")>' %(self.ytvideoid, self.views, self.infodate)
 
 def adhoc_test():
   ytchannel_sa = YTChannelSA()
