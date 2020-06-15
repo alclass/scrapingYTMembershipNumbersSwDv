@@ -3,6 +3,7 @@ migrations/
 venv/
 .idea/
 config.py
+*.bak
 */*.bak
 */*.html
 **/*.png

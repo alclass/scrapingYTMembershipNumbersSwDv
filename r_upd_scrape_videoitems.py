@@ -35,7 +35,7 @@ import sys
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.autofinders as autofind
 from models.scrapers.YTVideoItemScraperMod import YTVideoItemScraper
-from models.scrapers.DatedHtmlsTraversorMod import DatedHtmlsTraversor
+from models.gen_models.DatedHtmlsTraversorMod import DatedHtmlsTraversor
 
 def scrap_videospageinfo_html(videospageinfo):
   '''

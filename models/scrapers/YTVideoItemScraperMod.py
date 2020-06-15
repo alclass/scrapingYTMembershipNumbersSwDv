@@ -4,10 +4,11 @@
   Without parameter, it scrapes today's folder.
   An optional parameter --daysbefore=<n> scrapes n days before, if related folder exists.
 '''
-import bs4, os
+import bs4, json, os
 import fs.textfunctions.scraper_helpers as scraphlp
 from models.gen_models.YtVideoItemInfoMod import YtVideoItemInfo
 from models.procdb.VideoItemInsertorMod import VideoItemInsertor
+from models.gen_models.HtmlInDateFolderMod import HtmlInDateFolder
 
 '''
 <h3 class="yt-lockup-title ">
@@ -24,6 +25,30 @@ from models.procdb.VideoItemInsertorMod import VideoItemInsertor
   </span>
 </h3>
 '''
+
+def alternative_way_to_scrape_videoitems(htmlcontent):
+  '''
+
+    OBS: it's not working as of yet
+    ===============================
+
+  :param htmlcontent:
+  :return:
+  '''
+  print('Info is inside the json attributed to var window["ytInitialData"].')
+  start_token = 'window["ytInitialData"]'
+  pos = htmlcontent.find(start_token)
+  if pos > -1:
+    trunk = htmlcontent[pos + len(start_token) + 2:]
+    end_token = 'window["ytInitialPlayerResponse"]'
+    pos = trunk.find(end_token)
+    if pos > -1:
+      trunk = trunk[: pos]
+      trunk = trunk.strip(' ;\t\r\n ')
+      trunk = trunk[:-1]
+      print('trunk', trunk)
+      jsdict = json.loads(trunk)
+      print(jsdict)
 
 total_videoinfos = 0 # global here: TO-DO: improve this later on (ie, see if it's possible to avoid global)
 
@@ -81,6 +106,9 @@ class YTVideoItemScraper:
       videoinfo = YtVideoItemInfo(ytvideoid, title, self.htmlvideospagemetainfo.ytchannelid, self.htmlvideospagemetainfo.refdate)
       print(i, videoinfo)
       self.resultlist.append(videoinfo)
+    else: # else-for => this else belongs to a for
+      print ('bsoup find all is empty.')
+
 
     for i, item in enumerate(bsoup.find_all('span', attrs={'class' : 'video-time'})):
       videoinfo = self.resultlist[i]
@@ -147,7 +175,15 @@ class YTVideoItemScraper:
     return outstr
 
 def test1():
-  pass
+  '''
+    ytchannelid = 'upgjr23'
+
+  :return:
+  '''
+  filename = '2020-06-14 Paulo Ghir [upgjr23].html'
+  htmlvideospagemetainfo = HtmlInDateFolder(filename)
+  htmlfileobj = YTVideoItemScraper(htmlvideospagemetainfo)
+  htmlfileobj.scrape_html_on_folder()
 
 def process():
   '''
@@ -155,7 +191,7 @@ def process():
 
   :return:
   '''
-  pass
+  test1()
 
 if __name__ == '__main__':
   process()

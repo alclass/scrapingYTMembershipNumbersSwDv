@@ -5,6 +5,7 @@ Base = declarative_base()
 from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text
 from sqlalchemy.orm import relationship
 import config
+import fs.datefunctions.datefs as dtfs
 
 class YTChannelSA(Base):
 
@@ -15,8 +16,8 @@ class YTChannelSA(Base):
   nname = Column(String)
   obs = Column(Text, nullable=True)
 
-  daily_subscribers = relationship('YTDailySubscribersSA', backref='ytchannel', lazy='dynamic')
-  vinfolist = relationship('YTVideoItemInfoSA', backref='ytchannel', lazy='dynamic')
+  daily_subscribers = relationship('YTDailySubscribersSA', backref='ytchannel', lazy='dynamic', order_by='YTDailySubscribersSA.infodate')
+  vinfolist = relationship('YTVideoItemInfoSA', backref='ytchannel', lazy='dynamic', order_by='YTVideoItemInfoSA.infodate')
 
   def __repr__(self):
     return '<Channel(ytchannelid="%s", nname="%s")>' %(self.ytchannelid, self.nname)
@@ -49,9 +50,13 @@ class YTVideoItemInfoSA(Base):
   infodate = Column(Date, nullable=True)
   changelog = Column(Text, nullable=True)
 
-  vviewlist = relationship('YTVideoViewsSA', backref='vinfo', lazy='dynamic')
+  vviewlist = relationship('YTVideoViewsSA', backref='vinfo', lazy='dynamic', order_by='YTVideoViewsSA.infodate')
   ytchannelid = Column(String, ForeignKey('channels.ytchannelid'))
   #ytchannel = relationship(YTChannelSA)
+
+  @property
+  def duration_in_hms(self):
+    return dtfs.transform_duration_in_sec_into_hms(self.duration_in_sec)
 
   @property
   def ytvideo_url(self):

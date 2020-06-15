@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Channel Summary</h1>
+  <h1 style="color:red;">{{ ytchannel.nname }}</h1>
+  <hr>
+
+  <table border="2">
+    <tr>
+      <th>nº vídeos</th>
+      <th>dias disp</th>
+      <th>nº inscritos últ</th>
+      <th>data últ</th>
+      <th>nº inscritos pri</th>
+      <th>data pri</th>
+      <th>delta inscr</th>
+    </tr>
+    <tr style="text-align:center;">
+      <td>{{ ytchannel.vinfolist | list | length }}</td>
+      {% set subs = ytchannel.daily_subscribers %}
+      <td>{{ subs | list | length }}</td>
+      {% if subs %}
+        <td>{{ subs[-1].subscribers }}</td>
+        <td>{{ subs[-1].infodate }}</td>
+        <td>{{ subs[0].subscribers }}</td>
+        <td>{{ subs[0].infodate }}</td>
+        <td>{{ subs[-1].subscribers - subs[0].subscribers }}</td>
+      {% else %}
+        <td>not known</td>
+        <td>unavailable</td>
+        <td>not known</td>
+        <td>unavailable</td>
+        <td>not known</td>
+      {% endif %}
+    </tr>
+  </table>
+
+  {% for vinfo in ytchannel.vinfolist | reverse %}
+    <p style="color:orange;">{{ loop.index }} => <a href="{{ vinfo.ytvideo_url }}">{{ vinfo.title }}</a> <br>
+      on {{ vinfo.publishdate }} {{ vinfo.published_time_ago }} {{ vinfo.infodate }} duration {{ vinfo.duration_in_hms }} {{ vinfo.ytvideoid }}</p>
+      <table border="1">
+        <tr>
+          <th>seq</th>
+          <th>date</th>
+          <th>views</th>
+          <th>diff</th>
+        </tr>
+        {%- set previous_dict = {'previous': 0} -%}
+        {% for vview in vinfo.vviewlist | reverse %}
+          <tr style="color:orange;">
+            <td>{{ loop.index }}</td>
+            <td>{{ vview.infodate }}</td>
+            <td>{{ vview.views }}</td>
+            {% if loop.first %}
+              <td>---</td>
+            {% else %}
+              <td>{{ previous_dict.previous - vview.views }}</td>
+            {% endif %}
+          </tr>
+          {% if previous_dict.update({'previous': vview.views}) %}
+          {% endif %}
+        {% endfor %}
+      </table>
+  {% endfor %}
+
+  <p>ytvideosid</p>
+
+  {% for vinfo in ytchannel.vinfolist | reverse %}
+    {{ vinfo.ytvideoid }} <br>
+  {% endfor %}
+
+  <p> {{ today }}</p>
+
+{% endblock %}
+

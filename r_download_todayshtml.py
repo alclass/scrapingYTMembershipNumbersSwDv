@@ -38,6 +38,7 @@ class DownloadYtVideoPages:
         print(error_msg)
         # instead of raising an exception, log message to a file
         # raise IOError(error_msg)
+        continue
       self.n_downloaded += 1
       fp = open(entry_abspath, 'w')
       fp.write(res.text) # fp.write(str(res.content)) # it was observed that res.text goes UTF8, before res.content went non-UTF8
