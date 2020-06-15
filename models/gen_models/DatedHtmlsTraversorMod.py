@@ -5,6 +5,8 @@ import fs.filefunctions.pathfunctions as pathfs
 from models.gen_models.HtmlInDateFolderMod import HtmlInDateFolder
 # import fs.textfunctions.regexp_helpers as regexp
 
+lambdaentryhashtmlext  = lambda word : pathfs.does_filename_have_ext_from_extlist(word, extlist=['htm', 'html'])
+
 class DatedHtmlsTraversor:
 
   def __init__(self, dateini=None, datefim=None):

@@ -17,7 +17,7 @@ class YTChannelSA(Base):
   obs = Column(Text, nullable=True)
 
   daily_subscribers = relationship('YTDailySubscribersSA', backref='ytchannel', lazy='dynamic', order_by='YTDailySubscribersSA.infodate')
-  vinfolist = relationship('YTVideoItemInfoSA', backref='ytchannel', lazy='dynamic', order_by='YTVideoItemInfoSA.infodate')
+  vinfolist = relationship('YTVideoItemInfoSA', backref='ytchannel', lazy='dynamic', order_by='YTVideoItemInfoSA.publishdate')
 
   def __repr__(self):
     return '<Channel(ytchannelid="%s", nname="%s")>' %(self.ytchannelid, self.nname)

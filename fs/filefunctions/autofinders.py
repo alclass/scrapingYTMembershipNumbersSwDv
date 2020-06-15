@@ -82,6 +82,39 @@ def find_all_yyyymmdd_level2_foldernames():
     total_yyyymmdd_foldernames.append(strdate)
   return total_yyyymmdd_foldernames
 
+def get_ordered_dict_with_dates_n_abspaths():
+  level2_yyyymmdd_dir_abspaths = find_all_2ndlevel_yyyymmdd_dir_abspaths()
+  yyyymmdd_list = []
+  dates_n_paths_dict = {}
+  for yyyymmdd_dir_abspath in level2_yyyymmdd_dir_abspaths:
+    _, strdate = os.path.split(yyyymmdd_dir_abspath)
+    yyyymmdd_list.append(strdate)
+    dates_n_paths_dict[strdate] = yyyymmdd_dir_abspath
+  yyyymmdd_list = sorted(yyyymmdd_list)
+  dates_n_paths_od = OrderedDict()
+  for yyyymmdd in yyyymmdd_list:
+    dates_n_paths_od[yyyymmdd] = dates_n_paths_dict[yyyymmdd]
+  return dates_n_paths_od
+
+def get_htmlfilepaths_from_date(pdate=None):
+  refdate = dtfs.return_refdate_as_datetimedate_or_today(pdate)
+  level0baseabspath = pathfs.get_ytvideo_htmlfiles_baseabsdir()
+  level1foldername = str(refdate)[:7]
+  level1folderabspath = os.path.join(level0baseabspath, level1foldername)
+  if not os.path.isdir(level1folderabspath):
+    os.makedirs(level1folderabspath)
+  level2foldername = str(refdate)
+  level2folderabspath = os.path.join(level1folderabspath, level2foldername)
+  if not os.path.isdir(level2folderabspath):
+    os.makedirs(level2folderabspath)
+  files = os.listdir(level2folderabspath)
+  htmlfiles = list(filter(lambda word: word.endswith('.html'), files))
+  htmlfile_abspath_list = []
+  for htmlfile in htmlfiles:
+    htmlfile_abspath = os.path.join(level2folderabspath, htmlfile)
+    htmlfile_abspath_list.append(htmlfile_abspath)
+  return htmlfile_abspath_list
+
 def find_dateini_n_dateend_thru_yyyymmdd_level2_folders():
   total_yyyymmdd_foldernames = find_all_yyyymmdd_level2_foldernames()
   if len(total_yyyymmdd_foldernames) == 0:
@@ -97,19 +130,11 @@ def find_dateini_n_dateend_thru_yyyymmdd_level2_folders():
     return (None, None)
   return (oldestdate, newestdate)
 
-def get_ordered_dict_with_dates_n_abspaths():
-  level2_yyyymmdd_dir_abspaths = find_all_2ndlevel_yyyymmdd_dir_abspaths()
-  yyyymmdd_list = []
-  dates_n_paths_dict = {}
-  for yyyymmdd_dir_abspath in level2_yyyymmdd_dir_abspaths:
-    _, strdate = os.path.split(yyyymmdd_dir_abspath)
-    yyyymmdd_list.append(strdate)
-    dates_n_paths_dict[strdate] = yyyymmdd_dir_abspath
-  yyyymmdd_list = sorted(yyyymmdd_list)
-  dates_n_paths_od = OrderedDict()
-  for yyyymmdd in yyyymmdd_list:
-    dates_n_paths_od[yyyymmdd] = dates_n_paths_dict[yyyymmdd]
-  return dates_n_paths_od
+def test1():
+  result = get_htmlfilepaths_from_date()
+  for eachfile in result:
+    print(eachfile)
+  print ('total', len(result))
 
 def process():
   '''
@@ -117,7 +142,7 @@ def process():
 
   :return:
   '''
-  pass
+  test1()
 
 if __name__ == '__main__':
   process()
