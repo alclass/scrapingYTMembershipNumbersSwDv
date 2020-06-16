@@ -1,7 +1,11 @@
-from flask import render_template, flash, redirect, url_for
+from flask import render_template, flash, redirect, url_for, g
 from flaskapp import app
 from flaskapp.forms import LoginForm
 from flaskapp import views
+import datetime
+
+from fs.db.sqlalchdb.sqlalchemy_conn import sqlalchemy_engine
+from sqlalchemy.orm import sessionmaker
 
 def get_data():
   userdict = {'username': 'Miguel'}
@@ -16,6 +20,23 @@ def get_data():
     },
   ]
   return userdict, posts
+
+@app.before_request
+def before_request():
+  Session = sessionmaker(bind=sqlalchemy_engine)
+  sa_ext_session = Session()
+  now = datetime.datetime.now()
+  # log it to a rotating file instead
+  print('in before_request() creating session and attaching it to g (the Flask global var)', now)
+  g.sa_ext_session = sa_ext_session
+
+@app.after_request
+def after_request(response):
+  now = datetime.datetime.now()
+  # log it to a rotating file instead
+  print('in after_request() closing sa session', now)
+  g.sa_ext_session.close()
+  return response
 
 @app.route('/')
 @app.route('/index')

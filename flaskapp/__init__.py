@@ -33,7 +33,7 @@ from flask_migrate import Migrate
 app = Flask(__name__)
 app.config.from_object(FlaskConfig)
 db = SQLAlchemy(app)
-# db2 = 2
+# oneinst_sqla_sess = get_session()
 migrate = Migrate(app, db)
 
 from flaskapp import routes, models # , models2 # routes2
