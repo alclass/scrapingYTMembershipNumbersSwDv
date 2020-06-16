@@ -4,6 +4,8 @@ from flaskapp import app
 export FLASK_APP=microblog.py 
 '''
 @app.context_processor
-def inject_today():
+def inject_jinjatoday():
   today = datetime.date.today()
-  return dict(today=today)
+  return dict(jinjatoday=today)
+
+# g.count_sa_sessions = 0

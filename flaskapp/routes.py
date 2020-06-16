@@ -6,35 +6,28 @@ import datetime
 
 from fs.db.sqlalchdb.sqlalchemy_conn import sqlalchemy_engine
 from sqlalchemy.orm import sessionmaker
+from flaskapp.get_data_mod import get_data
 
-def get_data():
-  userdict = {'username': 'Miguel'}
-  posts = [
-    {
-      'author' : {'username': 'Miguel'},
-      'body': 'Beautiful day in Portland!',
-    },
-    {
-      'author': {'username': 'Susan'},
-      'body': 'The Avengers movie was so cool!',
-    },
-  ]
-  return userdict, posts
-
+# count_sa_sessions = 0
 @app.before_request
 def before_request():
+  # global count_sa_sessions
   Session = sessionmaker(bind=sqlalchemy_engine)
   sa_ext_session = Session()
   now = datetime.datetime.now()
   # log it to a rotating file instead
-  print('in before_request() creating session and attaching it to g (the Flask global var)', now)
+  # count_sa_sessions += 1
+  g.sa_ext_session = sa_ext_session
+  g.sa_ext_session.n_id = now.second
+  strminsec = '%sm%ss' %(str(now.minute).zfill(2), str(now.second).zfill(2))
+  print(g.sa_ext_session.n_id, 'in before_request() creating session and attaching it to g (the Flask global var)', strminsec)
   g.sa_ext_session = sa_ext_session
 
 @app.after_request
 def after_request(response):
   now = datetime.datetime.now()
   # log it to a rotating file instead
-  print('in after_request() closing sa session', now)
+  print(g.sa_ext_session.n_id, 'in after_request() closing sa session n_id', now)
   g.sa_ext_session.close()
   return response
 

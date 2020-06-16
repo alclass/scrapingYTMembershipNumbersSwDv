@@ -4,7 +4,7 @@
   Without parameter, it scrapes today's folder.
   An optional parameter --daysbefore=<n> scrapes n days before, if related folder exists.
 '''
-import bs4, json, os
+import bs4, os, sys
 from models.gen_models.HtmlInDateFolderMod import HtmlInDateFolder
 import fs.filefunctions.autofinders as autofind
 
@@ -49,7 +49,7 @@ class YTVideoItemBsoupEmpty:
     outstr = 'Scraper(ytchannelid=%s, refdate=%s)' %(self.htmlvideospagemetainfo.ytchannelid, self.htmlvideospagemetainfo.refdate)
     return outstr
 
-def run_thu_the_htmls_on_folder():
+def run_thu_the_htmls_on_folder(do_delete=False):
   '''
     ytchannelid = 'upgjr23'
 
@@ -65,6 +65,9 @@ def run_thu_the_htmls_on_folder():
     if htmlfileobj.bsoup_does_not_have_info:
       n_of_empties += 1
       empty_ones.append(filepath)
+      if do_delete:
+        print(n_of_empties, 'Deleting', filepath)
+        os.remove(filepath)
   print('-' * 50)
   print('n_of_empties =', n_of_empties)
 
@@ -74,13 +77,19 @@ def test1():
   else:
     print ('else')
 
+def get_delete_arg():
+  for arg in sys.argv:
+    if arg.startswith('--dodel'):
+      return True
+  return False
+
 def process():
   '''
     adhoc_test's are found in adhoctasks.fs.autofind_adhoctests.py
 
   :return:
   '''
-  run_thu_the_htmls_on_folder()
+  run_thu_the_htmls_on_folder(get_delete_arg()) # do_delete=True
   # test1()
 
 
