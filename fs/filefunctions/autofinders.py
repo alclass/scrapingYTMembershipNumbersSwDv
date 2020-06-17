@@ -10,6 +10,15 @@ lambdastrformdate      = lambda word : dtfs.str_is_inversed_date(word)
 lambdafilterinyyyymm   = lambda word : dtfs.str_is_inversed_year_month(word)
 lambdafilterinyyyymmdd = lambda word : dtfs.str_is_inversed_date(word)
 
+def get_level1folderabspath(pdate=None):
+  refdate = dtfs.return_refdate_as_datetimedate_or_today(pdate)
+  level0baseabspath = pathfs.get_ytvideo_htmlfiles_baseabsdir()
+  level1foldername = str(refdate)[:7]
+  level1folderabspath = os.path.join(level0baseabspath, level1foldername)
+  if not os.path.isdir(level1folderabspath):
+    os.makedirs(level1folderabspath)
+  return level1folderabspath
+
 def find_1stlevel_yyyymm_dir_foldernames(level1abspath=None):
   '''
   First level name entries that are named as yyyy-mm:
@@ -96,20 +105,42 @@ def get_ordered_dict_with_dates_n_abspaths():
     dates_n_paths_od[yyyymmdd] = dates_n_paths_dict[yyyymmdd]
   return dates_n_paths_od
 
-def get_htmlfilepaths_from_date(pdate=None):
+def get_level2folderabspath(pdate=None):
   refdate = dtfs.return_refdate_as_datetimedate_or_today(pdate)
-  level0baseabspath = pathfs.get_ytvideo_htmlfiles_baseabsdir()
-  level1foldername = str(refdate)[:7]
-  level1folderabspath = os.path.join(level0baseabspath, level1foldername)
-  if not os.path.isdir(level1folderabspath):
-    os.makedirs(level1folderabspath)
   level2foldername = str(refdate)
+  level1folderabspath = get_level1folderabspath()
   level2folderabspath = os.path.join(level1folderabspath, level2foldername)
   if not os.path.isdir(level2folderabspath):
     os.makedirs(level2folderabspath)
+  return level2folderabspath
+
+def get_entries_in_level2abspath_from_date(pdate=None, p_level2folderabspath=None):
+  level2folderabspath = p_level2folderabspath
+  if p_level2folderabspath is None:
+    level2folderabspath = get_level2folderabspath(pdate)
   files = os.listdir(level2folderabspath)
+  return files
+
+def get_htmlfilenames_from_date(pdate=None,  p_level2folderabspath=None):
+  level2folderabspath = p_level2folderabspath
+  if p_level2folderabspath is None:
+    level2folderabspath = get_level2folderabspath(pdate)
+  files = get_entries_in_level2abspath_from_date(pdate, level2folderabspath)
   htmlfiles = list(filter(lambda word: word.endswith('.html'), files))
+  return htmlfiles
+
+def get_len_htmlfilenames_from_date(pdate=None,  p_level2folderabspath=None):
+  return len(get_htmlfilenames_from_date(pdate, p_level2folderabspath))
+
+def is_todays_videospagehtml_folder_empty():
+  if get_len_htmlfilenames_from_date() == 0:
+    return True
+  return False
+
+def get_htmlfilepaths_from_date(pdate=None):
+  level2folderabspath = get_level2folderabspath(pdate)
   htmlfile_abspath_list = []
+  htmlfiles = get_htmlfilenames_from_date(pdate, level2folderabspath)
   for htmlfile in htmlfiles:
     htmlfile_abspath = os.path.join(level2folderabspath, htmlfile)
     htmlfile_abspath_list.append(htmlfile_abspath)

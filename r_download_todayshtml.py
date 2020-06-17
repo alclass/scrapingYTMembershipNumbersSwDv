@@ -1,10 +1,37 @@
 #!/usr/bin/python3
-import os, requests, time
+'''
+This script downloads YouTube video pages that belong to channels
+  in the database.  It will only download pages once a day
+  as each html file is named per day.
+
+Statistically, some of these downloaded video pages will be DOM-empty,
+  ie, they can not be scraped by the technique in this system,
+  which uses the DOM.
+
+The searched info in this case is observed to be found in the Javascript,
+  but this system unfortunately does not look into the Javascript,
+  so a redownload may solve the issue.
+  (Some times more than one redownload may be necessary.)
+
+Thus as a downloaded file is DOM-empty, it's deleted and then put in
+  a list for later redownloading. (It takes some seconds delay.)
+
+The param arg --maxtries=<number> defines how many times
+  a redownload roll may happen.  Its DEFAULT is 3.
+
+At the end, a print message will show how many files are still empty,
+  and, after 3 tries, it's expected that no remaining files
+  will still be DOM-empty, ie, they will all be DOM-scrapeable.
+
+Usage:
+  #<scriptname> [--maxtries=<number>]
+obs: if --maxtries is not given, the default will be used.
+'''
+import os, requests, time, sys
 from fs.db.jsondb import readjson
 import models.gen_models.YtVideosPageMod as ytvidpagesmod
 import fs.datefunctions.datefs as dtfs
-
-from models.scrapers.SubscriberScraperMod import HTMLScraper
+from models.scrapers.YTVideoItemBsoupIsEmptyMod import RunEmtpyFinderThuFolder
 
 class DownloadYtVideoPages:
 
@@ -44,11 +71,6 @@ class DownloadYtVideoPages:
       fp.write(res.text) # fp.write(str(res.content)) # it was observed that res.text goes UTF8, before res.content went non-UTF8
       fp.close()
 
-      # TO-DO: method scraper.scrape_by_whole_html(text) should be able to scrape all items once top to bottom
-      #scraper = HTMLScraper(ytchannel) # ytvideopagesobj is ytchannel
-      #scraper.scrape_by_whole_html(res.text)
-      #qty = scraper.ytvideopageobj.nOfSubscribers
-
       wait_secs = dtfs.get_random_config_download_wait_nsecs() # takes a different one every moment
       datedpagefn = ytchannel.datedpage_filename
       print(self.n_downloaded, ' => written ', datedpagefn) # ,': %d inscritos' %qty
@@ -59,10 +81,60 @@ class DownloadYtVideoPages:
     print('Report:')
     print('n_exists =', self.n_exists, '; n_downloaded =', self.n_downloaded, '; n_fail_200 =', self.n_fail_200, '; total_channels =', self.total_channels)
 
-def process():
+def dodownload():
   downloader = DownloadYtVideoPages()
   downloader.download_ytvideopages()
   downloader.report()
+
+WAIT_MINS_FOR_DOWNLOAD_ROLL = 3
+def run_emptyfinder_n_redownload_n_times(max_tries=3):
+  '''
+    The first dodownload() does not redownload if files are in folder.
+    The redownload happens after files are erased from it resulting in non-scrapeable.
+  :param n_tries:
+  :return:
+  '''
+  dodownload()
+  print ('Checking for DOM-empty files. Please, wait.')
+  emptyfinder = RunEmtpyFinderThuFolder()
+  emptyfinder.run_thu_folder_htmls()
+  emptyfinder.report()
+  n_tries = 1
+  if emptyfinder.n_of_empties > 0:
+    while n_tries < max_tries:
+      print (' ::: Waiting', WAIT_MINS_FOR_DOWNLOAD_ROLL, 'minutes for a redownload roll of ', emptyfinder.n_of_empties, ' empties.')
+      time.sleep(WAIT_MINS_FOR_DOWNLOAD_ROLL*60)
+      dodownload()
+      emptyfinder.run_thu_folder_htmls()
+      emptyfinder.report()
+      if emptyfinder.n_of_empties == 0:
+        break
+      n_tries += 1
+  print (' [End of Processing] n_tries = ', n_tries)
+
+DEFAULT_MAX_TRIES = 3
+def get_ntries_arg():
+  for arg in sys.argv:
+    if arg.startswith('--help'):
+      print(__doc__)
+      sys.exit()
+    elif arg.startswith('--maxtries='):
+      return int(arg[len('--maxtries='):])
+  return None
+
+def run_downloads_n_check_empties():
+  max_tries = get_ntries_arg() or DEFAULT_MAX_TRIES
+  print ('Starting downloading process: n_tries =', max_tries)
+  print ('-'*50)
+  run_emptyfinder_n_redownload_n_times(max_tries)
+
+def test1():
+  max_tries = get_ntries_arg() or DEFAULT_MAX_TRIES
+  print ('max_tries', max_tries)
+
+def process():
+  run_downloads_n_check_empties()
+  # test1()
 
 if __name__ == '__main__':
   process()
