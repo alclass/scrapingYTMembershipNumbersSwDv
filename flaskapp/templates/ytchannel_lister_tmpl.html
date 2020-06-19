@@ -24,8 +24,8 @@
       <a href="/channel/{{ ytchannel.ytchannelid }}/videos">=></a>
     </td>
     <td>
-      {% if ytchannel.daily_subscribers %}
-        {{ ytchannel.daily_subscribers[-1].subscribers }}
+      {% if ytchannel.current_subscribers_n > 0 %}
+        {{ ytchannel.current_subscribers_n }}
       {% else %}
         ---
       {% endif %}

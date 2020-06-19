@@ -19,6 +19,17 @@ class YTChannelSA(Base):
   daily_subscribers = relationship('YTDailySubscribersSA', backref='ytchannel', lazy='dynamic', order_by='YTDailySubscribersSA.infodate')
   vinfolist = relationship('YTVideoItemInfoSA', backref='ytchannel', lazy='dynamic', order_by='YTVideoItemInfoSA.publishdate')
 
+  @property
+  def current_subscribers_n(self):
+    curr_subs = self.daily_subscribers.first()
+    if curr_subs:
+      return curr_subs.subscribers
+    return 0
+
+  @property
+  def subs_list_len(self):
+    return len(list(self.daily_subscribers))
+
   def __repr__(self):
     return '<Channel(ytchannelid="%s", nname="%s")>' %(self.ytchannelid, self.nname)
 

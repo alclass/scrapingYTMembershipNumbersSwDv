@@ -19,7 +19,7 @@
       <td>{{ ytchannel.vinfolist | list | length }}</td>
       {% set subs = ytchannel.daily_subscribers %}
       <td>{{ subs | list | length }}</td>
-      {% if subs %}
+      {% if ytchannel.subs_list_len > 0 %}
         <td>{{ subs[-1].subscribers }}</td>
         <td>{{ subs[-1].infodate }}</td>
         <td>{{ subs[0].subscribers }}</td>
