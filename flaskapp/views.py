@@ -1,7 +1,5 @@
 from flask import render_template, g
 import models.sa_models.ytchannelsubscribers_samodels as samodels
-from models.sa_models.ytchannelsubscribers_samodels import YTChannelSA
-from models.sa_models.ytchannelsubscribers_samodels import YTVideoViewsSA
 
 def list_ytchannels_view():
   # session = Session()
@@ -12,19 +10,27 @@ def list_ytchannels_view():
 
 def ytchannel_summary(ytchannelid): # former output_ytchannel_videos
   ytchannel = g.sa_ext_session.query(samodels.YTChannelSA). \
-    filter(YTChannelSA.ytchannelid == ytchannelid). \
+    filter(samodels.YTChannelSA.ytchannelid == ytchannelid). \
     first()
+  vinfolist = ytchannel.vinfolist
+  if vinfolist.count() > 20:
+    vinfolist = ytchannel.vinfolist[ : 20] # .query.paginate(1, 20).items
   title_sent = ytchannel.nname + ' Summary'
-  return render_template('ytchannel_summary_tmpl.html', title=title_sent, ytchannel=ytchannel)
+  return render_template('ytchannel_summary_tmpl.html', title=title_sent, ytchannel=ytchannel, vinfolist=vinfolist)
 
 def videos_per_channel(ytchannelid):
-  ytchannel = g.sa_ext_session.query(YTChannelSA).filter(YTChannelSA.ytchannelid == ytchannelid).first()
+  ytchannel = g.sa_ext_session.query(samodels.YTChannelSA).filter(samodels.YTChannelSA.ytchannelid == ytchannelid).first()
   title_sent = ytchannel.nname + ' Video Listing and Statistics'
   return render_template('videos_per_channel_tmpl.html', title=title_sent, ytchannel=ytchannel)
 
 def views_per_video(ytvideoid):
-  vviews = g.sa_ext_session.query(YTVideoViewsSA).filter(YTVideoViewsSA.ytvideoid == ytvideoid).all()
+  ini = 1; fim = 20
+  vviews = g.sa_ext_session.query(samodels.YTVideoViewsSA).filter(samodels.YTVideoViewsSA.ytvideoid == ytvideoid).paginate(ini, fim,False).items
   return render_template('views_per_video_tmpl.html', title='Views per Video', vviews=vviews)
+
+def newsarticles():
+  articles = g.sa_ext_session.query(samodels.NewsArticlesSA).all()
+  return render_template('newsarticles_tmpl.html', title='News Articles', articles=articles)
 
 def process():
   pass

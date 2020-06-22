@@ -2,10 +2,11 @@
 import datetime, os # for adhoc test
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text
-from sqlalchemy.orm import relationship
-import config
+from sqlalchemy import Column, Boolean, Integer, String, Date, TIMESTAMP, ForeignKey, Text # DateTime,
+from sqlalchemy.orm import relationship, backref
 import fs.datefunctions.datefs as dtfs
+from sqlalchemy.sql.expression import asc, desc
+import config
 
 class YTChannelSA(Base):
 
@@ -16,15 +17,81 @@ class YTChannelSA(Base):
   nname = Column(String)
   obs = Column(Text, nullable=True)
 
-  daily_subscribers = relationship('YTDailySubscribersSA', backref='ytchannel', lazy='dynamic', order_by='YTDailySubscribersSA.infodate')
-  vinfolist = relationship('YTVideoItemInfoSA', backref='ytchannel', lazy='dynamic', order_by='YTVideoItemInfoSA.publishdate')
+  daily_subscribers = relationship('YTDailySubscribersSA', backref='ytchannel', lazy='dynamic', order_by=(desc('infodate')))
+  vinfolist = relationship('YTVideoItemInfoSA', backref='ytchannel', lazy='dynamic', order_by=(desc('publishdate')))
+
+  @property
+  def first_subscribers(self):
+    '''
+      first_subscribers_n is the oldest subscribers number in database.
+    :return:
+    '''
+    return self.daily_subscribers.order_by(None).order_by(asc('infodate')).first()
+
+  @property
+  def first_subscribers_n(self):
+    subs = self.first_subscribers
+    if subs:
+      return subs.subscribers
+    return 0
+
+  @property
+  def current_subscribers(self):
+    '''
+      first_subscribers_n is the oldest subscribers number in database.
+    :return:
+    '''
+    return self.daily_subscribers.first() # notice it's default as a descending order_by above
 
   @property
   def current_subscribers_n(self):
-    curr_subs = self.daily_subscribers.first()
+    '''
+      current_subscribers_n is the same as last_subscribers_n,
+      ie, it's the most recent in date; eg if system is daily run,
+      that may be today or yestearday depending on hour
+    :return:
+    '''
+    curr_subs = self.current_subscribers
     if curr_subs:
       return curr_subs.subscribers
     return 0
+
+  @property
+  def videos_per_day(self):
+    '''
+
+    return 'hi'
+
+    :return:
+    '''
+    return self.get_videos_per_day()
+
+  def get_videos_per_day(self):
+    total_videos = self.vinfolist.count()
+    ndays = self.get_ndays_between_first_n_current()
+    if ndays == 0:
+      return 0.0
+    return total_videos / ndays
+
+  @property
+  def ndays_first_current(self):
+    return self.get_ndays_between_first_n_current()
+
+  def get_ndays_between_first_n_current(self):
+    dtini = None; dtfim = None
+    if self.first_subscribers:
+      dtini = self.first_subscribers.infodate
+    else:
+      return 0
+    if self.current_subscribers:
+      dtfim = self.current_subscribers.infodate
+    else:
+      return 0
+    if dtini is None or dtfim is None:
+      return 0
+    timedelta = dtfim - dtini
+    ndays = timedelta.days
+    return ndays
 
   @property
   def subs_list_len(self):
@@ -61,9 +128,8 @@ class YTVideoItemInfoSA(Base):
   infodate = Column(Date, nullable=True)
   changelog = Column(Text, nullable=True)
 
-  vviewlist = relationship('YTVideoViewsSA', backref='vinfo', lazy='dynamic', order_by='YTVideoViewsSA.infodate')
+  vviewlist = relationship('YTVideoViewsSA', backref='vinfo', lazy='dynamic', order_by=desc('infodate'))
   ytchannelid = Column(String, ForeignKey('channels.ytchannelid'))
-  #ytchannel = relationship(YTChannelSA)
 
   @property
   def duration_in_hms(self):
@@ -119,6 +185,91 @@ class YTVideoViewsSA(Base):
 
   def __repr__(self):
     return '<YTVideoViewsSA(ytvideoid="%s", views="%s", infdt="%s")>' %(self.ytvideoid, self.views, self.infodate)
+
+class NewsArticlesSA(Base):
+  '''
+  video views taken from a videospage per date
+  '''
+
+  __tablename__ = 'newsarticles'
+
+  id = Column(Integer, primary_key=True)
+  title = Column(String)
+  filename = Column(String)
+  publisher_id = Column(Integer, ForeignKey('newspublishers.id'), nullable=True)
+  publishdate = Column(Date, nullable=True)
+  cat_id = Column(Integer, ForeignKey('newscategories.id'), nullable=True)
+  reldir_id = Column(Integer, ForeignKey('relativefolders.id'), nullable=True)
+  is_read = Column(Boolean, ForeignKey('newscategories.id'), nullable=True)
+  personal_rank = Column(Integer, default=0)
+  comment = Column(Text, nullable=True)
+  created_at = Column(TIMESTAMP) #, default=datetime.utcnow, nullable=False, server_default=text('0'))
+  updated_at = Column(TIMESTAMP)
+
+  def __repr__(self):
+    title = self.title
+    if len(title) > 50:
+      title = self.title[:50] + '...'
+    return '<NewsArticlesSA(id=%d, date=%s, title="%s")>' %(self.id, self.publishdate, title)
+
+class RelativeFolderSA(Base):
+  '''
+  '''
+
+  __tablename__ = 'nw_relativefolders'
+
+  id = Column(Integer, primary_key=True)
+  parent_id = Column(Integer, ForeignKey('nw_relativefolders.id'))
+  foldername = Column(String)
+  created_at = Column(TIMESTAMP) #, default=datetime.utcnow, nullable=False, server_default=text('0'))
+  updated_at = Column(TIMESTAMP)
+
+  entries = relationship('RelativeFolderSA', backref=backref('parent', remote_side=[id]))
+
+  @property
+  def parent_folder(self):
+    return self.entries.filter('parent_id'==self.parent_id).first()
+
+  @property
+  def parent_foldername(self):
+    '''
+    '''
+    parent_folder = self.parent_folder()
+    if parent_folder:
+      return parent_folder.foldername
+    return 'w/inf'
+
+  def __repr__(self):
+    return '<NewsArticlesSA(id=%d, p_id=%d, folder="%s")>' %(self.id, self.p_id, self.foldername)
+
+class CategorySA(Base):
+  '''
+  '''
+
+  __tablename__ = 'nw_categories'
+
+  id = Column(Integer, primary_key=True)
+  category_id = Column(Integer, ForeignKey('nw_categories.id'))
+  name = Column(String)
+  created_at = Column(TIMESTAMP) #, default=datetime.utcnow, nullable=False, server_default=text('0'))
+  updated_at = Column(TIMESTAMP)
+
+  subcategories = relationship('CategorySA', backref=backref('category', remote_side=[id]))
+
+  @property
+  def parent_category(self):
+    return self.entries.filter('category_id'==self.parent_id).first()
+
+  @property
+  def parent_name(self):
+    '''
+    '''
+    if self.parent_category:
+      return self.parent_category.name
+    return 'w/inf'
+
+  def __repr__(self):
+    return '<NewsArticlesSA(id=%d, p_id=%d, folder="%s")>' %(self.id, self.p_id, self.foldername)
 
 def adhoc_test():
   ytchannel_sa = YTChannelSA()

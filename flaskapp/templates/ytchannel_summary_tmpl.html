@@ -20,11 +20,11 @@
       {% set subs = ytchannel.daily_subscribers %}
       <td>{{ subs | list | length }}</td>
       {% if ytchannel.subs_list_len > 0 %}
-        <td>{{ subs[-1].subscribers }}</td>
-        <td>{{ subs[-1].infodate }}</td>
-        <td>{{ subs[0].subscribers }}</td>
-        <td>{{ subs[0].infodate }}</td>
-        <td>{{ subs[-1].subscribers - subs[0].subscribers }}</td>
+        <td>{{ ytchannel.current_subscribers_n }}</td>
+        <td>{{ ytchannel.current_subscribers.infodate }}</td>
+        <td>{{ ytchannel.first_subscribers_n }}</td>
+        <td>{{ ytchannel.first_subscribers.infodate }}</td>
+        <td>{{ ytchannel.current_subscribers_n - ytchannel.first_subscribers_n }}</td>
       {% else %}
         <td>not known</td>
         <td>unavailable</td>
@@ -35,7 +35,7 @@
     </tr>
   </table>
 
-  {% for vinfo in ytchannel.vinfolist | reverse %}
+  {% for vinfo in vinfolist %}
     <p style="color:orange;">{{ loop.index }} => <a href="{{ vinfo.ytvideo_url }}">{{ vinfo.title }}</a> <br>
       on {{ vinfo.publishdate }} {{ vinfo.published_time_ago }} {{ vinfo.infodate }} duration {{ vinfo.duration_in_hms }} {{ vinfo.ytvideoid }}</p>
       <table border="1">
@@ -46,7 +46,7 @@
           <th>diff</th>
         </tr>
         {%- set previous_dict = {'previous': 0} -%}
-        {% for vview in vinfo.vviewlist | reverse %}
+        {% for vview in vinfo.vviewlist %}
           <tr style="color:orange;">
             <td>{{ loop.index }}</td>
             <td>{{ vview.infodate }}</td>
@@ -65,11 +65,15 @@
 
   <p>ytvideosid</p>
 
-  {% for vinfo in ytchannel.vinfolist | reverse %}
+  {% for vinfo in ytchannel.vinfolist %}
     {{ vinfo.ytvideoid }} <br>
   {% endfor %}
 
-  <p> {{ jinjatoday }}</p>
+  {% if ytchannel.first_subscribers %}
+    <p>Total vídeos: {{ ytchannel.vinfolist.count() }} since {{ ytchannel.first_subscribers.infodate }} videos per day = {{ "%.2f"|format(ytchannel.videos_per_day) }}</p>
+  {% endif %}
+  <p>Today: {{ jinjatoday }}</p>
+  <h3>Channel Summary</h3>
 
 {% endblock %}
 

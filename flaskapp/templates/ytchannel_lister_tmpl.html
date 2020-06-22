@@ -11,7 +11,9 @@
     <th>nome</th>
     <th>link alt</th>
     <th>inscritos</th>
-    <th>nº vídeos</th>
+    <th>nº víd</th>
+    <th>dias</th>
+    <th>víd/dia</th>
   </tr>
 
   {% for ytchannel in ytchannels %}
@@ -32,10 +34,16 @@
     </td>
     <td>
       {% if ytchannel.vinfolist %}
-        {{ ytchannel.vinfolist | list | length }}
+        {{ ytchannel.vinfolist.count() }}
       {% else %}
         ---
       {% endif %}
+    </td>
+    <td>
+      {{ ytchannel.ndays_first_current }}
+    </td>
+    <td>
+      {{ "%.2f"|format(ytchannel.videos_per_day) }}
     </td>
   </tr>
   {% endfor %}

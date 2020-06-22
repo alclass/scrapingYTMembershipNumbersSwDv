@@ -75,14 +75,15 @@ class RunEmtpyFinderThuFolder:
       htmlfileobj.scrape_html_on_folder()
       if htmlfileobj.bsoup_does_not_have_info:
         printline = ' DOM-EMPTY ' + printline
+        print(printline)
         self.n_of_empties += 1
         self.empty_ones.append(filepath)
         if do_delete:
           print(self.n_of_empties, 'Deleting', filepath)
           os.remove(filepath)
       else:
-        printline = ' NOT DOM-EMPTY ' + printline
-      print(printline)
+        # printline = ' NOT DOM-EMPTY ' + printline
+        pass
 
   def report(self):
     print('-' * 50)

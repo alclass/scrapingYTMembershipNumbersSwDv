@@ -66,7 +66,9 @@ def ytchannel(ytchannelid):
 def views_per_video(ytvideo):
   return views.views_per_video(ytvideo=ytvideo)
 
-
+@app.route('/articles')
+def newsarticles():
+  return views.newsarticles()
 
 @app.route('/tview')
 def testview():

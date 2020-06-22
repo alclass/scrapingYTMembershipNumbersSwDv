@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>News Articles</h1>
+  <h3 style="color:red;">{{ articles | list | length }} articles</h3>
+  <hr>
+
+  <table border="2">
+    <tr>
+      <th>id</th>
+      <th>date</th>
+      <th>article</th>
+      <th>newsarticles</th>
+      <th>is_read</th>
+    </tr>
+    {% for article in articles %}
+    <tr style="text-align:center;">
+      <td>{{ article.id }}</td>
+      <td>{{ article.publishdate }}</td>
+      <td>{{ article.title }}</td>
+      <td>{{ article.is_read }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <p> {{ jinjatoday }}</p>
+
+{% endblock %}
+

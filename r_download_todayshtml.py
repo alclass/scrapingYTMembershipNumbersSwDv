@@ -35,10 +35,16 @@ from models.scrapers.YTVideoItemBsoupIsEmptyMod import RunEmtpyFinderThuFolder
 
 class DownloadYtVideoPages:
 
-  def __init__(self):
+  def __init__(self, n_of_download_rolls=None):
     self.ytchannels = []
     self.n_exists = 0; self.n_downloaded = 0; self.n_fail_200 = 0; self.total_channels = 0
+    self.set_n_of_download_rolls(n_of_download_rolls)
     self.from_json_to_ytchannel()
+
+  def set_n_of_download_rolls(self, n_of_download_rolls):
+    self.n_of_download_rolls = n_of_download_rolls
+    if self.n_of_download_rolls is None or type(self.n_of_download_rolls) != int:
+      self.n_of_download_rolls = 1
 
   def from_json_to_ytchannel(self):
     channelsdatareader = readjson.JsonYtChannel()
@@ -57,7 +63,8 @@ class DownloadYtVideoPages:
         print (self.n_exists, '[EXISTS]', entry_abspath)
         continue
       seq = i+1
-      print(seq, '>>> Going to download', ytchannel.murl)
+      n_of_m = '%d/%d/%d' %(seq, self.total_channels, self.n_of_download_rolls)
+      print(n_of_m, '>>> Going to download', ytchannel.murl)
       res = requests.get(ytchannel.videospageurl, allow_redirects=True)
       if res.status_code != 200:
         self.n_fail_200 += 1
@@ -73,46 +80,47 @@ class DownloadYtVideoPages:
 
       wait_secs = dtfs.get_random_config_download_wait_nsecs() # takes a different one every moment
       datedpagefn = ytchannel.datedpage_filename
-      print(self.n_downloaded, ' => written ', datedpagefn) # ,': %d inscritos' %qty
+      print(' => written ', datedpagefn) # ,': %d inscritos' %qty
       print(':: wait', wait_secs, 'seconds.')
       time.sleep(wait_secs)
 
   def report(self):
-    print('Report:')
+    print('Report:          n_of_download_rolls =', self.n_of_download_rolls)
     print('n_exists =', self.n_exists, '; n_downloaded =', self.n_downloaded, '; n_fail_200 =', self.n_fail_200, '; total_channels =', self.total_channels)
 
-def dodownload():
-  downloader = DownloadYtVideoPages()
+def dodownload(n_of_download_rolls=None):
+  downloader = DownloadYtVideoPages(n_of_download_rolls=n_of_download_rolls)
   downloader.download_ytvideopages()
   downloader.report()
 
 WAIT_MINS_FOR_DOWNLOAD_ROLL = 3
-def run_emptyfinder_n_redownload_n_times(max_tries=3):
+def run_emptyfinder_n_redownload_n_times(max_download_rolls):
   '''
     The first dodownload() does not redownload if files are in folder.
     The redownload happens after files are erased from it resulting in non-scrapeable.
   :param n_tries:
   :return:
   '''
+  n_of_download_rolls = 1
   dodownload()
-  print ('Checking for DOM-empty files. Please, wait.')
+  print('Checking for DOM-empty files. Please, wait.')
   emptyfinder = RunEmtpyFinderThuFolder()
   emptyfinder.run_thu_folder_htmls()
   emptyfinder.report()
-  n_tries = 1
   if emptyfinder.n_of_empties > 0:
-    while n_tries < max_tries:
+    while n_of_download_rolls < max_download_rolls:
+      n_of_download_rolls += 1
       print (' ::: Waiting', WAIT_MINS_FOR_DOWNLOAD_ROLL, 'minutes for a redownload roll of ', emptyfinder.n_of_empties, ' empties.')
       time.sleep(WAIT_MINS_FOR_DOWNLOAD_ROLL*60)
-      dodownload()
+      dodownload(n_of_download_rolls)
+      print('Checking for DOM-empty files. Please, wait.')
       emptyfinder.run_thu_folder_htmls()
       emptyfinder.report()
       if emptyfinder.n_of_empties == 0:
         break
-      n_tries += 1
-  print (' [End of Processing] n_tries = ', n_tries)
+  print (' [End of Processing] n_of_download_rolls =', n_of_download_rolls, '| max rolls =', max_download_rolls)
 
-DEFAULT_MAX_TRIES = 3
+DEFAULT_MAX_DOWNLOAD_ROLLS = 7
 def get_ntries_arg():
   for arg in sys.argv:
     if arg.startswith('--help'):
@@ -123,14 +131,14 @@ def get_ntries_arg():
   return None
 
 def run_downloads_n_check_empties():
-  max_tries = get_ntries_arg() or DEFAULT_MAX_TRIES
-  print ('Starting downloading process: n_tries =', max_tries)
+  max_download_rolls = get_ntries_arg() or DEFAULT_MAX_DOWNLOAD_ROLLS
+  print ('Starting downloading process: n_tries =', max_download_rolls)
   print ('-'*50)
-  run_emptyfinder_n_redownload_n_times(max_tries)
+  run_emptyfinder_n_redownload_n_times(max_download_rolls)
 
 def test1():
-  max_tries = get_ntries_arg() or DEFAULT_MAX_TRIES
-  print ('max_tries', max_tries)
+  max_tries = get_ntries_arg() or DEFAULT_MAX_DOWNLOAD_ROLLS
+  print ('max_download_rolls', max_tries)
 
 def process():
   run_downloads_n_check_empties()
