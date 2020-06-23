@@ -16,10 +16,9 @@
       <th>delta inscr</th>
     </tr>
     <tr style="text-align:center;">
-      <td>{{ ytchannel.vinfolist | list | length }}</td>
-      {% set subs = ytchannel.daily_subscribers %}
-      <td>{{ subs | list | length }}</td>
-      {% if ytchannel.subs_list_len > 0 %}
+      <td>{{ ytchannel.vinfolist.count() }}</td>
+      <td>{{ ytchannel.daily_subscribers.count() }}</td>
+      {% if ytchannel.daily_subscribers.count() > 0 %}
         <td>{{ ytchannel.current_subscribers_n }}</td>
         <td>{{ ytchannel.current_subscribers.infodate }}</td>
         <td>{{ ytchannel.first_subscribers_n }}</td>

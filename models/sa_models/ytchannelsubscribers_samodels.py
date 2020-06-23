@@ -4,6 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 from sqlalchemy import Column, Boolean, Integer, String, Date, TIMESTAMP, ForeignKey, Text # DateTime,
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.sql import func
 import fs.datefunctions.datefs as dtfs
 from sqlalchemy.sql.expression import asc, desc
 import config
@@ -22,6 +23,9 @@ class YTChannelSA(Base):
 
   daily_subscribers = relationship('YTDailySubscribersSA', backref='ytchannel', lazy='dynamic', order_by=(desc('infodate')))
   vinfolist = relationship('YTVideoItemInfoSA', backref='ytchannel', lazy='dynamic', order_by=(desc('publishdate')))
+
+  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
+  updated_at = Column(TIMESTAMP, nullable=True)
 
   @property
   def first_subscribers(self):
@@ -119,6 +123,10 @@ class YTDailySubscribersSA(Base): # YTDailySubscribersSA <= DailySubscribers
   ytchannelid = Column(String, ForeignKey('channels.ytchannelid'))
   #ytchannel = relationship(YTChannelSA)
 
+  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
+  # created_at = Column(TIMESTAMP, default=datetime.utcnow) #, nullable=False, server_default=text('0'))
+  updated_at = Column(TIMESTAMP, nullable=True)
+
   def __repr__(self):
     return '<DailySubscribers(ytchid="%s", infdt="%s". subs=%d)>' % (self.ytchannelid, str(self.infodate), self.subscribers)
 
@@ -138,6 +146,10 @@ class YTVideoItemInfoSA(Base):
 
   vviewlist = relationship('YTVideoViewsSA', backref='vinfo', lazy='dynamic', order_by=desc('infodate'))
   ytchannelid = Column(String, ForeignKey('channels.ytchannelid'))
+
+  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
+  # created_at = Column(TIMESTAMP, default=datetime.utcnow) #, nullable=False, server_default=text('0'))
+  updated_at = Column(TIMESTAMP, nullable=True)
 
   @property
   def duration_in_hms(self):
@@ -191,6 +203,10 @@ class YTVideoViewsSA(Base):
   ytvideoid = Column(String(11), ForeignKey('individualvideostats.ytvideoid'))
   # videoinfolist = relationship(YTVideoItemInfoSA)
 
+  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
+  # created_at = Column(TIMESTAMP, default=datetime.utcnow) #, nullable=False, server_default=text('0'))
+  updated_at = Column(TIMESTAMP, nullable=True)
+
   def __repr__(self):
     return '<YTVideoViewsSA(ytvideoid="%s", views="%s", infdt="%s")>' %(self.ytvideoid, self.views, self.infodate)
 
@@ -211,8 +227,8 @@ class NewsArticlesSA(Base):
   is_read = Column(Boolean, ForeignKey('newscategories.id'), nullable=True)
   personal_rank = Column(Integer, default=0)
   comment = Column(Text, nullable=True)
-  created_at = Column(TIMESTAMP) #, default=datetime.utcnow, nullable=False, server_default=text('0'))
-  updated_at = Column(TIMESTAMP)
+  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
+  updated_at = Column(TIMESTAMP, nullable=True)
 
   def __repr__(self):
     title = self.title
@@ -229,10 +245,12 @@ class RelativeFolderSA(Base):
   id = Column(Integer, primary_key=True)
   parent_id = Column(Integer, ForeignKey('nw_relativefolders.id'))
   foldername = Column(String)
-  created_at = Column(TIMESTAMP) #, default=datetime.utcnow, nullable=False, server_default=text('0'))
-  updated_at = Column(TIMESTAMP)
 
   entries = relationship('RelativeFolderSA', backref=backref('parent', remote_side=[id]))
+
+  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
+  # created_at = Column(TIMESTAMP, default=datetime.utcnow) #, nullable=False, server_default=text('0'))
+  updated_at = Column(TIMESTAMP, nullable=True)
 
   @property
   def parent_folder(self):
@@ -263,6 +281,10 @@ class CategorySA(Base):
   updated_at = Column(TIMESTAMP)
 
   subcategories = relationship('CategorySA', backref=backref('category', remote_side=[id]))
+
+  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
+  # created_at = Column(TIMESTAMP, default=datetime.utcnow) #, nullable=False, server_default=text('0'))
+  updated_at = Column(TIMESTAMP, nullable=True)
 
   @property
   def parent_category(self):

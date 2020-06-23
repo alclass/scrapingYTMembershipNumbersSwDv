@@ -37,10 +37,11 @@ class SubscribersScraperToDB:
 
   def set_scrapedate_in_dbchannels(self, ytchid):
     session = Session()
-    ytchannel = session.query.filter(samodels.YTChannelSA.ytchannelid==ytchid).first()
+    ytchannel = session.query(samodels.YTChannelSA). \
+                  filter(samodels.YTChannelSA.ytchannelid==ytchid).first()
     if ytchannel:
       ytchannel.scrapedate = self.refdate
-      session.commmit()
+      session.commit()
     session.close()
 
   def insert_day(self, ytchid, n_subscribers):
