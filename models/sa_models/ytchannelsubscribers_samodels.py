@@ -15,6 +15,9 @@ class YTChannelSA(Base):
   id = Column(Integer, primary_key=True)
   ytchannelid = Column(String, unique=True)
   nname = Column(String)
+  category_id = Column(Integer, ForeignKey('nw_categories.id'), nullable=True)
+  each_n_days_for_dld = Column(Integer, default=1)
+  scrapedate = Column(Date, nullable=True)
   obs = Column(Text, nullable=True)
 
   daily_subscribers = relationship('YTDailySubscribersSA', backref='ytchannel', lazy='dynamic', order_by=(desc('infodate')))
@@ -93,9 +96,14 @@ class YTChannelSA(Base):
     ndays = timedelta.days
     return ndays
 
-  @property
-  def subs_list_len(self):
-    return len(list(self.daily_subscribers))
+  def is_downloadable_on_date(self):
+    if self.scrapedate is None:
+      return True
+    today = datetime.date.today()
+    timedelta = today - self.scrapedate
+    if timedelta.days >= self.each_n_days_for_dld:
+      return True
+    return False
 
   def __repr__(self):
     return '<Channel(ytchannelid="%s", nname="%s")>' %(self.ytchannelid, self.nname)

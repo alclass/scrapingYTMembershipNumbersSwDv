@@ -32,6 +32,8 @@ from fs.db.jsondb import readjson
 import models.gen_models.YtVideosPageMod as ytvidpagesmod
 import fs.datefunctions.datefs as dtfs
 from models.scrapers.YTVideoItemBsoupIsEmptyMod import RunEmtpyFinderThuFolder
+from models.procdb.SubscriberInsertorMod import Session
+import models.sa_models.ytchannelsubscribers_samodels as samodels
 
 class DownloadYtVideoPages:
 
@@ -47,12 +49,32 @@ class DownloadYtVideoPages:
       self.n_of_download_rolls = 1
 
   def from_json_to_ytchannel(self):
+    '''
+      Deactivated
+    :return:
+    '''
     channelsdatareader = readjson.JsonYtChannel()
     for channeldict in channelsdatareader.loopthru():
       nname  = channeldict['nname']
       ytchid = channeldict['ytchannelid']
       ytchannel = ytvidpagesmod.YtVideosPage(ytchid, nname)
       self.ytchannels.append(ytchannel)
+
+  def from_db_to_ytchannel(self):
+    '''
+      Deactivated
+    :return:
+    '''
+    session = Session()
+    ytchannels = session.query(samodels.YTChannelSA). \
+      order_by(samodels.YTChannelSA.nname). \
+      all()
+    for ytchannel in ytchannels:
+      if ytchannel.is_downloadable_on_date():
+        continue
+      ytchannelpage = ytvidpagesmod.YtVideosPage(ytchannel.ytchannel, ytchannel.nname)
+      self.ytchannels.append(ytchannelpage)
+    session.close()
 
   def download_ytvideopages(self):
     self.total_channels = len(self.ytchannels)

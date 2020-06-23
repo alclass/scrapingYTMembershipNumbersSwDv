@@ -36,6 +36,12 @@ import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.autofinders as autofind
 from models.scrapers.YTVideoItemScraperMod import YTVideoItemScraper
 from models.gen_models.DatedHtmlsTraversorMod import DatedHtmlsTraversor
+from models.procdb.SubscriberInsertorMod import Session
+import config
+
+def update_each_n_days_for_dld():
+  session = Session()
+  jsonabspath = config.get_ytchannels_jsonfolderabspath()
 
 def scrap_videospageinfo_html(videospageinfo):
   '''
