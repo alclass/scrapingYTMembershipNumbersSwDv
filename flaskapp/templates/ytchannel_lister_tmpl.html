@@ -3,7 +3,7 @@
 {% block content %}
 
 <h1>Channel List</h1>
-<h2> Total {{ ytchannels | list | length }} channels</h2>
+<h2> Total {{ ytchannels | length }} channels</h2>
 
 <table border="1">
   <tr>
@@ -14,6 +14,8 @@
     <th>nº víd</th>
     <th>dias</th>
     <th>víd/dia</th>
+    <th>interval</th>
+    <th>último</th>
   </tr>
 
   {% for ytchannel in ytchannels %}
@@ -33,17 +35,23 @@
       {% endif %}
     </td>
     <td>
-      {% if ytchannel.vinfolist %}
-        {{ ytchannel.vinfolist.count() }}
-      {% else %}
-        ---
-      {% endif %}
+      {{ ytchannel.vinfolist.count() }}
     </td>
     <td>
       {{ ytchannel.ndays_first_current }}
     </td>
     <td>
       {{ "%.2f"|format(ytchannel.videos_per_day) }}
+    </td>
+    <td>
+      {{ ytchannel.each_n_days_for_dld }}
+    </td>
+    <td>
+      {% if ytchannel.most_recent_video %}
+        {{ ytchannel.most_recent_video.infodate }}
+      {% else %}
+        ---
+      {% endif %}
     </td>
   </tr>
   {% endfor %}

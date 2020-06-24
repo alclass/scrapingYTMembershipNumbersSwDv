@@ -28,6 +28,12 @@ class YTChannelSA(Base):
   updated_at = Column(TIMESTAMP, nullable=True)
 
   @property
+  def most_recent_video(self):
+    if self.vinfolist.count() > 0:
+      return self.vinfolist[0]
+    return None
+
+  @property
   def first_subscribers(self):
     '''
       first_subscribers_n is the oldest subscribers number in database.
@@ -108,6 +114,12 @@ class YTChannelSA(Base):
     if timedelta.days >= self.each_n_days_for_dld:
       return True
     return False
+
+  def find_next_download_date(self):
+    today = datetime.date.today()
+    if self.scrapedate is None:
+      return today
+    return self.scrapedate + datetime.timedelta(days=self.each_n_days_for_dld)
 
   def __repr__(self):
     return '<Channel(ytchannelid="%s", nname="%s")>' %(self.ytchannelid, self.nname)
