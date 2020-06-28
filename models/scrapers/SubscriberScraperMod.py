@@ -105,7 +105,7 @@ class HTMLScraper:
     self.scrape_subscribers_number()
 
   def scrape_subscribers_number(self):
-    htmlfilename = self.ytvideopageobj.ytvideospagefilename
+    htmlfilename = self.ytvideopageobj.filename
     # print('Parsing =>', htmlfilename)
     sname   = self.ytvideopageobj.sname
     content = self.ytvideopageobj.get_html_text()

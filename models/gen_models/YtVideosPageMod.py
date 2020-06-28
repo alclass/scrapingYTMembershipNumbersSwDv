@@ -2,6 +2,7 @@
 import datetime, os
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.pathfunctions as pathfs
+import fs.db.sqlalchdb.dbfetchesmod as dbfetch
 
 class YtVideosPage:
 
@@ -12,6 +13,7 @@ class YtVideosPage:
     self.refdate = dtfs.get_refdate(refdate)
     self._nOfSubscribers = None
     self._days_n_subscribers = []
+    self._downloadable_on_date = None # to set 'lazily' as boolean
 
   @property
   def nOfSubscribers(self):
@@ -58,8 +60,9 @@ class YtVideosPage:
       wname = wname.strip(' ')
       self._sname = wname
       return self._sname
-    # try to find it in folders
-    sname = pathfs.get_sname_from_filename(self.ytvideospagefilename)
+    # try to find it in folders (this case will only happen if for instances there is a corresponding file on folder which may, in some cases, be empty.)
+    sname = pathfs.get_sname_from_filename(self.filename)
+    return sname
 
   @sname.setter
   def sname(self, shortname):
@@ -72,11 +75,20 @@ class YtVideosPage:
       self._sname = self._sname.strip(' ')
 
   @property
+  def downloadable_on_date(self):
+    if self._downloadable_on_date is not None:
+      return self._downloadable_on_date
+
+  @downloadable_on_date.setter
+  def downloadable_on_date(self, boolvalue):
+    self._downloadable_on_date = boolvalue
+
+  @property
   def strdate(self):
     return dtfs.get_strdate(self.refdate)
 
   @property
-  def ytvideospagefilename(self):
+  def filename(self):
     '''
   Notice an import difference here:
     1) if nname is None, filename should exist on folder and should be retrieve by dir lookup
@@ -93,14 +105,19 @@ class YtVideosPage:
     if self._sname is None:
       self.find_set_n_get_sname_by_folder_or_None()
       if self._sname is None:
-        error_msg = 'Error: sname could not be established in @property ytvideospagefilename [class YtVideosPage]'
+        error_msg = 'Error: sname could not be established in @property filename [class YtVideosPage]'
         raise ValueError(error_msg)
     return pathfs.datedpage_filename(self.strdate, self._sname, self.ytchannelid)
+
+  def set_sname_by_nname(self):
+    if self.nname is None:
+      return
+    self._sname = self.nname if len(self.nname) < 11 else self.nname[:10]
 
   @property
   def ytvideospagefile_abspath(self):
     abspath = pathfs.get_datebased_ythtmlfiles_folderabspath(self.refdate)
-    filename = self.ytvideospagefilename
+    filename = self.filename
     return os.path.join(abspath, filename)
 
   def get_html_text(self):
@@ -115,16 +132,18 @@ class YtVideosPage:
     abspath = pathfs.get_datebased_ythtmlfiles_folderabspath(self.refdate)
     entries = os.listdir(abspath)
     sought_entry = list(filter(lambda x : x.find(ending) > -1, entries))
-    if len(sought_entry) != 1:
+    if len(sought_entry) == 1:
+      filename = sought_entry[0]
+      if len(filename) < 11 + 2 + len(ending):
+        return None
+      sname = filename[11 : - len(ending)]
+      if len(sname) > 10: sname = sname[:10]
+      if sname.endswith(' '): sname = sname.strip(' ')
+      self._sname = sname
+      return sname
+    if self.nname is None:
       return None
-    filename = sought_entry[0]
-    if len(filename) < 11 + 2 + len(ending):
-      return None
-    sname = filename[11 : - len(ending)]
-    if len(sname) > 10: sname = sname[:10]
-    if sname.endswith(' '): sname = sname.strip(' ')
-    self._sname = sname
-    return sname
+    return self.nname if len(self.nname) < 11 else self.nname[:10]
 
   def get_htmltext_truncated(self, uptochar=50):
     htmltrun = self.get_html_text()
@@ -177,7 +196,7 @@ class YtVideosPage:
     return ytvideosurl
 
   def get_dated_stat_fig_imgsrc_uptodate(self, ext='png'):
-    htmlfilename = self.ytvideospagefilename
+    htmlfilename = self.filename
     name, _ = os.path.splitext(htmlfilename)
     imagefilename = name + '.' + ext
     return imagefilename
@@ -199,27 +218,24 @@ class YtVideosPage:
   def statimgfn(self):
     return self.get_dated_stat_fig_imgsrc_uptodate()
 
-  def str2(self):
-    strdict = {
-      'nname': self.nname, 'murl': self.murl, 'videospageurl': self.videospageurl,
-      'absfolderpath': self.absfolderpath, 'datedpage_filename': self.datedpage_filename,
-      'datedpage_filepath': self.datedpage_filepath, 'datedpage_exists': self.datedpage_exists,
-    }
-    outstr = '''  nname          = %(nname)s
-  murl           = %(murl)s  
-  videospageurl  = %(videospageurl)s
-  absfolderpath  = %(absfolderpath)s  
-  dtdpg_filename = %(datedpage_filename)s
-  dtdpg_filepath = %(datedpage_filepath)s
-  datedpg_exists = %(datedpage_exists)s  
-''' % (strdict)
-    return outstr
+  def fetch_dbytchannel_n_transpose(self):
+    return dbfetch.fetch_ytchannel_by_ytchannelid_n_transpose(self.ytchannelid, self)
+
+  def transpose(self, ytchannelsa):
+    # transposed = copy.copy(self)  # this is an immutable manner to transpose to a copy, not the current on-place mutable object
+    self._downloadable_on_date = ytchannelsa.is_downloadable_on_date()
+    # for the time being, change will mutate on-place:
+    # return transposed
 
   def __str__(self):
-    htmltrun = self.get_htmltext_truncated(100)
+    htmltrun = '[File missing or does not exist yet.]'
+    try:
+      htmltrun = self.get_htmltext_truncated(100)
+    except OSError:
+      pass
     outdict = {
       'ytchannelid'  :self.ytchannelid, 'nname':self.nname, 'sname':self.sname,
-      'filename':self.ytvideospagefilename,
+      'filename':self.filename,
       'ytvideospagefile_abspath':self.ytvideospagefile_abspath,
       'statimgfn': self.statimgfn,
       'htmltrun': htmltrun,

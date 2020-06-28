@@ -48,8 +48,12 @@ def login():
   return render_template('login.html', title='Sign In', form=form)
 
 @app.route('/clist')
-def ytchannel_lister():
+def ytchannels_lister():
   return views.list_ytchannels_view()
+
+@app.route('/newslist')
+def newsarticles_lister():
+  return views.list_newsarticles_view()
 
 # videos_per_channel
 @app.route('/channel/<ytchannelid>/videos/')

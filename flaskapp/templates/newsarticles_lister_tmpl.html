@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Channel List</h1>
+<h2> Total {{ newsarticles | length }} channels</h2>
+
+<table border="1">
+  <tr>
+    <th>seq</th>
+    <th>date</th>
+    <th>title</th>
+    <th>sha1</th>
+  </tr>
+
+  {% for newsarticle in newsarticles %}
+  <tr style="color:orange;">
+    <td style="text-align:center;">{{ loop.index }}</td>
+    <td>
+      <a href="{{ 'blah' }}">{{ newsarticle.publishdate }}</a>
+    </td>
+    <td>
+      {{ newsarticle.title }}
+    </td>
+    <td>
+      {{ newsarticle.sha1 }}
+    </td>
+  </tr>
+  {% endfor %}
+
+</table>
+
+{% endblock %}

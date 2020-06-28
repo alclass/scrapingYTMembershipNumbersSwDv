@@ -30,6 +30,16 @@ def get_apps_baseabspath():
 def get_flaskapp_abspath():
   return os.path.join(get_apps_baseabspath(), FLASKAPP_FOLDERNAME)
 
+NEWSPAPERS_BASE_ABSPATHS = [
+  '/media/friend/SAMSUNG/Ytvideos BRA Politics/z Other ytchannels/001_BRA_pol_newspapers',
+  '/home/friend/Downloads/Bks/001_BRA_pol_newspapers',
+]
+
+BASE_ABSPATHS_KEYS = {
+  '001_BRA_pol_newspapers' : 'NEWSPAPERS_BASE_ABSPATHS',
+  '000_scrape_ytdata' : 'YTVIDEO_HTMLFILES_DIRS',
+}
+
 # Section 3 Base directory for json "master data" (ie, ytchannel minimum info)
 # ============================================================================
 

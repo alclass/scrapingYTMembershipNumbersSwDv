@@ -41,16 +41,17 @@ class DownloadYtVideoPages:
     self.ytchannels = []
     self.n_exists = 0; self.n_downloaded = 0; self.n_fail_200 = 0; self.total_channels = 0
     self.set_n_of_download_rolls(n_of_download_rolls)
-    self.from_json_to_ytchannel()
+    self.from_db_to_ytchannel()
 
   def set_n_of_download_rolls(self, n_of_download_rolls):
     self.n_of_download_rolls = n_of_download_rolls
     if self.n_of_download_rolls is None or type(self.n_of_download_rolls) != int:
       self.n_of_download_rolls = 1
 
-  def from_json_to_ytchannel(self):
+  def fallback_from_json_to_ytchannel(self):
     '''
       Deactivated
+
     :return:
     '''
     channelsdatareader = readjson.JsonYtChannel()
@@ -66,20 +67,32 @@ class DownloadYtVideoPages:
     :return:
     '''
     session = Session()
-    ytchannels = session.query(samodels.YTChannelSA). \
+    dbytchannels = session.query(samodels.YTChannelSA). \
       order_by(samodels.YTChannelSA.nname). \
       all()
-    for ytchannel in ytchannels:
-      if ytchannel.is_downloadable_on_date():
+    for ytchannel in dbytchannels:
+      if not ytchannel.is_downloadable_on_date():
         continue
-      ytchannelpage = ytvidpagesmod.YtVideosPage(ytchannel.ytchannel, ytchannel.nname)
+      ytchannelpage = ytvidpagesmod.YtVideosPage(ytchannel.ytchannelid, ytchannel.nname)
+      ytchannelpage.downloadable_on_date = True
+      ytchannelpage.set_sname_by_nname()
       self.ytchannels.append(ytchannelpage)
     session.close()
 
   def download_ytvideopages(self):
     self.total_channels = len(self.ytchannels)
     for i, ytchannel in enumerate(self.ytchannels):
+      try:
+        if not ytchannel.downloadable_on_date:
+          print('File', ytchannel.filename, 'not be downloaded today. Continuing...')
+          continue
+      except AttributeError as e:
+        error_msg = 'Missing downloadable_on_date for knowing whether or not page is to be download today.\n' + str(e)
+        raise AttributeError(error_msg)
       entry_abspath = ytchannel.datedpage_filepath
+      if os.path.isfile(entry_abspath):
+        print ('File', ytchannel.filename, 'exists. Continuing...')
+        continue
       if os.path.isfile(entry_abspath):
         self.n_exists += 1
         print (self.n_exists, '[EXISTS]', entry_abspath)

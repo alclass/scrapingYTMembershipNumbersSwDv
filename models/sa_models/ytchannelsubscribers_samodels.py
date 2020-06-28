@@ -140,7 +140,7 @@ class YTDailySubscribersSA(Base): # YTDailySubscribersSA <= DailySubscribers
   updated_at = Column(TIMESTAMP, nullable=True)
 
   def __repr__(self):
-    return '<DailySubscribers(ytchid="%s", infdt="%s". subs=%d)>' % (self.ytchannelid, str(self.infodate), self.subscribers)
+    return '<DailySubscribers(ytchannelid="%s", infdt="%s". subs=%d)>' % (self.ytchannelid, str(self.infodate), self.subscribers)
 
 YT_VIDEO_URL_BASE_TO_INTERPOLATE = 'https://www.youtube.com/watch?v=%s'
 class YTVideoItemInfoSA(Base):
@@ -199,7 +199,7 @@ class YTVideoItemInfoSA(Base):
     return url
 
   def __repr__(self):
-    return '<YTVideoItemInfoSA(ytvid="%s", title="%s", infdt="%s")>' %(self.ytvideoid, self.title, self.infodate)
+    return '<YTVideoItemInfoSA(ytvideoid="%s", title="%s", infdt="%s")>' %(self.ytvideoid, self.title, self.infodate)
 
 class YTVideoViewsSA(Base):
   '''
@@ -232,11 +232,13 @@ class NewsArticlesSA(Base):
   id = Column(Integer, primary_key=True)
   title = Column(String)
   filename = Column(String)
-  publisher_id = Column(Integer, ForeignKey('newspublishers.id'), nullable=True)
+  sha1 = Column(String)
+  publisher_id = Column(Integer, ForeignKey('nw_publishers.id'), nullable=True)
   publishdate = Column(Date, nullable=True)
-  cat_id = Column(Integer, ForeignKey('newscategories.id'), nullable=True)
-  reldir_id = Column(Integer, ForeignKey('relativefolders.id'), nullable=True)
-  is_read = Column(Boolean, ForeignKey('newscategories.id'), nullable=True)
+  cat_id = Column(Integer, ForeignKey('nw_categories.id'), nullable=True)
+  reldir_id = Column(Integer, ForeignKey('nw_relativefolders.id'), nullable=True)
+  tree_id = Column(Integer, ForeignKey('nw_treebaseabspaths.id'), nullable=True)
+  is_read = Column(Boolean, ForeignKey('nw_categories.id'), default=False)
   personal_rank = Column(Integer, default=0)
   comment = Column(Text, nullable=True)
   created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
@@ -246,7 +248,22 @@ class NewsArticlesSA(Base):
     title = self.title
     if len(title) > 50:
       title = self.title[:50] + '...'
-    return '<NewsArticlesSA(id=%d, date=%s, title="%s")>' %(self.id, self.publishdate, title)
+    return '<NewsArticlesSA(id=%s, date=%s, title="%s")>' %(str(self.id), self.publishdate, title)
+
+class NewsPublishersSA(Base):
+  '''
+  video views taken from a videospage per date
+  '''
+
+  __tablename__ = 'nw_publishers'
+
+  id = Column(Integer, primary_key=True)
+  name = Column(String(40))
+  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
+  updated_at = Column(TIMESTAMP, nullable=True)
+
+  articles = relationship('NewsArticlesSA', backref='publisher', lazy='dynamic', order_by=(desc('publishdate')))
+
 
 class RelativeFolderSA(Base):
   '''
@@ -256,6 +273,7 @@ class RelativeFolderSA(Base):
 
   id = Column(Integer, primary_key=True)
   parent_id = Column(Integer, ForeignKey('nw_relativefolders.id'))
+  tree_id = Column(Integer, ForeignKey('nw_treebaseabspaths.id'))
   foldername = Column(String)
 
   entries = relationship('RelativeFolderSA', backref=backref('parent', remote_side=[id]))
@@ -280,6 +298,25 @@ class RelativeFolderSA(Base):
   def __repr__(self):
     return '<NewsArticlesSA(id=%d, p_id=%d, folder="%s")>' %(self.id, self.p_id, self.foldername)
 
+class TreeBaseAbsPath(Base):
+  '''
+  '''
+
+  __tablename__ = 'nw_treebaseabspaths'
+
+  id = Column(Integer, primary_key=True)
+  app_tree_strkey = Column(String, unique=True)
+  abspath = Column(String)
+  alternative_abspath = Column(String, nullable=True)
+
+  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
+  # created_at = Column(TIMESTAMP, default=datetime.utcnow) #, nullable=False, server_default=text('0'))
+  updated_at = Column(TIMESTAMP, nullable=True)
+
+  def __repr__(self):
+    return '<TreeBaseAbsPath(id=%d, tree_key="%s", abspath="%s")>' %(self.id, self.app_tree_strkey, self.abspath)
+
+
 class CategorySA(Base):
   '''
   '''
@@ -289,13 +326,10 @@ class CategorySA(Base):
   id = Column(Integer, primary_key=True)
   category_id = Column(Integer, ForeignKey('nw_categories.id'))
   name = Column(String)
-  created_at = Column(TIMESTAMP) #, default=datetime.utcnow, nullable=False, server_default=text('0'))
-  updated_at = Column(TIMESTAMP)
 
   subcategories = relationship('CategorySA', backref=backref('category', remote_side=[id]))
 
   created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
-  # created_at = Column(TIMESTAMP, default=datetime.utcnow) #, nullable=False, server_default=text('0'))
   updated_at = Column(TIMESTAMP, nullable=True)
 
   @property

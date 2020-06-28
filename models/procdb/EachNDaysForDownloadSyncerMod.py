@@ -170,7 +170,7 @@ class StaticEachNDays:
     ytchannels = session.query(samodels.YTChannelSA).all()
     outline = '\nshow_dowloadables\n'; n_of_dlds = 0
     for i, ytchannel in enumerate(ytchannels):
-      is_downloadable = ytchannel.is_downloadable_on_date()
+      is_downloadable = ytchannel.downloadable_on_date()
       nextdate = ytchannel.find_next_download_date()
       print (i+1, is_downloadable, nextdate, '<=', ytchannel.each_n_days_for_dld, '+', ytchannel.scrapedate, ytchannel.nname)
       if is_downloadable:

@@ -31,3 +31,6 @@ if engine_line.startswith('mysql'):
 
 sqlalchemy_engine = create_engine(engine_line)
 # print (engine_line)
+
+from sqlalchemy.orm import sessionmaker
+Session = sessionmaker(bind=sqlalchemy_engine)

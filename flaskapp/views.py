@@ -1,5 +1,12 @@
 from flask import render_template, g
 import models.sa_models.ytchannelsubscribers_samodels as samodels
+from sqlalchemy.sql.expression import desc
+
+def list_newsarticles_view():
+  newsarticles = g.sa_ext_session.query(samodels.NewsArticlesSA). \
+    order_by(desc(samodels.NewsArticlesSA.publishdate)). \
+    all()
+  return render_template('newsarticles_lister_tmpl.html', title='Newspaper Articles', newsarticles=newsarticles)
 
 def list_ytchannels_view():
   # session = Session()
