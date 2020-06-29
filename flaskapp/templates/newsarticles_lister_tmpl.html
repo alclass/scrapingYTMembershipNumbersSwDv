@@ -10,7 +10,7 @@
     <th>seq</th>
     <th>date</th>
     <th>title</th>
-    <th>sha1</th>
+    <th>link</th>
   </tr>
 
   {% for newsarticle in newsarticles %}
@@ -23,7 +23,7 @@
       {{ newsarticle.title }}
     </td>
     <td>
-      {{ newsarticle.sha1 }}
+      <a href="{{ url_for('newsarticle', newsarticleid=newsarticle.id) }}">link</a>
     </td>
   </tr>
   {% endfor %}

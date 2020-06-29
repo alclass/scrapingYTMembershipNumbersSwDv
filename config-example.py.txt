@@ -23,6 +23,8 @@ def get_ytvideo_datafolderbase_absdir():
 STATICHTML_FOLDERNAME = 'ytchannels_statichtml'
 STATICHTML_FILENAME = 'static_html_report.html'
 FLASKAPP_FOLDERNAME = 'flaskapp'
+# the dot (.) is necessary because of return value from tuple os.path.splitext()
+HTML_EXTLIST = ['.ht', '.htm', '.html', '.shtml']
 
 def get_apps_baseabspath():
   return pathlib.Path(__file__).parent.absolute()

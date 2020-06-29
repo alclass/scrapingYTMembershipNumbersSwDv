@@ -2,6 +2,16 @@ from flask import render_template, g
 import models.sa_models.ytchannelsubscribers_samodels as samodels
 from sqlalchemy.sql.expression import desc
 
+def newsarticle_view(newsarticleid):
+  newsarticle = g.sa_ext_session.query(samodels.NewsArticlesSA). \
+    filter(samodels.NewsArticlesSA.id==newsarticleid). \
+    first()
+  if newsarticle:
+    title = newsarticle.title
+    title = title if len(title) < 30 else title[:30]
+    return render_template('newsarticle_tmpl.html', title=title, newsarticle=newsarticle)
+  return list_newsarticles_view()
+
 def list_newsarticles_view():
   newsarticles = g.sa_ext_session.query(samodels.NewsArticlesSA). \
     order_by(desc(samodels.NewsArticlesSA.publishdate)). \

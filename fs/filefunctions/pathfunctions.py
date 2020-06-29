@@ -67,6 +67,30 @@ def find_datedpage_filename_on_folder(ytchid, refdate=None):
       return entry
   return None
 
+def is_htmldatedfilename_under_convention(filename):
+  '''
+    Convention is "(1-char-strdate) ([publisher-nname]) (title-or-slug)(.ext)"
+  :param filename:
+  :return:
+  '''
+  if len(filename) < 11:
+    return False
+  mayBeNone = dtfs.get_refdate_from_strdate_or_None(filename[:10])
+  if mayBeNone is None:
+    return False
+  pos_open_squarebracket = filename.find('[')
+  if pos_open_squarebracket > -1:
+    return False
+  pos_close_squarebracket = filename.find(']')
+  if pos_close_squarebracket > -1:
+    return False
+  if pos_open_squarebracket > pos_close_squarebracket:
+    return False
+  _, ext = os.path.splitext(filename)
+  if ext not in config.HTML_EXTLIST:
+    return False
+  return True
+
 ytchid_from_filename_regexp_str = r'\[(.+)\]'
 ytchid_from_filename_compiled_re = re.compile(ytchid_from_filename_regexp_str)
 def extract_ytchid_from_filename(filename):

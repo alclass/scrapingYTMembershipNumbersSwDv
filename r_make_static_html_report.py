@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import fs.statfunctions.statisticsMod as statmod
+import fs.numberfunctions.statisticsMod as statmod
 import models.procdb.SubscriberDaysMod as subsmod
 import fs.filefunctions.pathfunctions as pathfs
 import fs.graphics.barchartmod as bar

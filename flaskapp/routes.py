@@ -55,6 +55,10 @@ def ytchannels_lister():
 def newsarticles_lister():
   return views.list_newsarticles_view()
 
+@app.route('/newsarticle/<newsarticleid>')
+def newsarticle(newsarticleid):
+  return views.newsarticle_view(newsarticleid=newsarticleid)
+
 # videos_per_channel
 @app.route('/channel/<ytchannelid>/videos/')
 def videos_per_channel(ytchannelid):

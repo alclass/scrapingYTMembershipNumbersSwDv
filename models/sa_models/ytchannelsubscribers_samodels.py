@@ -3,6 +3,7 @@ import datetime, os # for adhoc test
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 from sqlalchemy import Column, Boolean, Integer, String, Date, TIMESTAMP, ForeignKey, Text # DateTime,
+from sqlalchemy.types import BINARY
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql import func
 import fs.datefunctions.datefs as dtfs
@@ -232,17 +233,34 @@ class NewsArticlesSA(Base):
   id = Column(Integer, primary_key=True)
   title = Column(String)
   filename = Column(String)
-  sha1 = Column(String)
+  sha1 = Column(BINARY)
+  sizeinbytes = Column(Integer, nullable=True)
   publisher_id = Column(Integer, ForeignKey('nw_publishers.id'), nullable=True)
   publishdate = Column(Date, nullable=True)
+  url = Column(String, nullable=True)
+  url_main_img = Column(String, nullable=True)
   cat_id = Column(Integer, ForeignKey('nw_categories.id'), nullable=True)
-  reldir_id = Column(Integer, ForeignKey('nw_relativefolders.id'), nullable=True)
-  tree_id = Column(Integer, ForeignKey('nw_treebaseabspaths.id'), nullable=True)
   is_read = Column(Boolean, ForeignKey('nw_categories.id'), default=False)
   personal_rank = Column(Integer, default=0)
+  summary = Column(Text, nullable=True)
   comment = Column(Text, nullable=True)
   created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
   updated_at = Column(TIMESTAMP, nullable=True)
+
+  @property
+  def sha1hex(self):
+    '''
+      Explanation:
+        1) self.sha1 is a BINARY field in DB and a bytes class-attribute in-here;
+        2) for visualization, this bytes/BINARY attribute/field is best seen when converted to a hexadecimal representation;
+        3) the bytes-type has a .hex() method that does this conversion;
+        4) so, it suffices to issue .hex() on the bytes attribute returning its hexadecimal representation.
+
+      Notice
+        1) that a sha1 hash is a 20-byte binary field and a 40-byte hexadecimal field (consider 8-bit bytes);
+        2) because of that size issue, a binary field for sha1's is more memory-economic (twice as much) than its string/char counterpart.
+    '''
+    return self.sha1.hex()
 
   def __repr__(self):
     title = self.title
@@ -263,7 +281,6 @@ class NewsPublishersSA(Base):
   updated_at = Column(TIMESTAMP, nullable=True)
 
   articles = relationship('NewsArticlesSA', backref='publisher', lazy='dynamic', order_by=(desc('publishdate')))
-
 
 class RelativeFolderSA(Base):
   '''
@@ -305,12 +322,11 @@ class TreeBaseAbsPath(Base):
   __tablename__ = 'nw_treebaseabspaths'
 
   id = Column(Integer, primary_key=True)
-  app_tree_strkey = Column(String, unique=True)
-  abspath = Column(String)
-  alternative_abspath = Column(String, nullable=True)
-
+  app_tree_strkey = Column(String(30))
+  abspath = Column(String, unique=True)
+  medianame = Column(String(30), nullable=True)
+  lookup_order = Column(Integer, default=1)
   created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
-  # created_at = Column(TIMESTAMP, default=datetime.utcnow) #, nullable=False, server_default=text('0'))
   updated_at = Column(TIMESTAMP, nullable=True)
 
   def __repr__(self):

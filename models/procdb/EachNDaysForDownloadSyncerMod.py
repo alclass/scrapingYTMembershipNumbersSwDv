@@ -7,8 +7,6 @@ import config, json, os
 EACH_N_DAYS_DICTLIST_FILENAME = 'nname_n_each_n_days_for_dld.dict.txt'
 EACH_N_DAYS_JSON_FILENAME     = 'nname_n_each_n_days_for_dld.json'
 
-
-
 class StaticEachNDays:
 
   @staticmethod
@@ -48,16 +46,16 @@ class StaticEachNDays:
 
   @staticmethod
   def read_from_jsonfile_each_n_days_n_return_dictlist(filename=None):
-    if filename is None or not os.path.isfile(filename):
+    if filename is None:
       filename = EACH_N_DAYS_JSON_FILENAME
-    if not os.path.isfile(filename):
-      error_msg = 'filename [%s] for EACH_N_DAYS_DICTLIST_FILENAME does not exist.'
-      raise ValueError(error_msg)
     jsonabspath = config.get_ytchannels_jsonfolderabspath()
-    filepath = os.path.join(jsonabspath, filename)
-    fp = open(filepath, 'r', encoding='utf8')
-    each_n_days_dictlist_text = fp.read()
-    indictlist = json.loads(each_n_days_dictlist_text)
+    jsonfilepath = os.path.join(jsonabspath, filename)
+    if not os.path.isfile(jsonfilepath):
+      error_msg = 'jsonfilepath [%s] for EACH_N_DAYS does not exist.' %jsonfilepath
+      raise ValueError(error_msg)
+    fp = open(jsonfilepath, 'r', encoding='utf8')
+    filetext = fp.read()
+    indictlist = json.loads(filetext)
     return indictlist
 
   @classmethod
@@ -65,28 +63,29 @@ class StaticEachNDays:
     if len(dictlist) == 0:
       return False
     text = cls.make_textversion_of_each_n_days_from_dictlist(dictlist)
-    if filename is None or not os.path.isfile(filename):
+    if filename is None:
       filename = EACH_N_DAYS_DICTLIST_FILENAME
     jsonabspath = config.get_ytchannels_jsonfolderabspath()
     filepath = os.path.join(jsonabspath, filename)
     try:
-      fp = open(filepath, 'r', encoding='utf8')
+      fp = open(filepath, 'w', encoding='utf8')
       fp.write(text)
       fp.close()
+      print ('Written', filepath)
     except IOError:
       return False
     return True
 
   @staticmethod
   def write_to_jsonfile_each_n_days_from_dictlist(filename=None, dictlist=[]):
+    if filename is None:
+      filename = EACH_N_DAYS_JSON_FILENAME
     if len(dictlist) == 0:
       return False
-    if filename is None or not os.path.isfile(filename):
-      filename = EACH_N_DAYS_JSON_FILENAME
     jsonabspath = config.get_ytchannels_jsonfolderabspath()
     filepath = os.path.join(jsonabspath, filename)
     try:
-      fp = open(filepath, 'r', encoding='utf8')
+      fp = open(filepath, 'w', encoding='utf8')
       text = json.dumps(dictlist)
       fp.write(text)
       fp.close()
@@ -170,7 +169,7 @@ class StaticEachNDays:
     ytchannels = session.query(samodels.YTChannelSA).all()
     outline = '\nshow_dowloadables\n'; n_of_dlds = 0
     for i, ytchannel in enumerate(ytchannels):
-      is_downloadable = ytchannel.downloadable_on_date()
+      is_downloadable = ytchannel.is_downloadable_on_date()
       nextdate = ytchannel.find_next_download_date()
       print (i+1, is_downloadable, nextdate, '<=', ytchannel.each_n_days_for_dld, '+', ytchannel.scrapedate, ytchannel.nname)
       if is_downloadable:

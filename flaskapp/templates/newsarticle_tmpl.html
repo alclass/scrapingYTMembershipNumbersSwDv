@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Channel List</h1>
+<h2> {{ title }} </h2>
+
+<p>
+{{ newsarticle.id }} <br>
+{{ newsarticle.publishdate }}  <br>
+{{ newsarticle.title }} <br>
+sha1hex: {{ newsarticle.sha1hex }} <br>
+</p>
+
+
+{% endblock %}

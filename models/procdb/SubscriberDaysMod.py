@@ -3,7 +3,7 @@ from models.procdb.SubscriberInsertorMod import Session
 from models.sa_models.ytchannelsubscribers_samodels import YTChannelSA
 from models.sa_models.ytchannelsubscribers_samodels import YTDailySubscribersSA
 from models.gen_models.YtVideosPageMod import transpose_sqlalchs_to_ytvideopages
-import fs.statfunctions.statisticsMod as statmod
+import fs.numberfunctions.statisticsMod as statmod
 
 class SubscriberDayForChannel:
 
