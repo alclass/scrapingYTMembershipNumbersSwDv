@@ -47,12 +47,30 @@ class BytesHexIntConvertor:
   allowed_cycle_list_items = ['int', 'hexstr', 'bytes'] # binary as 0's & 1's is missing here, consider it a TO-DO
 
   def __init__(self, value, vtype=None, p_cycle_list=None):
+    self._int = None
+    self._bytes = None
+    self._hexstr = None
     self.value = value
     self.current_vtype = vtype
     self.ordered_cycle_list = []
     self.cycle_pairs = []
     self.check_p_cycle_list(p_cycle_list)
     self.check_vtype()
+
+  def get_int(self):
+    if self._int is None:
+      self.cycle()
+    return self._int
+
+  def get_bytes(self):
+    if self._bytes is None:
+      self.cycle()
+    return self._bytes
+
+  def get_hexstr(self):
+    if self._hexstr is None:
+      self.cycle()
+    return self._hexstr
 
   def check_p_cycle_list(self, p_cycle_list):
     if p_cycle_list is None or type(p_cycle_list) != list:
@@ -104,26 +122,32 @@ class BytesHexIntConvertor:
       # cycle_list = ['int', 'hexstr', 'bytes']  # binary as 0's & 1's is missing here, consider it a TO-DO
       next_vtype = self.next_type(i + 1)
       if vtype == 'int' and next_vtype == 'hexstr':
+        self._int = self.value
         forward_value = bhi.from_int_to_hexstr(self.value)
         self.cycle_pairs.append((self.value, forward_value))
         self.value = forward_value
       elif vtype == 'int' and next_vtype == 'bytes':
+        self._int = self.value
         forward_value = bhi.from_int_to_bytes(self.value)
         self.cycle_pairs.append((self.value, forward_value))
         self.value = forward_value
       elif vtype == 'hexstr' and next_vtype == 'bytes':
+        self._hexstr = self.value
         forward_value = bhi.from_hexstr_to_bytes(self.value)
         self.cycle_pairs.append((self.value, forward_value))
         self.value = forward_value
       elif vtype == 'hexstr' and next_vtype == 'int':
+        self._hexstr = self.value
         forward_value = bhi.from_hexstr_to_int(self.value)
         self.cycle_pairs.append((self.value, forward_value))
         self.value = forward_value
       elif vtype == 'bytes' and next_vtype == 'int':
+        self._bytes = self.value
         forward_value = bhi.from_bytes_to_int(self.value)
         self.cycle_pairs.append((self.value, forward_value))
         self.value = forward_value
       elif vtype == 'bytes' and self.next_type(i+1) == 'hexstr':
+        self._bytes = self.value
         forward_value = bhi.from_bytes_to_hexstr(self.value)
         self.cycle_pairs.append((self.value, forward_value))
         self.value = forward_value

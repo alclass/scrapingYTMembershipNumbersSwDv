@@ -107,6 +107,12 @@ def find_ytchannelid_within_brackets_in_filename(name_without_ext):
   return result
 
 def find_triple_date_sname_n_ytchid_in_filename(name_without_ext):
+  '''
+    name_without_ext should be mounted as:
+     "yyyy-mm-dd <sname (up to 10 chars)> [channelphrase]"
+  :param name_without_ext:
+  :return:
+  '''
   if name_without_ext is None:
     return None, None, None
   if name_without_ext.find('.') > -1:

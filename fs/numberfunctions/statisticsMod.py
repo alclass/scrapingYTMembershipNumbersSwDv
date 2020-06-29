@@ -15,7 +15,9 @@ def calc_min_max_dif_del(alist):
   return (mini, maxi, diff, delt)
 
 def adhoc_test():
-  pass
+  alist = [7, 15, 9, -1]
+  result = calc_min_max_dif_del(alist)
+  print (result)
 
 def process():
   adhoc_test()
