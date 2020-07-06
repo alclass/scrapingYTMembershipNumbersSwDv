@@ -37,7 +37,8 @@ import models.sa_models.ytchannelsubscribers_samodels as samodels
 
 class DownloadYtVideoPages:
 
-  def __init__(self, n_of_download_rolls=None):
+  def __init__(self, n_of_download_rolls=None, download_all_active_ones=True):
+    self.download_all_active_ones = download_all_active_ones
     self.ytchannels = []
     self.n_exists = 0; self.n_downloaded = 0; self.n_fail_200 = 0; self.total_channels = 0
     self.set_n_of_download_rolls(n_of_download_rolls)
@@ -71,8 +72,9 @@ class DownloadYtVideoPages:
       order_by(samodels.YTChannelSA.nname). \
       all()
     for ytchannel in dbytchannels:
-      if not ytchannel.is_downloadable_on_date():
-        continue
+      if not self.download_all_active_ones:
+        if not ytchannel.is_downloadable_on_date():
+          continue
       ytchannelpage = ytvidpagesmod.YtVideosPage(ytchannel.ytchannelid, ytchannel.nname)
       ytchannelpage.downloadable_on_date = True
       ytchannelpage.set_sname_by_nname()
@@ -82,13 +84,14 @@ class DownloadYtVideoPages:
   def download_ytvideopages(self):
     self.total_channels = len(self.ytchannels)
     for i, ytchannel in enumerate(self.ytchannels):
-      try:
-        if not ytchannel.downloadable_on_date:
-          print('File', ytchannel.filename, 'not be downloaded today. Continuing...')
-          continue
-      except AttributeError as e:
-        error_msg = 'Missing downloadable_on_date for knowing whether or not page is to be download today.\n' + str(e)
-        raise AttributeError(error_msg)
+      if not self.download_all_active_ones:
+        try:
+          if not ytchannel.downloadable_on_date:
+            print('File', ytchannel.filename, 'not be downloaded today. Continuing...')
+            continue
+        except AttributeError as e:
+          error_msg = 'Missing downloadable_on_date for knowing whether or not page is to be download today.\n' + str(e)
+          raise AttributeError(error_msg)
       entry_abspath = ytchannel.datedpage_filepath
       if os.path.isfile(entry_abspath):
         print ('File', ytchannel.filename, 'exists. Continuing...')
@@ -123,37 +126,70 @@ class DownloadYtVideoPages:
     print('Report:          n_of_download_rolls =', self.n_of_download_rolls)
     print('n_exists =', self.n_exists, '; n_downloaded =', self.n_downloaded, '; n_fail_200 =', self.n_fail_200, '; total_channels =', self.total_channels)
 
-def dodownload(n_of_download_rolls=None):
-  downloader = DownloadYtVideoPages(n_of_download_rolls=n_of_download_rolls)
-  downloader.download_ytvideopages()
-  downloader.report()
 
-WAIT_MINS_FOR_DOWNLOAD_ROLL = 3
-def run_emptyfinder_n_redownload_n_times(max_download_rolls):
-  '''
-    The first dodownload() does not redownload if files are in folder.
-    The redownload happens after files are erased from it resulting in non-scrapeable.
-  :param n_tries:
-  :return:
-  '''
-  n_of_download_rolls = 1
-  dodownload()
-  print('Checking for DOM-empty files. Please, wait.')
-  emptyfinder = RunEmtpyFinderThuFolder()
-  emptyfinder.run_thu_folder_htmls()
-  emptyfinder.report()
-  if emptyfinder.n_of_empties > 0:
-    while n_of_download_rolls < max_download_rolls:
-      n_of_download_rolls += 1
-      print (' ::: Waiting', WAIT_MINS_FOR_DOWNLOAD_ROLL, 'minutes for a redownload roll of ', emptyfinder.n_of_empties, ' empties.')
-      time.sleep(WAIT_MINS_FOR_DOWNLOAD_ROLL*60)
-      dodownload(n_of_download_rolls)
-      print('Checking for DOM-empty files. Please, wait.')
-      emptyfinder.run_thu_folder_htmls()
+class DownloadProcessOption:
+
+  WAIT_MINS_FOR_DOWNLOAD_ROLL = 3
+
+  def __init__(self, run_with_emptyfinder_option=None, download_all_active_ones=True):
+    self.download_all_active_ones = download_all_active_ones
+    self.run_with_emptyfinder_option = run_with_emptyfinder_option
+    if self.run_with_emptyfinder_option not in [None, True]:
+      self.run_with_emptyfinder_option = False
+    self.n_download_rolls = 1
+    self._max_download_rolls = None
+    self.do_a_download_roll()
+
+  @property
+  def max_download_rolls(self):
+    return self._max_download_rolls
+
+  @max_download_rolls.setter
+  def max_download_rolls(self, max_dld_rolls):
+    self._max_download_rolls = max_dld_rolls
+
+  def process(self):
+    outdict = {'run_with_emptyfinder_option': self.run_with_emptyfinder_option}
+    if self.run_with_emptyfinder_option:
+      self.run_emptyfinder_n_redownload_n_times()
+    else:
+      self.do_a_download_roll()
+      emptyfinder = RunEmtpyFinderThuFolder()
+      emptyfinder.run_thu_folder_htmls(False)
       emptyfinder.report()
-      if emptyfinder.n_of_empties == 0:
-        break
-  print (' [End of Processing] n_of_download_rolls =', n_of_download_rolls, '| max rolls =', max_download_rolls)
+      outdict = {'n_of_empties': emptyfinder.n_of_empties}
+    return outdict
+
+  def do_a_download_roll(self):
+    downloader = DownloadYtVideoPages(self.n_download_rolls, self.download_all_active_ones)
+    downloader.download_ytvideopages()
+    downloader.report()
+    self.n_download_rolls += 1
+
+  def run_emptyfinder_n_redownload_n_times(self):
+    '''
+      The first dodownload() does not redownload if files are in folder.
+      The redownload happens after files are erased from it resulting in non-scrapeable.
+    :param n_tries:
+    :return:
+    '''
+    self.do_a_download_roll()
+    print('Checking for DOM-empty files. Please, wait.')
+    emptyfinder = RunEmtpyFinderThuFolder()
+    emptyfinder.run_thu_folder_htmls()
+    emptyfinder.report()
+    if emptyfinder.n_of_empties > 0:
+      while self.n_download_rolls < self.max_download_rolls:
+        self.n_download_rolls += 1
+        print (' ::: Waiting', self.WAIT_MINS_FOR_DOWNLOAD_ROLL, 'minutes for a redownload roll of ', emptyfinder.n_of_empties, ' empties.')
+        time.sleep(self.WAIT_MINS_FOR_DOWNLOAD_ROLL*60)
+        self.do_a_download_roll()
+        print('Checking for DOM-empty files. Please, wait.')
+        emptyfinder.run_thu_folder_htmls()
+        emptyfinder.report()
+        if emptyfinder.n_of_empties == 0:
+          break
+    print (' [End of Processing] n_download_rolls =', self.n_download_rolls, '| max rolls =', self.max_download_rolls)
 
 DEFAULT_MAX_DOWNLOAD_ROLLS = 7
 def get_ntries_arg():
@@ -165,18 +201,22 @@ def get_ntries_arg():
       return int(arg[len('--maxtries='):])
   return None
 
-def run_downloads_n_check_empties():
+def get_args_n_run_downloads_n_check_empties_if_so():
   max_download_rolls = get_ntries_arg() or DEFAULT_MAX_DOWNLOAD_ROLLS
   print ('Starting downloading process: n_tries =', max_download_rolls)
   print ('-'*50)
-  run_emptyfinder_n_redownload_n_times(max_download_rolls)
+  run_with_emptyfinder_option = False
+  download_all_active_ones = True # where all active ones are to be downloaded or just those "on date"
+  dld_o = DownloadProcessOption(run_with_emptyfinder_option, download_all_active_ones)
+  pdict = dld_o.process()
+  print('process dict', pdict)
 
 def test1():
   max_tries = get_ntries_arg() or DEFAULT_MAX_DOWNLOAD_ROLLS
   print ('max_download_rolls', max_tries)
 
 def process():
-  run_downloads_n_check_empties()
+  get_args_n_run_downloads_n_check_empties_if_so()
   # test1()
 
 if __name__ == '__main__':
