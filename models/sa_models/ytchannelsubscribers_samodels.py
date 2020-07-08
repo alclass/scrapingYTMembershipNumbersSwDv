@@ -2,13 +2,22 @@
 import datetime, os # for adhoc test
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
-from sqlalchemy import Column, Boolean, Integer, String, Date, TIMESTAMP, ForeignKey, Text # DateTime,
+from sqlalchemy import Column, Boolean, Integer, String, Date, TIMESTAMP, ForeignKey, Text, UniqueConstraint # DateTime,
 from sqlalchemy.types import BINARY
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql import func
 import fs.datefunctions.datefs as dtfs
 from sqlalchemy.sql.expression import asc, desc
 import config
+import fs.db.sqlalchdb.sqlalchemy_conn as saconn
+
+
+def get_all_ytchannelids():
+  session = saconn.Session()
+  ytchannels = session.query(YTChannelSA).order_by(YTChannelSA.nname).all()
+  ytchannelids = list(map(lambda o : o.ytchannelid, ytchannels))
+  session.close()
+  return ytchannelids
 
 class YTChannelSA(Base):
 
@@ -205,6 +214,7 @@ class YTVideoItemInfoSA(Base):
 class YTVideoViewsSA(Base):
   '''
   video views taken from a videospage per date
+  ALTER TABLE `videosviews` ADD UNIQUE `infodate_n_ytvideoid_uniq`(`infodate`, `ytvideoid`);
   '''
 
   __tablename__ = 'videosviews'
@@ -219,6 +229,9 @@ class YTVideoViewsSA(Base):
   created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
   # created_at = Column(TIMESTAMP, default=datetime.utcnow) #, nullable=False, server_default=text('0'))
   updated_at = Column(TIMESTAMP, nullable=True)
+
+  # ALTER TABLE `videosviews` ADD UNIQUE `infodate_n_ytvideoid_uniq`(`infodate`, `ytvideoid`);
+  __table_args__ = (UniqueConstraint('infodate', 'ytvideoid', name='infodate_n_ytvideoid_uniq'),)
 
   def __repr__(self):
     return '<YTVideoViewsSA(ytvideoid="%s", views="%s", infdt="%s")>' %(self.ytvideoid, self.views, self.infodate)

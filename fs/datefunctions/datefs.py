@@ -132,6 +132,56 @@ def calc_past_date_from_refdate_back_n_days(p_refdate, p_backdays=None):
     backdays = p_backdays
   return refdate - datetime.timedelta(days=backdays)
 
+def transform_hms_into_duration_in_sec(duration_hms):
+  if duration_hms is None:
+    return None
+  if type(duration_hms) != str:
+    error_msg = 'Error: in set_duration_in_sec() => duration_in_sec =' + str(duration_hms)
+    raise ValueError(error_msg)
+  pp = duration_hms.split(':')
+  if len(pp) == 2:
+    try:
+      minutes = int(pp[0])
+      seconds = int(pp[1])
+      duration_in_sec = minutes * 60 + seconds
+      return duration_in_sec
+    except ValueError:
+      pass
+  elif len(pp) == 3:
+    try:
+      hours = int(pp[0])
+      minutes = int(pp[1])
+      seconds = int(pp[2])
+      duration_in_sec = hours * 60 * 60 + minutes * 60 + seconds
+      return duration_in_sec
+    except ValueError:
+      pass
+  error_msg = 'Error: in set_duration_in_sec() => duration_in_sec =' + str(duration_hms)
+  raise ValueError(error_msg)
+
+def does_it_startswith_a_number(word):
+  try:
+    _ = int(word.split(' ')[0])
+    return True
+  except ValueError:
+    pass
+  return False
+
+def ajust_calendardatestr_to_start_with_a_number(calendardatestr, count_down_depth=5):
+  default_calendardatestr = '1 m'
+  if count_down_depth == 0:
+    return default_calendardatestr
+  if does_it_startswith_a_number(calendardatestr):
+    return calendardatestr
+  # let's see if there are more than one word in it
+  pp = calendardatestr.strip()
+  if len(pp) == 1:
+    return default_calendardatestr
+  calendardatestr = ''.join(pp[1:])
+  # recurse to see it again
+  count_down_depth -= 1
+  return ajust_calendardatestr_to_start_with_a_number(calendardatestr, count_down_depth)
+
 def transform_duration_in_sec_into_hms(duration_in_sec):
   if duration_in_sec is None:
     return 'w/inf'

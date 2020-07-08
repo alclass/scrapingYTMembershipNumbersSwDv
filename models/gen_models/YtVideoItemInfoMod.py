@@ -57,22 +57,7 @@ class YtVideoItemInfo:
     return dtfs.transform_duration_in_sec_into_hms(self._duration_in_sec)
 
   def set_duration_in_sec_as_hms(self, duration_hms):
-    if duration_hms is None:
-      return
-    pp = duration_hms.split(':')
-    if len(pp) == 2:
-      minutes = int(pp[0])
-      seconds = int(pp[1])
-      self._duration_in_sec = minutes * 60 + seconds
-      return
-    elif len(pp) == 3:
-      hours = int(pp[0])
-      minutes = int(pp[1])
-      seconds = int(pp[2])
-      self._duration_in_sec = hours * 60 * 60 + minutes * 60 + seconds
-      return
-    error_msg = 'Error: in set_duration_in_sec() => duration_in_sec =' + str(duration_hms)
-    raise ValueError(error_msg)
+    self._duration_in_sec = dtfs.transform_hms_into_duration_in_sec(duration_hms)
 
   @property
   def views(self):

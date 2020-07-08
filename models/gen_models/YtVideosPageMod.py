@@ -88,6 +88,11 @@ class YtVideosPage:
     return dtfs.get_strdate(self.refdate)
 
   @property
+  def filesdatetime(self):
+    tupl = os.stat(self.datedpage_filepath)
+    return tupl
+
+  @property
   def filename(self):
     '''
   Notice an import difference here:
