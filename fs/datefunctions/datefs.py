@@ -168,7 +168,7 @@ def does_it_startswith_a_number(word):
   return False
 
 def ajust_calendardatestr_to_start_with_a_number(calendardatestr, count_down_depth=5):
-  default_calendardatestr = '1 m'
+  default_calendardatestr = '1 hora'
   if count_down_depth == 0:
     return default_calendardatestr
   if does_it_startswith_a_number(calendardatestr):
@@ -181,6 +181,38 @@ def ajust_calendardatestr_to_start_with_a_number(calendardatestr, count_down_dep
   # recurse to see it again
   count_down_depth -= 1
   return ajust_calendardatestr_to_start_with_a_number(calendardatestr, count_down_depth)
+
+def make_daterange_with_dateini_n_datefim(dateini=None, datefim=None):
+  today = datetime.date.today()
+  if dateini is None:
+    dateini = today
+  if datefim is None:
+    datefim = today
+  dateini = return_refdate_as_datetimedate_or_today(dateini)
+  datefim = return_refdate_as_datetimedate_or_today(datefim)
+  if dateini > today:
+    dateini = today
+  if datefim > today:
+    datefim = today
+  delta = datefim - dateini
+  absdeltadays = abs(delta.days)
+  if absdeltadays == 0:
+    daterange = [datefim] # dateini here is equal to datefim
+    return daterange
+  daterange = [dateini]
+  previous_date = dateini
+  if dateini < datefim:
+    for d in range(absdeltadays):
+      previous_date = previous_date + datetime.timedelta(days=1)
+      daterange.append(previous_date)
+    return daterange
+  if datefim < dateini:
+    for d in range(absdeltadays):
+      previous_date = previous_date - datetime.timedelta(days=1)
+      daterange.append(previous_date)
+    return daterange
+  error_msg = 'Algorithm Error: flow control got to end of function when it should not [dtfs.form_daterange_with_dateini_n_datefim(dateini=%s, datefim=%s)]' %(str(dateini, str(datefim)))
+  raise ValueError(error_msg)
 
 def transform_duration_in_sec_into_hms(duration_in_sec):
   if duration_in_sec is None:
@@ -222,6 +254,21 @@ def process():
   print('n_wait',n_wait)
   n_wait = get_random_config_download_wait_nsecs()
   print('n_wait',n_wait)
+  dateini = '2020-07-05' ; datefim = '2020-07-07'
+  daterange = make_daterange_with_dateini_n_datefim(dateini, datefim)
+  print ('dateini', dateini, 'datefim', datefim)
+  print ('daterange', daterange)
+  dateini = '2021-07-05' ; datefim = '2020-07-11' # both above today when it's 2020-07-08
+  daterange = make_daterange_with_dateini_n_datefim(dateini, datefim)
+  print ('daterange', daterange)
+  dateini = '2020-07-11' ; datefim = '2020-07-06'
+  daterange = make_daterange_with_dateini_n_datefim(dateini, datefim)
+  print ('dateini', dateini, 'datefim', datefim)
+  print ('daterange', daterange)
+  dateini = '2020-07-03' ; datefim = '2020-06-30'
+  daterange = make_daterange_with_dateini_n_datefim(dateini, datefim)
+  print ('dateini', dateini, 'datefim', datefim)
+  print ('daterange', daterange)
 
 if __name__ == '__main__':
   process()

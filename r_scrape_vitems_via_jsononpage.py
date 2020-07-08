@@ -62,7 +62,6 @@ class VideoItem:
   def duration_in_sec(self):
     return dtfs.transform_hms_into_duration_in_sec(self.durationStr)
 
-
   def calculate_publishdate(self):
 
     self.calendarDateStr = dtfs.ajust_calendardatestr_to_start_with_a_number(self.calendarDateStr)
@@ -222,11 +221,16 @@ def extract_videoitems_from_videopage(ytchannelid, refdate):
   # pdict = json.loads(lastchunk)
   # print(lastchunk)
 
+import r_upd_scrape_videoitems as prev_scrap
+def get_ini_fim_daterange():
+  dateini, datefim = prev_scrap.get_dateini_n_datefim_from_cli_params()
+  ini_fim_daterange = dtfs.make_daterange_with_dateini_n_datefim(dateini, datefim)
+  return ini_fim_daterange
+
 def run_all():
-  today = datetime.date.today()
-  yesterday = today - datetime.timedelta(days=1)
+  ini_fim_daterange = get_ini_fim_daterange()
   for ytchannelid in get_all_ytchannelids(): # ytchannelids = finder.get_ytchannelids_on_datefolder(today)
-    for refdate in [yesterday, today]:  # dtfs.get_range_date(yesterday, today):
+    for refdate in ini_fim_daterange:  # dtfs.get_range_date(yesterday, today):
       print ('Rolling', ytchannelid, 'for date', refdate )
       print ('-'*50)
       extract_videoitems_from_videopage(ytchannelid, refdate)
@@ -241,7 +245,6 @@ def process():
   :return:
   '''
   run_all()
-
 
 if __name__ == '__main__':
   process()
