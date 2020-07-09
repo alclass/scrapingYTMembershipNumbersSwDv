@@ -11,28 +11,6 @@ import fs.datefunctions.datefs as dtfs
 beginningStr = '{"gridVideoRenderer":{'
 endStr = '}]}}}]}}'
 
-def convert_datetime_to_date(pdatetime):
-  pdate = datetime.date(year=pdatetime.year, month=pdatetime.month, day=pdatetime.day)
-  return pdate
-
-def monthdelta(date, delta):
-  '''
-  Ref https://stackoverflow.com/questions/3424899/whats-the-simplest-way-to-subtract-a-month-from-a-date-in-python
-
-  d = min(date.day, calendar.monthrange(y, m)[1])
-      or
-  d = min(date.day, [31,
-                     29 if y % 4 == 0 and not y % 400 == 0 else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1])
-
-  :param date:
-  :param delta:
-  :return:
-  '''
-  m, y = (date.month + delta) % 12, date.year + ((date.month) + delta - 1) // 12
-  if not m: m = 12
-  d = min(date.day, calendar.monthrange(y, m)[1])
-  return date.replace(day=d, month=m, year=y)
-
 class VideoItem:
 
   def __init__(self, ytvideoid, title, calendarDateStr, n_views, durationStr, videopagefilesdatetime, ytchannelid):
@@ -56,7 +34,7 @@ class VideoItem:
 
   @property
   def videopagefilesdate(self):
-    return convert_datetime_to_date(self.videopagefilesdatetime)
+    return dtfs.convert_datetime_to_date(self.videopagefilesdatetime)
 
   @property
   def duration_in_sec(self):
@@ -81,15 +59,15 @@ class VideoItem:
     elif self.calendarDateStr.find('semana') > -1:
       n_semanas = int(self.calendarDateStr.strip().split(' ')[0])
       publishedTime = self.videopagefilesdatetime - datetime.timedelta(weeks=n_semanas)
-      self.publishedDate = convert_datetime_to_date(publishedTime)
+      self.publishedDate = dtfs.convert_datetime_to_date(publishedTime)
     elif self.calendarDateStr.find('mês') > -1 or self.calendarDateStr.find('mes') > -1: # mes for meses
       n_meses = int(self.calendarDateStr.strip().split(' ')[0])
-      filesDate = convert_datetime_to_date(self.videopagefilesdatetime)
-      self.publishedDate = monthdelta(filesDate, n_meses)
+      filesDate = dtfs.convert_datetime_to_date(self.videopagefilesdatetime)
+      self.publishedDate = dtfs.add_or_subtract_to_month(filesDate, n_meses)
     elif self.calendarDateStr.find('ano') > -1:
       n_anos = int(self.calendarDateStr.strip().split(' ')[0])
-      filesDate = convert_datetime_to_date(self.videopagefilesdatetime)
-      self.publishedDate = monthdelta(filesDate, n_anos * 12)
+      filesDate = dtfs.convert_datetime_to_date(self.videopagefilesdatetime)
+      self.publishedDate = dtfs.add_or_subtract_to_month(filesDate, n_anos * 12)
 
   def write_item_to_db_item_n_views(self):
     bool_res = self.write_item_to_db()
@@ -108,8 +86,20 @@ class VideoItem:
     session = Session()
     videoitem = session.query(YTVideoItemInfoSA).filter(YTVideoItemInfoSA.ytvideoid==self.ytvideoid).first()
     if videoitem:
+      was_changed = False
+      if videoitem.title != self.title:
+        videoitem.title = self.title
+        was_changed = True
+      if self.publishedDate is not None:
+        if videoitem.publishdate is None or videoitem.publishdate > self.publishedDate:
+          videoitem.publishdate = self.publishedDate
+          videoitem.published_time_ago = self.calendarDateStr
+          videoitem.infodate = self.videopagefilesdate
+          was_changed = True
+      if was_changed:
+        session.commit()
       session.close()
-      return False
+      return was_changed
     videoitem = YTVideoItemInfoSA()
     videoitem.ytvideoid = self.ytvideoid
     videoitem.title = self.title
@@ -135,7 +125,7 @@ class VideoItem:
     vviews = YTVideoViewsSA()
     vviews.ytvideoid = self.ytvideoid
     vviews.views = self.n_views
-    vviews.infodate = convert_datetime_to_date(self.videopagefilesdatetime)
+    vviews.infodate = dtfs.convert_datetime_to_date(self.videopagefilesdatetime)
     session.add(vviews)
     session.commit()
     session.close()

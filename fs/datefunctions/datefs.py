@@ -1,8 +1,36 @@
 #!/usr/bin/python3
-import datetime
+import calendar, datetime
 import config
 import random
 import fs.textfunctions.scraper_helpers as scraphlp
+
+def convert_datetime_to_date(pdatetime):
+  if type(pdatetime) == datetime.date:
+    return pdatetime
+  try: # supposed datetime.datetime type:
+    pdate = datetime.date(year=pdatetime.year, month=pdatetime.month, day=pdatetime.day)
+    return pdate
+  except AttributeError:
+    pass
+  return None
+
+def add_or_subtract_to_month(pdate, delta):
+  '''
+  Ref https://stackoverflow.com/questions/3424899/whats-the-simplest-way-to-subtract-a-month-from-a-date-in-python
+
+  d = min(date.day, calendar.monthrange(y, m)[1])
+      or
+  d = min(date.day, [31,
+                     29 if y % 4 == 0 and not y % 400 == 0 else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1])
+
+  :param date:
+  :param delta:
+  :return:
+  '''
+  m, y = (pdate.month + delta) % 12, pdate.year + ((pdate.month) + delta - 1) // 12
+  if not m: m = 12
+  d = min(pdate.day, calendar.monthrange(y, m)[1])
+  return pdate.replace(day=d, month=m, year=y)
 
 def get_refdate(p_refdate=None):
   if p_refdate is None or type(p_refdate) != datetime.date:
@@ -167,20 +195,35 @@ def does_it_startswith_a_number(word):
     pass
   return False
 
-def ajust_calendardatestr_to_start_with_a_number(calendardatestr, count_down_depth=5):
+def ajust_calendardatestr_to_start_with_a_number(calendardatestr):
+  '''
+    This function strips non-numbers out of the beginning of the string after a space-split,
+      ie, the result must start with a number if there is a number inside the string, if not,
+      the default will be returned.
+
+    E.g.
+      1) input_str = 'há 2 dias atrás' :: output_str will be '2 dias atrás'
+      2) input_str = '3 days ago' :: output_str will be the same as input_str, ie '3 days ago'
+      3) input_str = 'blah bla 10 hours ahead' :: output_str will be '10 hours ahead'
+
+    Take a look at the corresponding unit test module for more examples.
+
+  :param calendardatestr:
+  :return:
+  '''
   default_calendardatestr = '1 hora'
-  if count_down_depth == 0:
-    return default_calendardatestr
-  if does_it_startswith_a_number(calendardatestr):
-    return calendardatestr
-  # let's see if there are more than one word in it
-  pp = calendardatestr.strip()
-  if len(pp) == 1:
-    return default_calendardatestr
-  calendardatestr = ''.join(pp[1:])
-  # recurse to see it again
-  count_down_depth -= 1
-  return ajust_calendardatestr_to_start_with_a_number(calendardatestr, count_down_depth)
+
+  current_split_list = calendardatestr.split(' ')
+  while len(current_split_list) > 0:
+    try:
+      _ = int(current_split_list[0])
+      break
+    except ValueError:
+      del current_split_list[0]
+  recomposed_calendarstr = ' '.join(current_split_list)
+  if recomposed_calendarstr == '': # if current_split_list is empty, the join str will be empty if with a space ' ' calling join
+    recomposed_calendarstr = default_calendardatestr
+  return recomposed_calendarstr
 
 def make_daterange_with_dateini_n_datefim(dateini=None, datefim=None):
   today = datetime.date.today()
@@ -190,6 +233,8 @@ def make_daterange_with_dateini_n_datefim(dateini=None, datefim=None):
     datefim = today
   dateini = return_refdate_as_datetimedate_or_today(dateini)
   datefim = return_refdate_as_datetimedate_or_today(datefim)
+  if dateini > today and datefim > today:
+    return []
   if dateini > today:
     dateini = today
   if datefim > today:
@@ -254,21 +299,6 @@ def process():
   print('n_wait',n_wait)
   n_wait = get_random_config_download_wait_nsecs()
   print('n_wait',n_wait)
-  dateini = '2020-07-05' ; datefim = '2020-07-07'
-  daterange = make_daterange_with_dateini_n_datefim(dateini, datefim)
-  print ('dateini', dateini, 'datefim', datefim)
-  print ('daterange', daterange)
-  dateini = '2021-07-05' ; datefim = '2020-07-11' # both above today when it's 2020-07-08
-  daterange = make_daterange_with_dateini_n_datefim(dateini, datefim)
-  print ('daterange', daterange)
-  dateini = '2020-07-11' ; datefim = '2020-07-06'
-  daterange = make_daterange_with_dateini_n_datefim(dateini, datefim)
-  print ('dateini', dateini, 'datefim', datefim)
-  print ('daterange', daterange)
-  dateini = '2020-07-03' ; datefim = '2020-06-30'
-  daterange = make_daterange_with_dateini_n_datefim(dateini, datefim)
-  print ('dateini', dateini, 'datefim', datefim)
-  print ('daterange', daterange)
 
 if __name__ == '__main__':
   process()
