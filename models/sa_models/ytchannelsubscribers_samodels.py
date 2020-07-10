@@ -135,7 +135,9 @@ class YTChannelSA(Base):
     return '<Channel(ytchannelid="%s", nname="%s")>' %(self.ytchannelid, self.nname)
 
 class YTDailySubscribersSA(Base): # YTDailySubscribersSA <= DailySubscribers
-
+  '''
+  ALTER TABLE `dailychannelsubscribernumbers` ADD UNIQUE `infodate_n_subscribers_ytchannelid_uniq`(`subscribers`,`infodate`, `ytchannelid`);
+  '''
   __tablename__ = 'dailychannelsubscribernumbers'
 
   id = Column(Integer, primary_key=True)
@@ -148,6 +150,8 @@ class YTDailySubscribersSA(Base): # YTDailySubscribersSA <= DailySubscribers
   created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
   # created_at = Column(TIMESTAMP, default=datetime.utcnow) #, nullable=False, server_default=text('0'))
   updated_at = Column(TIMESTAMP, nullable=True)
+
+  __table_args__ = (UniqueConstraint('infodate', 'subscribers', 'ytchannelid', name='infodate_n_subscribers_ytchannelid_uniq'),)
 
   def __repr__(self):
     return '<DailySubscribers(ytchannelid="%s", infdt="%s". subs=%d)>' % (self.ytchannelid, str(self.infodate), self.subscribers)

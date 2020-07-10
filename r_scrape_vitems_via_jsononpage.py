@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import datetime, json, calendar
 # from dateutil import relativedelta # calculate duration between two dates
 from models.gen_models.YtVideosPageMod import YtVideosPage
@@ -95,6 +96,10 @@ class VideoItem:
           videoitem.publishdate = self.publishedDate
           videoitem.published_time_ago = self.calendarDateStr
           videoitem.infodate = self.videopagefilesdate
+          was_changed = True
+      if self.duration_in_sec is not None:
+        if videoitem.publishdate != self.publishedDate:
+          videoitem.publishdate = self.publishedDate
           was_changed = True
       if was_changed:
         session.commit()
