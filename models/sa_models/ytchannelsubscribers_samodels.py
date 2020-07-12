@@ -2,7 +2,7 @@
 import datetime, os # for adhoc test
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
-from sqlalchemy import Column, Boolean, Integer, String, Date, TIMESTAMP, ForeignKey, Text, UniqueConstraint # DateTime,
+from sqlalchemy import Column, Boolean, Integer, String, Date, DateTime, TIMESTAMP, ForeignKey, Text, UniqueConstraint # DateTime,
 from sqlalchemy.types import BINARY
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql import func
@@ -32,7 +32,7 @@ class YTChannelSA(Base):
   obs = Column(Text, nullable=True)
 
   daily_subscribers = relationship('YTDailySubscribersSA', backref='ytchannel', lazy='dynamic', order_by=(desc('infodate')))
-  vinfolist = relationship('YTVideoItemInfoSA', backref='ytchannel', lazy='dynamic', order_by=(desc('publishdate')))
+  vinfolist = relationship('YTVideoItemInfoSA', backref='ytchannel', lazy='dynamic', order_by=(desc('publishdatetime')))
 
   created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
   updated_at = Column(TIMESTAMP, nullable=True)
@@ -165,9 +165,9 @@ class YTVideoItemInfoSA(Base):
   ytvideoid = Column(String(11), unique=True)
   title = Column(String)
   duration_in_sec = Column(Integer, nullable=True)
-  publishdate = Column(Date, nullable=True)
+  publishdatetime = Column(DateTime, nullable=True)
   published_time_ago = Column(String(30))
-  infodate = Column(Date, nullable=True)
+  infodatetime = Column(DateTime, nullable=True)
   changelog = Column(Text, nullable=True)
 
   vviewlist = relationship('YTVideoViewsSA', backref='vinfo', lazy='dynamic', order_by=desc('infodate'))
@@ -177,9 +177,20 @@ class YTVideoItemInfoSA(Base):
   # created_at = Column(TIMESTAMP, default=datetime.utcnow) #, nullable=False, server_default=text('0'))
   updated_at = Column(TIMESTAMP, nullable=True)
 
+  def recalc_n_return_publishdtime_from_infodtime_n_calendarstr(self):
+    return dtfs.calculate_origdtime_from_targetdtime_n_calendarstr(self.infodatetime, self.published_time_ago)
+
   @property
   def duration_in_hms(self):
     return dtfs.transform_duration_in_sec_into_hms(self.duration_in_sec)
+
+  @property
+  def infodate(self):
+    return dtfs.convert_datetime_to_date(self.infodatetime)
+
+  @property
+  def publishdate(self):
+    return dtfs.convert_datetime_to_date(self.publishdatetime)
 
   @property
   def ytvideo_url(self):
@@ -225,7 +236,7 @@ class YTVideoViewsSA(Base):
 
   id = Column(Integer, primary_key=True)
   views = Column(Integer, nullable=True)
-  infodate = Column(Date, nullable=True)
+  infodate = Column(DateTime, nullable=True)
 
   ytvideoid = Column(String(11), ForeignKey('individualvideostats.ytvideoid'))
   # videoinfolist = relationship(YTVideoItemInfoSA)

@@ -195,6 +195,130 @@ def does_it_startswith_a_number(word):
     pass
   return False
 
+def transform_datelike_to_datetime(pdatetime):
+  '''
+  For unit test:
+    - for input obj(2020, 07, 11) expected output is datetime(2020, 07, 11, 0, 0, 0)
+    - for input obj(2020, 07) expected output is None
+    - for input obj(2020, 07, 11, 11, 11, 11) expected output is the same as input typed-datetime
+    - for input obj(2020, 07, 11, 11) expected output is datetime(2020, 07, 11, 11, 0, 0)
+  :param pdatetime:
+  :return:
+  '''
+  if pdatetime is None:
+    None
+  if type(pdatetime) == datetime.datetime:
+    return pdatetime
+  ho = 0; mi = 0; se = 0; ms = 0
+  odatetime = datetime.datetime.now()
+  try:
+    odatetime = odatetime.replace(year=pdatetime.year, month=pdatetime.month, day=pdatetime.day)
+  except AttributeError:
+    return None
+  # in case, though it's not a datetime, known from above, it implements the attributes hour, minute & second
+  try:
+    ho = pdatetime.hour
+    mi = pdatetime.minute
+    se = pdatetime.second
+    ms = pdatetime.microsecond
+  except AttributeError:
+    odatetime = odatetime.replace(hour=ho, minute=mi, second=se, microsecond=ms) # if this is executed, some of them will be 0
+  return odatetime
+
+class DateAdderSubtractor:
+  MI = 'MI'
+  HO = 'HO'
+  DA = 'DA'
+  WE = 'WE'
+  MO = 'MO'
+  YE = 'YE'
+  ALL_UNITS = [MI, HO, DA, WE, MO, YE]
+
+  def __init__(self, unit, quant, topast=True):
+    self.unit = unit
+    self.quant = quant
+    self.topast = topast
+    self.treat_unit_n_quant()
+
+  def treat_unit_n_quant(self):
+    if self.unit not in self.ALL_UNITS:
+      error_msg = 'Error: given wrong time unit (%s) to DateAdderSubtractor: available units are %s' %(str(self.unit), self.ALL_UNITS)
+      raise ValueError(error_msg)
+    try:
+      self.quant = int(self.quant)
+      if self.topast and self.quant > 0:
+        self.quant = -1 * self.quant
+      elif not self.topast and self.quant < 0:
+        self.quant = -1 * self.quant
+    except ValueError:
+      error_msg = 'Error: given calendar time quantity (%s) to DateAdderSubtractor' %(str(self.quant))
+      raise ValueError(error_msg)
+
+  def add_from_datetime(self, fdatetime):
+    if type(fdatetime) not in [datetime.date, datetime.datetime]:
+      fdatetime = transform_datelike_to_datetime(fdatetime)
+      if fdatetime is None:
+        return None
+    if self.unit == self.MI:
+      return fdatetime + datetime.timedelta(minutes=self.quant)
+    elif self.unit == self.HO:
+      return fdatetime + datetime.timedelta(hours=self.quant)
+    elif self.unit == self.DA:
+      return fdatetime + datetime.timedelta(days=self.quant)
+    elif self.unit == self.WE:
+      return fdatetime + datetime.timedelta(weeks=self.quant)
+    elif self.unit == self.MO:
+      return add_or_subtract_to_month(fdatetime, self.quant)
+    elif self.unit == self.YE:
+      n_months_for_quant_years = 12 * self.quant
+      return add_or_subtract_to_month(fdatetime, n_months_for_quant_years)
+
+def transform_calendarstr_to_dateadder(calendarDateStr):
+  if calendarDateStr is None:
+    return None
+  # calendarDateStr = str(calendarDateStr)
+  calendarDateStr = ajust_calendardatestr_to_start_with_a_number(calendarDateStr)
+  if calendarDateStr.find('minut') > -1:
+    quant = int(calendarDateStr.strip().split(' ')[0])
+    unit  = DateAdderSubtractor.MI
+    return DateAdderSubtractor(unit, -quant) # dtadder
+  elif calendarDateStr.find('hora') > -1:
+    quant = int(calendarDateStr.strip().split(' ')[0])
+    unit  = DateAdderSubtractor.HO
+    return DateAdderSubtractor(unit, -quant) # dtadder
+  elif calendarDateStr.find('dia') > -1:
+    quant = int(calendarDateStr.strip().split(' ')[0])
+    unit  = DateAdderSubtractor.DA
+    return DateAdderSubtractor(unit, quant) # dtadder
+  elif calendarDateStr.find('semana') > -1:
+    quant = int(calendarDateStr.strip().split(' ')[0])
+    unit  = DateAdderSubtractor.WE
+    return DateAdderSubtractor(unit, quant) # dtadder
+  elif calendarDateStr.find('mês') > -1 or calendarDateStr.find('mes') > -1:  # mes for meses
+    quant = int(calendarDateStr.strip().split(' ')[0])
+    unit  = DateAdderSubtractor.MO
+    return DateAdderSubtractor(unit, quant) # dtadder
+  elif calendarDateStr.find('ano') > -1:
+    quant = int(calendarDateStr.strip().split(' ')[0])
+    unit  = DateAdderSubtractor.WE
+    return DateAdderSubtractor(unit, quant) # dtadder
+
+def calculate_origdtime_from_targetdtime_n_calendarstr(target_dtime, calendarstr):
+  '''
+
+  if publishdata != date_result:
+    line = 'publishdata (%s) != datetime_result (%s)' %(str(publishdata), str(datetime_result))
+    print (line)
+
+  :param target_dtime:
+  :param calendarstr:
+  :return:
+  '''
+  dtadder = transform_calendarstr_to_dateadder(calendarstr)
+  if dtadder is None:
+    return None
+  return dtadder.add_from_datetime(target_dtime)
+
 def ajust_calendardatestr_to_start_with_a_number(calendardatestr):
   '''
     This function strips non-numbers out of the beginning of the string after a space-split,
@@ -212,7 +336,8 @@ def ajust_calendardatestr_to_start_with_a_number(calendardatestr):
   :return:
   '''
   default_calendardatestr = '1 hora'
-
+  if calendardatestr is None:
+    calendardatestr = default_calendardatestr
   current_split_list = calendardatestr.split(' ')
   while len(current_split_list) > 0:
     try:
@@ -293,8 +418,31 @@ def test():
   recup_date = get_refdate_from_strdate(date_str)
   print('recup_date', recup_date, 'type', type(recup_date))
 
+def adhoc_test2():
+  dtadder = DateAdderSubtractor(DateAdderSubtractor.DA, 2)
+  today = datetime.date.today()
+  dt_res = dtadder.add_from_date(today)
+  print (dt_res)
+  dtadder = DateAdderSubtractor(DateAdderSubtractor.DA, -3)
+  today = datetime.date.today()
+  dt_res = dtadder.add_from_date(today)
+  print (dt_res)
+  dtadder = DateAdderSubtractor(DateAdderSubtractor.MO, 2)
+  today = datetime.date.today()
+  dt_res = dtadder.add_from_date(today)
+  print (dt_res)
+  dtadder = DateAdderSubtractor(DateAdderSubtractor.YE, 2)
+  today = datetime.date.today()
+  dt_res = dtadder.add_from_date(today)
+  print (dt_res)
+  dtadder = DateAdderSubtractor(DateAdderSubtractor.YE, -3)
+  today = datetime.date.today()
+  dt_res = dtadder.add_from_date(today)
+  print (dt_res)
+
 def process():
-  test()
+  adhoc_test2()
+  return
   n_wait = get_random_config_download_wait_nsecs()
   print('n_wait',n_wait)
   n_wait = get_random_config_download_wait_nsecs()

@@ -123,3 +123,85 @@ class TestCaseDates(unittest.TestCase):
     expected_output_str = '1 hora' # this is the default, try to move it to config.py
     returned_output_str = dtfs.ajust_calendardatestr_to_start_with_a_number(input_str)
     self.assertEqual(expected_output_str, returned_output_str)
+
+  def test_DateAdderSubtractor(self):
+    quant = 3
+    unit = dtfs.DateAdderSubtractor.DA
+    adder = dtfs.DateAdderSubtractor(unit, quant)
+    input_date = datetime.date(2020, 7, 11)
+    expected_date = datetime.date(2020, 7, 11-quant)
+    returned_date = adder.add_from_datetime(input_date)
+    self.assertEqual(expected_date, returned_date)
+    quant = 3
+    unit = dtfs.DateAdderSubtractor.DA
+    adder = dtfs.DateAdderSubtractor(unit, quant, topast=False)
+    input_date = datetime.date(2020, 7, 11)
+    expected_date = datetime.date(2020, 7, 11+quant)
+    returned_date = adder.add_from_datetime(input_date)
+    self.assertEqual(expected_date, returned_date)
+    quant = 8
+    unit = dtfs.DateAdderSubtractor.MO
+    adder = dtfs.DateAdderSubtractor(unit, quant)
+    input_date = datetime.date(2020, 7, 11)
+    expected_date = datetime.date(2019, 11, 11)
+    returned_date = adder.add_from_datetime(input_date)
+    self.assertEqual(expected_date, returned_date)
+    quant = 2
+    unit = dtfs.DateAdderSubtractor.WE
+    adder = dtfs.DateAdderSubtractor(unit, quant)
+    input_date = datetime.date(2020, 7, 11)
+    expected_date = datetime.date(2020, 6, 27)
+    returned_date = adder.add_from_datetime(input_date)
+    self.assertEqual(expected_date, returned_date)
+    quant = 3
+    unit = dtfs.DateAdderSubtractor.WE
+    adder = dtfs.DateAdderSubtractor(unit, quant, topast=False)
+    input_date = datetime.date(2020, 7, 11)
+    expected_date = datetime.date(2020, 8, 1)
+    returned_date = adder.add_from_datetime(input_date)
+    self.assertEqual(expected_date, returned_date)
+    quant = 3
+    unit = dtfs.DateAdderSubtractor.HO
+    adder = dtfs.DateAdderSubtractor(unit, quant)
+    input_datetime = datetime.datetime(2020, 7, 11, 4, 0, 0)
+    expected_datetime = datetime.datetime(2020, 7, 11, 1, 0, 0)
+    returned_datetime = adder.add_from_datetime(input_datetime)
+    self.assertEqual(expected_datetime, returned_datetime)
+    quant = 5
+    unit = dtfs.DateAdderSubtractor.HO
+    adder = dtfs.DateAdderSubtractor(unit, quant)
+    input_datetime = datetime.datetime(2020, 7, 11, 4, 0, 0)
+    expected_datetime = datetime.datetime(2020, 7, 10, 23, 0, 0)
+    returned_datetime = adder.add_from_datetime(input_datetime)
+    self.assertEqual(expected_datetime, returned_datetime)
+
+  def test_transform_calendarstr_to_dateadder(self):
+    calendarDateStr = '3 dias atrás'
+    dtadder = dtfs.transform_calendarstr_to_dateadder(calendarDateStr)
+    today = datetime.date.today()
+    threedays = datetime.timedelta(days=3)
+    expected_date = today - threedays
+    returned_date = dtadder.add_from_datetime(today)
+    self.assertEqual(expected_date, returned_date)
+
+  def test_transform_date_to_datetime(self):
+    '''
+For unit test:
+  - for input None expected output is None
+  - for input obj(2020, 07, 11) expected output is datetime(2020, 07, 11, 0, 0, 0)
+  - for input obj(2020, 07) expected output is None
+  - for input obj(2020, 07, 11, 11, 11, 11) expected output is the same as input typed-datetime
+  - for input obj(2020, 07, 11, 11) expected output is datetime(2020, 07, 11, 11, 0, 0)
+    '''
+    expected_datetime = None
+    returned_datetime = dtfs.transform_datelike_to_datetime(None)
+    self.assertEqual(expected_datetime, returned_datetime)
+    input_pdt = datetime.date(2020, 7, 11)
+    expected_datetime = datetime.datetime(2020, 7, 11, 0, 0, 0)
+    returned_datetime = dtfs.transform_datelike_to_datetime(input_pdt)
+    self.assertEqual(expected_datetime, returned_datetime)
+    input_pdt = None
+    expected_datetime = None
+    returned_datetime = dtfs.transform_datelike_to_datetime(input_pdt)
+    self.assertEqual(expected_datetime, returned_datetime)
+

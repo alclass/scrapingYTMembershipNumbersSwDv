@@ -110,8 +110,10 @@ class YtVideosPage:
     if self._sname is None:
       self.find_set_n_get_sname_by_folder_or_None()
       if self._sname is None:
-        error_msg = 'Error: sname could not be established in @property filename [class YtVideosPage]'
-        raise ValueError(error_msg)
+        # this will happen when a ytchannel from db is trying to find a corresponding youtube videos page on a certain date and that does not exist
+        self._sname = 'in-wait'
+        #error_msg = 'Error: sname could not be established in @property filename [class YtVideosPage]'
+        #raise ValueError(error_msg)
     return pathfs.datedpage_filename(self.strdate, self._sname, self.ytchannelid)
 
   def set_sname_by_nname(self):

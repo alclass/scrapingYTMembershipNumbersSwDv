@@ -24,8 +24,13 @@ At the end, a print message will show how many files are still empty,
   will still be DOM-empty, ie, they will all be DOM-scrapeable.
 
 Usage:
-  #<scriptname> [--maxtries=<number>]
-obs: if --maxtries is not given, the default will be used.
+  #<scriptname> [--maxtries=<number>] [--allactive=<boolean>]
+obs:
+  --maxtries  => maximum number of tries when download file does not have data-extractable;
+  if --maxtries is not given, the default will be used. (At the time of this writing, it's 7.)
+
+  --allactive  => downloads all active channels in db, if False, it downloads according to dld_each_days parameter in db;
+  if --allactive is not given, the default will be used. (At the time of this writing, it's ', ie, True.)
 '''
 import os, requests, time, sys
 from fs.db.jsondb import readjson
@@ -192,27 +197,35 @@ class DownloadProcessOption:
     print (' [End of Processing] n_download_rolls =', self.n_download_rolls, '| max rolls =', self.max_download_rolls)
 
 DEFAULT_MAX_DOWNLOAD_ROLLS = 7
-def get_ntries_arg():
+def get_args():
+  pdict = {'maxtries':DEFAULT_MAX_DOWNLOAD_ROLLS, 'dld_all_active':True}
   for arg in sys.argv:
     if arg.startswith('--help'):
       print(__doc__)
       sys.exit()
     elif arg.startswith('--maxtries='):
-      return int(arg[len('--maxtries='):])
-  return None
+      maxtries = int(arg[len('--maxtries='):])
+      pdict['maxtries'] = maxtries
+    elif arg.startswith('--allactive='):
+      allactive =  int(arg[len('--allactive='):])
+      allactive = bool(allactive)
+      pdict['dld_all_active'] = allactive
+  return pdict
 
 def get_args_n_run_downloads_n_check_empties_if_so():
-  max_download_rolls = get_ntries_arg() or DEFAULT_MAX_DOWNLOAD_ROLLS
-  print ('Starting downloading process: n_tries =', max_download_rolls)
+  argsdict = get_args()
+  max_download_rolls = argsdict['maxtries']
+  download_all_active_ones = argsdict['dld_all_active'] # if True, all active ones are to be downloaded otherwise just those "on date" (defined by dld_each_days on db)
+  print ('-'*50)
+  print ('Starting downloading process: download_all_active_ones =', download_all_active_ones)
   print ('-'*50)
   run_with_emptyfinder_option = False
-  download_all_active_ones = True # where all active ones are to be downloaded or just those "on date"
   dld_o = DownloadProcessOption(run_with_emptyfinder_option, download_all_active_ones)
   pdict = dld_o.process()
   print('process dict', pdict)
 
 def test1():
-  max_tries = get_ntries_arg() or DEFAULT_MAX_DOWNLOAD_ROLLS
+  max_tries = get_args() or DEFAULT_MAX_DOWNLOAD_ROLLS
   print ('max_download_rolls', max_tries)
 
 def process():
