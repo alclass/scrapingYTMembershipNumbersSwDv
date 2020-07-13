@@ -214,7 +214,7 @@ def get_args():
 
 def get_args_n_run_downloads_n_check_empties_if_so():
   argsdict = get_args()
-  max_download_rolls = argsdict['maxtries']
+  _ = argsdict['maxtries']
   download_all_active_ones = argsdict['dld_all_active'] # if True, all active ones are to be downloaded otherwise just those "on date" (defined by dld_each_days on db)
   print ('-'*50)
   print ('Starting downloading process: download_all_active_ones =', download_all_active_ones)
@@ -225,8 +225,7 @@ def get_args_n_run_downloads_n_check_empties_if_so():
   print('process dict', pdict)
 
 def test1():
-  max_tries = get_args() or DEFAULT_MAX_DOWNLOAD_ROLLS
-  print ('max_download_rolls', max_tries)
+  pass
 
 def process():
   get_args_n_run_downloads_n_check_empties_if_so()

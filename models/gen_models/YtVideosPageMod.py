@@ -3,6 +3,8 @@ import datetime, os
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.pathfunctions as pathfs
 import fs.db.sqlalchdb.dbfetchesmod as dbfetch
+from fs.db.sqlalchdb.sqlalchemy_conn import Session
+from models.sa_models.ytchannelsubscribers_samodels import YTDailySubscribersSA
 
 class YtVideosPage:
 
@@ -24,6 +26,33 @@ class YtVideosPage:
     if n is None:
       return
     self._nOfSubscribers = n
+
+  def dbsave_subscribers_number(self, subscribers_number):
+    session = Session()
+    subs = session.query(YTDailySubscribersSA).\
+      filter(YTDailySubscribersSA.infodate==self.refdate). \
+      filter(YTDailySubscribersSA.ytchannelid == self.ytchannelid). \
+      first()
+    changed = False
+    if subs:
+      if subs.subscribers != subscribers_number:
+        subs.subscribers = subscribers_number
+        changed = True
+    else:
+      subs = YTDailySubscribersSA()
+      subs.ytchannelid = self.ytchannelid
+      subs.subscribers = subscribers_number
+      subs.infodate = self.refdate
+      session.add(subs)
+      changed = True
+    if changed:
+      session.commit()
+      self.nOfSubscribers = subscribers_number
+      print(' * Subscribers DB-written *')
+    else:
+      print(' *** Subscribers NOT DB-written ***')
+    session.close()
+    return changed
 
   @property
   def days_n_subscribers(self):

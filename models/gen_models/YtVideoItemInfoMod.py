@@ -1,6 +1,142 @@
 #!/usr/bin/python3
 import fs.datefunctions.datefs as dtfs
 import models.procdb.sqlalch_fetches as fetch
+from fs.db.sqlalchdb.sqlalchemy_conn import Session
+from models.gen_models.YtVideosPageMod import YtVideosPage
+from models.sa_models.ytchannelsubscribers_samodels import YTVideoViewsSA
+from models.sa_models.ytchannelsubscribers_samodels import YTVideoItemInfoSA
+
+class VideoItem:
+
+  def __init__(self, ytvideoid, title, calendarDateStr, n_views, durationStr, infodatetime, ytchannelid):
+    self.ytvideoid = ytvideoid
+    self.title = title
+    self.calendarDateStr = calendarDateStr
+    self.treat_calendarDateStr()
+    self.n_views = None;
+    self.treat_views(n_views)
+    self.durationStr = durationStr
+    self.infodatetime = infodatetime  # former ytvideofiledatetime
+    self.ytchannelid = ytchannelid
+    self.publishdatetime = None  # to be calculated
+    self.calculate_publishdate()
+
+  def treat_views(self, n_views):
+    try:
+      word = n_views.strip().split(' ')[0]
+      word = word.replace('.', '').replace(',', '')
+      self.n_views = int(word)
+    except ValueError:
+      self.n_views = 0
+
+  @property
+  def infodate(self):
+    return dtfs.convert_datetime_to_date(self.infodatetime)
+
+  def publishdate(self):
+    return dtfs.convert_datetime_to_date(self.publishdatetime)
+
+  @property
+  def duration_in_sec(self):
+    return dtfs.transform_hms_into_duration_in_sec(self.durationStr)
+
+  def treat_calendarDateStr(self):
+    self.calendarDateStr = dtfs.ajust_calendardatestr_to_start_with_a_number(self.calendarDateStr)
+
+  def calculate_publishdate(self):
+    self.publishdatetime = dtfs.calculate_origdtime_from_targetdtime_n_calendarstr(self.infodatetime,
+                                                                                   self.calendarDateStr)
+  def write_item_to_db_item_n_views(self):
+    bool_items = self.write_item_to_db()
+    if bool_items:
+      print('Written item', self.ytvideoid, self.title)
+    else:
+      print(' *NOT* Written item', self.ytvideoid, self.title)
+
+    bool_views = self.write_views_to_db()
+    if bool_views:
+      print('Written views', self.n_views, self.infodatetime)
+    else:
+      print(' *NOT* Written views', self.n_views, self.infodatetime)
+    return bool_items and bool_views
+
+  def write_item_to_db(self):
+    session = Session()
+    videoitem = session.query(YTVideoItemInfoSA).filter(YTVideoItemInfoSA.ytvideoid == self.ytvideoid).first()
+    if videoitem:
+      was_changed = False
+      if videoitem.title != self.title:
+        videoitem.title = self.title
+        was_changed = True
+      if self.publishdatetime is not None:
+        if videoitem.publishdatetime is None or videoitem.publishdatetime > self.publishdatetime:
+          videoitem.publishdatetime = self.publishdatetime
+          videoitem.published_time_ago = self.calendarDateStr
+          videoitem.infodatetime = self.infodatetime
+          was_changed = True
+      if self.duration_in_sec is not None or self.duration_in_sec == 0:
+        if videoitem.publishdatetime != self.publishdatetime:
+          videoitem.publishdatetime = self.publishdatetime
+          was_changed = True
+      if was_changed:
+        session.commit()
+      session.close()
+      return was_changed
+    videoitem = YTVideoItemInfoSA()
+    videoitem.ytvideoid = self.ytvideoid
+    videoitem.title = self.title
+    videoitem.duration_in_sec = self.duration_in_sec
+    videoitem.publishdatetime = self.publishdatetime
+    videoitem.published_time_ago = self.calendarDateStr
+    videoitem.infodatetime = self.infodatetime
+    videoitem.ytchannelid = self.ytchannelid
+    session.add(videoitem)
+    session.commit()
+    session.close()
+    return True
+
+  def write_views_to_db(self):
+    session = Session()
+    vviews = session.query(YTVideoViewsSA). \
+      filter(YTVideoViewsSA.ytvideoid == self.ytvideoid). \
+      filter(YTVideoViewsSA.infodate == self.infodate). \
+      first()
+    if vviews:
+      session.close()
+      return False
+    vviews = YTVideoViewsSA()
+    vviews.ytvideoid = self.ytvideoid
+    vviews.views = self.n_views
+    vviews.infodate = dtfs.convert_datetime_to_date(self.infodatetime)
+    session.add(vviews)
+    session.commit()
+    session.close()
+    return True
+
+  def as_dict(self):
+    outdict = {
+      'ytvideoid': self.ytvideoid,
+      'title': self.title,
+      'infodatetime': self.infodatetime,
+      'calendarDateStr': self.calendarDateStr,
+      'publishdatetime': self.publishdatetime,
+      'n_views': str(self.n_views),
+      'durationStr': self.durationStr,
+    }
+    return outdict
+
+  def __str__(self):
+    outstr = '''<VideoItem
+    ytvideoid = %(ytvideoid)s
+    title = %(title)s
+    infodatetime = %(infodatetime)s
+    calendarDateStr = %(calendarDateStr)s
+    publishedDatetime = %(publishdatetime)s
+    n_views = %(n_views)s
+    durationStr = %(durationStr)s
+>''' % self.as_dict()
+    return outstr
+
 
 class YtVideoItemInfo:
   '''
@@ -97,57 +233,6 @@ class YtVideoItemInfo:
     if self._publishdate is None:
       self.set_publishdate_with_time_ago()
     return self._publishdate
-
-  def set_publishdate_with_time_ago(self):
-    '''
-    Notice:
-      1) this method is to help find the publishdate;
-      2) in the future, if publishdate can be more exactly determine, field published_time_ago may be dropped
-
-    Example of content for published_time_ago: 3 semanas atrás
-
-    :param infodate:
-    :return:
-    '''
-    self._publishdate = None
-    if self.published_time_ago is None:
-      return
-    pp = self.published_time_ago.split(' ')
-    try:
-      n = int(pp[0])
-    except ValueError:
-      return
-    try:
-      word = pp[1]; d = None
-      if word.find('hora') > -1 or word.find('hour') > -1:
-        if n < 15:
-          n = 0
-        else:
-          n = 1
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n)
-      elif word.find('dia') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n)
-      elif word.find('day') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n)
-      elif word.find('semana') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n * 7)
-      elif word.find('week') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n * 7)
-      elif word.find('mês') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n * 7)
-      elif word.find('mes') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n * 7)
-      elif word.find('month') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n * 7)
-      elif word.find('ano') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n * 7)
-      elif word.find('year') > -1:
-        d = dtfs.calc_past_date_from_refdate_back_n_days(self.infodate, n * 7)
-      self._publishdate = d
-      return
-    except ValueError:
-      pass
-    return
 
   def asdict(self):
     outdict = {

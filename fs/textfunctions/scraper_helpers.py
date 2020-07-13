@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import string
+import json, string
 
 def consume_left_side_float_number(word):
   '''
@@ -97,6 +97,44 @@ def extract_phrase_from__subscriberCountText_in_js(content):
   except ValueError:
     pass
   return result
+
+subscriberBegStr = '"subscriberCountText":{"runs":[{"text":"'
+subscriberPrefixBegStr = '"subscriberCountText":'
+subscriberEndStr = '"}]},'
+# "subscriberCountText":{"runs":[{"text":"69,2 mil inscritos"}]}
+def extract_subscriber_number(text):
+  begpos = text.find(subscriberBegStr)
+  if begpos > -1:
+    trunk = text[begpos + len(subscriberPrefixBegStr): ]
+    endpos = trunk.find(subscriberEndStr)
+    if endpos > -1:
+      trunk = trunk[ : endpos + len(subscriberEndStr) -1 ]
+      pdict = json.loads(trunk)
+      print (pdict)
+      subscriberText = pdict['runs'][0]['text']
+      subscriber_number = extract_number_from_phrase_unit_mil_k_mi(subscriberText)
+      return subscriber_number
+  return None
+
+def videoitems_drill_down(json_as_dict):
+  ytvideoid = json_as_dict['gridVideoRenderer']['videoId']
+  try:
+    title = json_as_dict['gridVideoRenderer']['title']['simpleText']
+  except KeyError:
+    title = 'No Title'
+  try:
+    calendarDateStr = json_as_dict['gridVideoRenderer']['publishedTimeText']['simpleText']
+  except KeyError:
+    calendarDateStr = '1 minut'
+  try:
+    n_views = json_as_dict['gridVideoRenderer']['viewCountText']['simpleText']
+  except KeyError:
+    n_views = '0 v'
+  try:
+    durationStr = json_as_dict['gridVideoRenderer']['thumbnailOverlays'][0]['thumbnailOverlayTimeStatusRenderer']['text']['simpleText']
+  except KeyError:
+    durationStr = '0:0'
+  return ytvideoid, title, calendarDateStr, n_views, durationStr
 
 def find_subscriberCountText_in_js(content):
   phrase = extract_phrase_from__subscriberCountText_in_js(content)

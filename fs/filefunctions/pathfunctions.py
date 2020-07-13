@@ -11,7 +11,9 @@ def get_murl_from_ytchid(ytchid):
   if ytchid is None or len(ytchid) < 6: # at least 'user/1'
     return None
   firstchar = ytchid[0]
-  if firstchar == 'c':
+  if firstchar == 'a':
+    return 'c/' + ytchid[1:]
+  elif firstchar == 'c':
     return 'channel/' + ytchid[1:]
   elif firstchar == 'u':
     return 'user/' + ytchid[1:]
