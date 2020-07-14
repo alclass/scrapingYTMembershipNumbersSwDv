@@ -99,15 +99,13 @@ class DownloadYtVideoPages:
           raise AttributeError(error_msg)
       entry_abspath = ytchannel.datedpage_filepath
       if os.path.isfile(entry_abspath):
-        print ('File', ytchannel.filename, 'exists. Continuing...')
-        continue
-      if os.path.isfile(entry_abspath):
         self.n_exists += 1
         print (self.n_exists, '[EXISTS]', entry_abspath)
         continue
       seq = i+1
       n_of_m = '%d/%d/%d' %(seq, self.total_channels, self.n_of_download_rolls)
       print(n_of_m, '>>> Going to download', ytchannel.murl)
+      # DOWNLOAD happens here
       res = requests.get(ytchannel.videospageurl, allow_redirects=True)
       if res.status_code != 200:
         self.n_fail_200 += 1
@@ -130,7 +128,6 @@ class DownloadYtVideoPages:
   def report(self):
     print('Report:          n_of_download_rolls =', self.n_of_download_rolls)
     print('n_exists =', self.n_exists, '; n_downloaded =', self.n_downloaded, '; n_fail_200 =', self.n_fail_200, '; total_channels =', self.total_channels)
-
 
 class DownloadProcessOption:
 
@@ -179,20 +176,20 @@ class DownloadProcessOption:
     :return:
     '''
     self.do_a_download_roll()
-    print('Checking for DOM-empty files. Please, wait.')
-    emptyfinder = RunEmtpyFinderThuFolder()
-    emptyfinder.run_thu_folder_htmls()
-    emptyfinder.report()
-    if emptyfinder.n_of_empties > 0:
+    #print('Checking for DOM-empty files. Please, wait.')
+    #emptyfinder = RunEmtpyFinderThuFolder()
+    #emptyfinder.run_thu_folder_htmls()
+    #emptyfinder.report()
+    if False: # emptyfinder.n_of_empties > 0:
       while self.n_download_rolls < self.max_download_rolls:
         self.n_download_rolls += 1
         print (' ::: Waiting', self.WAIT_MINS_FOR_DOWNLOAD_ROLL, 'minutes for a redownload roll of ', emptyfinder.n_of_empties, ' empties.')
         time.sleep(self.WAIT_MINS_FOR_DOWNLOAD_ROLL*60)
         self.do_a_download_roll()
-        print('Checking for DOM-empty files. Please, wait.')
-        emptyfinder.run_thu_folder_htmls()
-        emptyfinder.report()
-        if emptyfinder.n_of_empties == 0:
+        #print('Checking for DOM-empty files. Please, wait.')
+        #emptyfinder.run_thu_folder_htmls()
+        #emptyfinder.report()
+        if True or emptyfinder.n_of_empties == 0:
           break
     print (' [End of Processing] n_download_rolls =', self.n_download_rolls, '| max rolls =', self.max_download_rolls)
 

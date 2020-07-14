@@ -95,7 +95,9 @@ def extract_videoitems_from_videopage(ytchannelid, refdate):
 
 def extract_subscribers_from_htmltext(text, ytvideopage):
   subscribers_number = scraphlp.extract_subscriber_number(text)
-  ytvideopage.dbsave_subscribers_number(subscribers_number)
+  if subscribers_number is None:
+    return False
+  return ytvideopage.dbsave_subscribers_number(subscribers_number)
 
 def extract_vitems_from_htmltext(text, ytvideopage, videopagefilesdatetime):
   begpos = text.find(beginningStr)
