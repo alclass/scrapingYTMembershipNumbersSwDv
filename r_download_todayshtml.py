@@ -32,13 +32,14 @@ obs:
   --allactive  => downloads all active channels in db, if False, it downloads according to dld_each_days parameter in db;
   if --allactive is not given, the default will be used. (At the time of this writing, it's ', ie, True.)
 '''
-import os, requests, time, sys
+import datetime, os, requests, time, sys
 from fs.db.jsondb import readjson
 import models.gen_models.YtVideosPageMod as ytvidpagesmod
 import fs.datefunctions.datefs as dtfs
 from models.scrapers.YTVideoItemBsoupIsEmptyMod import RunEmtpyFinderThuFolder
 from models.procdb.SubscriberInsertorMod import Session
 import models.sa_models.ytchannelsubscribers_samodels as samodels
+import drill_down_json as drill
 
 class DownloadYtVideoPages:
 
@@ -88,6 +89,7 @@ class DownloadYtVideoPages:
 
   def download_ytvideopages(self):
     self.total_channels = len(self.ytchannels)
+    today = datetime.date.today()
     for i, ytchannel in enumerate(self.ytchannels):
       if not self.download_all_active_ones:
         try:
@@ -123,6 +125,8 @@ class DownloadYtVideoPages:
       datedpagefn = ytchannel.datedpage_filename
       print(' => written ', datedpagefn) # ,': %d inscritos' %qty
       print(':: wait', wait_secs, 'seconds.')
+      drill.extract_videoitems_from_videopage(ytchannel.ytchannelid, today)
+
       time.sleep(wait_secs)
 
   def report(self):
@@ -180,6 +184,7 @@ class DownloadProcessOption:
     #emptyfinder = RunEmtpyFinderThuFolder()
     #emptyfinder.run_thu_folder_htmls()
     #emptyfinder.report()
+    '''
     if False: # emptyfinder.n_of_empties > 0:
       while self.n_download_rolls < self.max_download_rolls:
         self.n_download_rolls += 1
@@ -191,6 +196,7 @@ class DownloadProcessOption:
         #emptyfinder.report()
         if True or emptyfinder.n_of_empties == 0:
           break
+    '''
     print (' [End of Processing] n_download_rolls =', self.n_download_rolls, '| max rolls =', self.max_download_rolls)
 
 DEFAULT_MAX_DOWNLOAD_ROLLS = 7
