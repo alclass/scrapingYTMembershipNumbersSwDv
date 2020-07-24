@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import datetime, json, calendar
 from models.sa_models.ytchannelsubscribers_samodels import get_all_ytchannelids
 import fs.datefunctions.datefs as dtfs

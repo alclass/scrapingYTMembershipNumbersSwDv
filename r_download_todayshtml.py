@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 '''
 This script downloads YouTube video pages that belong to channels
   in the database.  It will only download pages once a day

@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import datetime, json
 from models.gen_models.YtVideosPageMod import YtVideosPage
 from models.gen_models.YtVideoItemInfoMod import VideoItem

@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 ''' => Help: this script scrapes a days' directory for subscriber amount for channels.
   The default is to scrape the current day infodate.
   An argument (--daysbefore=<n>) may be used to achieve a number of days in the past.

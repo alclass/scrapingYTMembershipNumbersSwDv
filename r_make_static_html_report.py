@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import fs.numberfunctions.statisticsMod as statmod
 import models.procdb.SubscriberDaysMod as subsmod
 import fs.filefunctions.pathfunctions as pathfs

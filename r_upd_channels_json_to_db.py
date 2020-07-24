@@ -1,5 +1,4 @@
-#!/usr/bin/python3
-# from YtChannelMod import YtChannel
+#!/usr/bin/env python3
 from fs.db.jsondb import readjson
 from models.sa_models.ytchannelsubscribers_samodels import YTChannelSA
 

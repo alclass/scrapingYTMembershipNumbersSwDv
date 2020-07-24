@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import os
 import fs.filefunctions.pathfunctions as pathfs
 import models.gen_models.DatedFileMod as dtflmod

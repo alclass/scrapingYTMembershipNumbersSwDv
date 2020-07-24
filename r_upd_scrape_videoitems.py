@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 '''
 Usage:
       $this_script [-h] [--ini=<yyyy-mm-dd>] [--fim=<yyyy-mm-dd>]
