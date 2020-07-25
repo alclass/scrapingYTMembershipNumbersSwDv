@@ -28,7 +28,7 @@ class YTChannelSA(Base):
   nname = Column(String)
   category_id = Column(Integer, ForeignKey('nw_categories.id'), nullable=True)
   each_n_days_for_dld = Column(Integer, default=1)
-  scrapedate = Column(Date, nullable=True)
+  # scrapedate = Column(Date, nullable=True) # now it's a property below
   obs = Column(Text, nullable=True)
 
   daily_subscribers = relationship('YTDailySubscribersSA', backref='ytchannel', lazy='dynamic', order_by=(desc('infodate')))
@@ -36,6 +36,23 @@ class YTChannelSA(Base):
 
   created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
   updated_at = Column(TIMESTAMP, nullable=True)
+
+  @property
+  def scrapedate(self):
+    '''
+    This attribute returns, if there is, most recent scrapedate in db for a ytchannel.
+    The most recent scrapedate is taken from the daily_subscribers object list.
+    Due to the desc() ordering function (see above in the fields declaration),
+      its first element (index 0) is the most recent.
+    The infodate attribute in this object is the sought-for most recent scrapedate.
+    '''
+    try:
+      subs = self.daily_subscribers[0] # due to the desc() ordering function
+      most_recent_scrapedate = subs.infodate
+      return most_recent_scrapedate
+    except IndexError:
+      pass
+    return None
 
   @property
   def most_recent_video(self):

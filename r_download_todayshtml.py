@@ -82,7 +82,7 @@ class DownloadYtVideoPages:
         if not ytchannel.is_downloadable_on_date():
           continue
       ytchannelpage = ytvidpagesmod.YtVideosPage(ytchannel.ytchannelid, ytchannel.nname)
-      ytchannelpage.downloadable_on_date = True
+      ytchannelpage.is_downloadable_on_date = True
       ytchannelpage.set_sname_by_nname()
       self.ytchannels.append(ytchannelpage)
     session.close()
@@ -92,13 +92,9 @@ class DownloadYtVideoPages:
     today = datetime.date.today()
     for i, ytchannel in enumerate(self.ytchannels):
       if not self.download_all_active_ones:
-        try:
-          if not ytchannel.downloadable_on_date:
-            print('File', ytchannel.filename, 'not be downloaded today. Continuing...')
-            continue
-        except AttributeError as e:
-          error_msg = 'Missing downloadable_on_date for knowing whether or not page is to be download today.\n' + str(e)
-          raise AttributeError(error_msg)
+        if not ytchannel.is_downloadable_on_date:
+          print('File', ytchannel.filename, 'not be downloaded today. Continuing...')
+          continue
       entry_abspath = ytchannel.datedpage_filepath
       if os.path.isfile(entry_abspath):
         self.n_exists += 1
