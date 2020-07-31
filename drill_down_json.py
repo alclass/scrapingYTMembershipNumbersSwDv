@@ -1,23 +1,27 @@
 #!/usr/bin/env python3
-import datetime, json
+"""
+  docstring
+"""
+import datetime
+import json
 from models.gen_models.YtVideosPageMod import YtVideosPage
 from models.gen_models.YtVideoItemInfoMod import VideoItem
-import fs.textfunctions.scraper_helpers as scraphlp
 from models.sa_models.ytchannelsubscribers_samodels import YTChannelSA
-from models.sa_models.ytchannelsubscribers_samodels import YTVideoViewsSA
-from models.sa_models.ytchannelsubscribers_samodels import YTVideoItemInfoSA
+from models.sa_models.ytchannelsubscribers_samodels import get_all_ytchannelids
+import fs.textfunctions.scraper_helpers as scraphlp
 from fs.db.sqlalchdb.sqlalchemy_conn import Session
+
 
 class VideoItemsPageScraper:
 
   def __init__(self, ytchannelid, videopagedatetime):
     self.ytchannelid = ytchannelid
-    self._nname      = None
+    self._nname = None
     self.videopagedatetime = videopagedatetime
-    self.ytvideoid   = None
-    self.title       = None
+    self.ytvideoid = None
+    self.title = None
     self.calendarDateStr = None
-    self.n_views     = None
+    self.n_views = None
     self.durationStr = None
 
   def introspect_json_to_find_items(self, json_as_dict):
@@ -42,7 +46,7 @@ class VideoItemsPageScraper:
     if self._nname is not None:
       return self._nname
     session = Session()
-    ytchannel = session.query(YTChannelSA).filter(YTChannelSA.ytchannelid==self.ytchannelid).first()
+    ytchannel = session.query(YTChannelSA).filter(YTChannelSA.ytchannelid == self.ytchannelid).first()
     if ytchannel:
       self._nname = ytchannel.nname
     session.close()
@@ -52,12 +56,12 @@ class VideoItemsPageScraper:
 
   def as_dict(self):
     odict = {
-      'ytchannelid' : self.ytchannelid,
-      'nname'       : self.nname,
-      'ytvideoid'   : self.ytvideoid,
-      'title'       : self.title,
-      'durationStr' : self.durationStr,
-      'n_views'     : self.n_views,
+      'ytchannelid': self.ytchannelid,
+      'nname': self.nname,
+      'ytvideoid': self.ytvideoid,
+      'title': self.title,
+      'durationStr': self.durationStr,
+      'n_views': self.n_views,
     }
     return odict
 
@@ -69,11 +73,14 @@ class VideoItemsPageScraper:
   title       : %(title)s  
   durationStr : %(durationStr)s 
   n_views     : %(n_views)s 
-    ''' %self.as_dict()
+    ''' % self.as_dict()
     return outstr
+
 
 beginningStr = '{"gridVideoRenderer":{'
 endStr = '}]}}}]}}'
+
+
 def extract_videoitems_from_videopage(ytchannelid, refdate):
   ytvideopage = YtVideosPage(ytchannelid, None, refdate)
   if ytvideopage.datedpage_filepath is None:
@@ -93,11 +100,13 @@ def extract_videoitems_from_videopage(ytchannelid, refdate):
   # 2nd) get the video items
   extract_vitems_from_htmltext(text, ytvideopage, videopagefilesdatetime)
 
+
 def extract_subscribers_from_htmltext(text, ytvideopage):
   subscribers_number = scraphlp.extract_subscriber_number(text)
   if subscribers_number is None:
     return False
   return ytvideopage.dbsave_subscribers_number(subscribers_number)
+
 
 def extract_vitems_from_htmltext(text, ytvideopage, videopagefilesdatetime):
   begpos = text.find(beginningStr)
@@ -115,10 +124,10 @@ def extract_vitems_from_htmltext(text, ytvideopage, videopagefilesdatetime):
         viscraper.introspect_json_to_find_items(json_as_dict)
         bool_written = viscraper.dbsave_videoitem()
         if bool_written:
-          print (' * WRITTEN *')
+          print(' * WRITTEN *')
         else:
           print(' *** not WRITTEN ***')
-        print (counter, viscraper)
+        print(counter, viscraper)
       except json.decoder.JSONDecodeError:
         print('=' * 50)
         # TO-DO log it to a file, so that we'll be able to find a flawd videopage file
@@ -128,18 +137,20 @@ def extract_vitems_from_htmltext(text, ytvideopage, videopagefilesdatetime):
     text = text[endpos:]
     begpos = text.find(beginningStr)
 
-from models.sa_models.ytchannelsubscribers_samodels import get_all_ytchannelids
+
 def run_thru_channels():
   today = datetime.date.today()
-  ini_fim_daterange = [today]
-  for ytchannelid in get_all_ytchannelids(): # ytchannelids = finder.get_ytchannelids_on_datefolder(today)
-    for refdate in ini_fim_daterange:  # dtfs.get_range_date(yesterday, today):
-      print ('Rolling', ytchannelid, 'for date', refdate )
-      print ('-'*50)
+  ini_fim_daterange = [today]  # dtfs.get_range_date(yesterday, today):
+  for ytchannelid in get_all_ytchannelids():
+    for refdate in ini_fim_daterange:
+      print('Rolling', ytchannelid, 'for date', refdate)
+      print('-'*50)
       extract_videoitems_from_videopage(ytchannelid, refdate)
+
 
 def process():
   run_thru_channels()
+
 
 if __name__ == '__main__':
   process()

@@ -1,12 +1,17 @@
-#!/usr/bin/python3
-import json, string
+#!/usr/bin/env python3
+"""
+  docstring
+"""
+import json
+import string
+
 
 def consume_left_side_float_number(word):
-  '''
+  """
 
   :param word:
   :return:
-  '''
+  """
   if word is None:
     return None
   if type(word) == int or type(word) == float:
@@ -15,7 +20,7 @@ def consume_left_side_float_number(word):
   for c in word:
     if c in string.digits:
       numberstr += c
-    elif c in [',','.']:
+    elif c in [',', '.']:
       numberstr += '.'
     else:
       break
@@ -24,16 +29,17 @@ def consume_left_side_float_number(word):
   floatnumber = float(numberstr)
   return floatnumber
 
+
 def consume_left_side_int_number_w_optional_having_comma_or_point(word):
   if word is None:
     return None
-  if type(word) == int: # or type(word) == float:
+  if type(word) == int:
     return word
   numberstr = ''
   for c in word:
     if c in string.digits:
       numberstr += c
-    elif c in [',','.']:
+    elif c in [',', '.']:
       continue
     else:
       break
@@ -42,8 +48,9 @@ def consume_left_side_int_number_w_optional_having_comma_or_point(word):
   intnumber = int(numberstr)
   return intnumber
 
+
 def extract_number_from_phrase_unit_mil_k_mi(arialabel):
-  '''
+  """
   This function:
     1) calls consume_left_side_float_number(t) above
       to firstly get a floatnumber (or None if none is there);
@@ -53,7 +60,7 @@ def extract_number_from_phrase_unit_mil_k_mi(arialabel):
       or -1 if none was found
   :param arialabel:
   :return:
-  '''
+  """
   floatnumber = consume_left_side_float_number(arialabel)
   if floatnumber is None:
     return -1
@@ -65,31 +72,32 @@ def extract_number_from_phrase_unit_mil_k_mi(arialabel):
     floatnumber = floatnumber * 1000
   elif arialabel.find('mi ') > -1:
     floatnumber = floatnumber * 1000 * 1000
-  return int(floatnumber) # number of subscribers is an int
+  return int(floatnumber)  # number of subscribers is an int
 
-def extract_phrase_from__subscriberCountText_in_js(content):
-  '''
+
+def extract_phrase_from_subscriber_count_text_in_js(content):
+  """
   In Javascript, not in DOM:
     "subscriberCountText":{"runs":[{"text":"365 mil inscritos"}]},
   :param content:
   :return:
-  '''
-  subscriberCountText = '"subscriberCountText"'
-  pos = content.find(subscriberCountText)
+  """
+  subscriber_count_text = '"subscriberCountText"'
+  pos = content.find(subscriber_count_text)
   if pos < 0:
     return -1
   # content as parameter is not changed, though strings do not suffer side-effect
-  trunk = content[pos : ]
+  trunk = content[pos:]
   curly_bracket_text = '{"text":'
   pos = trunk.find(curly_bracket_text)
   if pos < 0:
     return -1
-  trunk = trunk[pos : ]
+  trunk = trunk[pos:]
   quote_closing_curly_bracket = '"}'
   pos = trunk.find(quote_closing_curly_bracket)
   if pos < 0:
     return -1
-  trunk = trunk[ : pos+2]
+  trunk = trunk[: pos+2]
   result = trunk
   try:
     pdict = eval(trunk)
@@ -98,23 +106,27 @@ def extract_phrase_from__subscriberCountText_in_js(content):
     pass
   return result
 
+
 subscriberBegStr = '"subscriberCountText":{"runs":[{"text":"'
 subscriberPrefixBegStr = '"subscriberCountText":'
 subscriberEndStr = '"}]},'
 # "subscriberCountText":{"runs":[{"text":"69,2 mil inscritos"}]}
+
+
 def extract_subscriber_number(text):
   begpos = text.find(subscriberBegStr)
   if begpos > -1:
-    trunk = text[begpos + len(subscriberPrefixBegStr): ]
+    trunk = text[begpos + len(subscriberPrefixBegStr):]
     endpos = trunk.find(subscriberEndStr)
     if endpos > -1:
-      trunk = trunk[ : endpos + len(subscriberEndStr) -1 ]
+      trunk = trunk[: endpos + len(subscriberEndStr) - 1]
       pdict = json.loads(trunk)
-      print (pdict)
-      subscriberText = pdict['runs'][0]['text']
-      subscriber_number = extract_number_from_phrase_unit_mil_k_mi(subscriberText)
+      print(pdict)
+      subscriber_text = pdict['runs'][0]['text']
+      subscriber_number = extract_number_from_phrase_unit_mil_k_mi(subscriber_text)
       return subscriber_number
   return None
+
 
 def videoitems_drill_down(json_as_dict):
   ytvideoid = json_as_dict['gridVideoRenderer']['videoId']
@@ -123,30 +135,35 @@ def videoitems_drill_down(json_as_dict):
   except KeyError:
     title = 'No Title'
   try:
-    calendarDateStr = json_as_dict['gridVideoRenderer']['publishedTimeText']['simpleText']
+    calendar_date_str = json_as_dict['gridVideoRenderer']['publishedTimeText']['simpleText']
   except KeyError:
-    calendarDateStr = '1 minut'
+    calendar_date_str = '1 minut'
   try:
     n_views = json_as_dict['gridVideoRenderer']['viewCountText']['simpleText']
   except KeyError:
     n_views = '0 v'
   try:
-    durationStr = json_as_dict['gridVideoRenderer']['thumbnailOverlays'][0]['thumbnailOverlayTimeStatusRenderer']['text']['simpleText']
+    innerdict = json_as_dict['gridVideoRenderer']['thumbnailOverlays'][0]
+    duration_str = innerdict['thumbnailOverlayTimeStatusRenderer']['text']['simpleText']
   except KeyError:
-    durationStr = '0:0'
-  return ytvideoid, title, calendarDateStr, n_views, durationStr
+    duration_str = '0:0'
+  return ytvideoid, title, calendar_date_str, n_views, duration_str
 
-def find_subscriberCountText_in_js(content):
-  phrase = extract_phrase_from__subscriberCountText_in_js(content)
+
+def find_subscriber_count_text_in_js(content):
+  phrase = extract_phrase_from_subscriber_count_text_in_js(content)
   return extract_number_from_phrase_unit_mil_k_mi(phrase)
+
 
 def adhoc_test():
   t = '"subscriberCountText": {"runs": [{"text": "365 mil inscritos"}]},'
-  result = find_subscriberCountText_in_js(t)
+  result = find_subscriber_count_text_in_js(t)
   print (result)
+
 
 def process():
   adhoc_test()
+
 
 if __name__ == '__main__':
   process()

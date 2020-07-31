@@ -1,5 +1,5 @@
-#!/usr/bin/python3
-'''
+#!/usr/bin/env python3
+"""
 In other to make mysql work with sqlalchemy, two things were done:
   1) Ubuntu's package python3-dev and libmysqlclient-dev were installed;
   2) after that, mysqlclient was installed via pip.
@@ -13,16 +13,16 @@ SqlAlchemy
 => to learn how to use Foreign Keys in SqlAlchemy
   => docs.sqlalchemy.org/en/13/orm/join_conditions.html?highlight=foreign key
 
-'''
-
-#from db.sqlalchemy_conn import sqlalchemy_engine
-#print(sqlalchemy_engine)
-
-# import sqlalchemy
+"""
 from sqlalchemy.ext.declarative import declarative_base
-Base = declarative_base()
 from sqlalchemy import Column, Integer, String, Date, ForeignKey
 from sqlalchemy.orm import relationship
+# from db.sqlalchemy_conn import sqlalchemy_engine
+# print(sqlalchemy_engine)
+
+
+Base = declarative_base()
+
 
 class Channel(Base):
 
@@ -33,10 +33,8 @@ class Channel(Base):
   obs = Column(String)
 
   def __repr__(self):
-    return '<Channel(nname="%s", ytchannelid="%s")>' %(self.nname, self.ytchannelid)
+    return '<Channel(nname="%s", ytchannelid="%s")>' % (self.nname, self.ytchannelid)
 
-channel_ghira = Channel(ytchannelid='upgjr23', nname="Paulo Ghiraldelli")
-print (channel_ghira)
 
 class DailySubscribers(Base):
 
@@ -49,18 +47,23 @@ class DailySubscribers(Base):
   ytchannel = relationship('Channel')
 
   def __repr__(self):
-    return '<DailySubscribers(ytchannelid="%s", subscribers=%d, infodate="%s")>' % (self.ytchannelid, self.subscribers, str(self.date))
+    return '<DailySubscribers(ytchannelid="%s", subscribers=%d, infodate="%s")>'\
+           % (self.ytchannelid, self.subscribers, str(self.date))
 
-daily19 = DailySubscribers(ytchannel=channel_ghira, subscribers=40, date='2020-05-19')
-daily20 = DailySubscribers(ytchannel=channel_ghira, subscribers=40, date='2020-05-20')
-print ('daily19', daily19)
-print ('daily19.ytchannel', daily19.ytchannel)
-print ('daily20', daily20)
-print ('daily20.ytchannel', daily20.ytchannel)
+
+channel_emor = Channel(ytchannelid='edumoreira', nname="Eduardo Moreira")
+print(channel_emor)
+daily19 = DailySubscribers(ytchannel=channel_emor, subscribers=40, date='2020-05-19')
+daily20 = DailySubscribers(ytchannel=channel_emor, subscribers=40, date='2020-05-20')
+print('daily19', daily19)
+print('daily19.ytchannel', daily19.ytchannel)
+print('daily20', daily20)
+print('daily20.ytchannel', daily20.ytchannel)
 
 
 def process():
   pass
+
 
 if __name__ == '__main__':
   process()

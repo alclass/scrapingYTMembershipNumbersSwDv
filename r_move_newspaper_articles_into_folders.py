@@ -1,21 +1,34 @@
 #!/usr/bin/env python3
+"""
+  docstring
+"""
 import os
 import fs.filefunctions.pathfunctions as pathfs
-import models.gen_models.DatedFileMod as dtflmod
+import models.gen_models.DatedFileMod as dtflM
+
 
 class NewsArticlesTreeWalker:
 
   def __init__(self):
-    self.moved = 0; self.ins_or_upd = 0; self.passcount = 0; self.os_del = 0; self.db_del = 0
-    self.base_abspath = dtflmod.get_newsarticles_base_abspath_from_db_or_cfg()
+    self.moved = 0
+    self.ins_or_upd = 0
+    self.passcount = 0
+    self.os_del = 0
+    self.db_del = 0
+    self.base_abspath = dtflM.get_newsarticles_base_abspath_from_db_or_cfg()
 
   def db_inspect_delete(self):
+    """
     print ('NewsArticlesTreeWalker.db_delete() not implemented yet')
+
+    :return:
+    """
+    pass
 
   def db_inspect_ins_or_upd(self):
     for fromplace_n_filename in self.walk_up_tree_generator():
       _, filename = fromplace_n_filename
-      insertor = dtflmod.HTMLDatedFileInsertDB(self.base_abspath, filename)
+      insertor = dtflM.HTMLDatedFileInsertDB(self.base_abspath, filename)
       if insertor.insert():
         self.ins_or_upd += 1
       else:
@@ -26,12 +39,16 @@ class NewsArticlesTreeWalker:
       fromplace_abspath, filename = fromplace_n_filename
       printfile = filename if len(filename) < 20 else filename[:20]
       print('Move File: ', self.moved, '/', self.passcount, printfile)
-      mover = dtflmod.MoveableFile(self.base_abspath, fromplace_abspath, filename)
+      mover = dtflM.MoveableFile(self.base_abspath, fromplace_abspath, filename)
       if mover.move():
         self.moved += 1
 
   def os_repeats_delete(self):
+    """
     print ('NewsArticlesTreeWalker.os_delete() not implemented yet')
+    :return:
+    """
+    pass
 
   def walk_up_tree_generator(self):
     for fromplace_abspath, _, filenames in os.walk(self.base_abspath):
@@ -47,10 +64,12 @@ class NewsArticlesTreeWalker:
     print('=> base_abspath =', self.base_abspath)
     print('=> moved =', self.moved, ' => passcount =', self.passcount, ' => ins/upd =', self.ins_or_upd)
 
+
 def process():
   walker = NewsArticlesTreeWalker()
   walker.os_move_to_canonplace()
   walker.report()
+
 
 if __name__ == '__main__':
   process()

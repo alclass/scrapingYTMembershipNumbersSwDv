@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''
+"""
 This script is just for a one (or at least few) use(s).
 
 This script intends to correct db-column publishdatetime
@@ -28,10 +28,11 @@ Moreover, newer downloads will have the file's timestamp attributed to infodatet
 
 Also, the html files will be deleted somewhen in the future, so the exact daytime will be lost,
   but, as stated above, times are already a bit approximated, so it's okay for this app, for now.
-'''
+"""
 from models.sa_models.ytchannelsubscribers_samodels import YTVideoItemInfoSA
 from fs.db.sqlalchdb.sqlalchemy_conn import Session
 import fs.datefunctions.datefs as dtfs
+
 
 def loop_vitems_to_correct_publishdatetime():
   filename = 'z_pubdate_analysis.log'
@@ -44,21 +45,25 @@ def loop_vitems_to_correct_publishdatetime():
     recalc_publishdt = dtfs.convert_datetime_to_date(recalc_publishdtime)
     if recalc_publishdt != vi.publishdate:
       n_need_change += 1
-      line = str(n_need_change) + '/' + str(i+1) + ' infdt ' + str(vi.infodate)  + ' pubdt ' + str(vi.publishdate) + ' calend ' +  str(vi.published_time_ago)+ '\n'
-      line += ' recalc ' + str(recalc_publishdt) +  ' [ needs updating ]' + '\n'
+      line = str(n_need_change) + '/' + str(i+1) + ' infdt ' + str(vi.infodate) + ' pubdt ' \
+                                + str(vi.publishdate) + ' calend ' + str(vi.published_time_ago) + '\n'
+      line += ' recalc ' + str(recalc_publishdt) + ' [ needs updating ]' + '\n'
       fp.write(line)
       print(line)
       vi.publishdatetime = recalc_publishdtime
       session.commit()
-  line = 'Number of corrected records = ' + str(n_need_change) + ' // Total video items records = ' + str(len(vitems)) + '\n'
+  line = 'Number of corrected records = ' + str(n_need_change) + ' // Total video items records = '\
+         + str(len(vitems)) + '\n'
   fp.write(line)
   print(line)
   fp.close()
   session.close()
-  print ('Written', filename)
+  print('Written', filename)
+
 
 def process():
   loop_vitems_to_correct_publishdatetime()
+
 
 if __name__ == '__main__':
   process()

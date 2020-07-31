@@ -34,26 +34,26 @@ class DatedHtmlsTraversor:
       self.dateini = dtfs.return_refdate_as_datetimedate_or_today()
       self.datefim = dtfs.return_refdate_as_datetimedate_or_today()
     elif dateini is None:
-      rdatefim = dtfs.get_refdate_from_strdate_or_None(datefim)
+      rdatefim = dtfs.get_refdate_from_strdate_or_none(datefim)
       if rdatefim is None:
         error_msg = 'parameter datefim (%s) is an invalid date. Please, retry with a valid date.' %rdatefim
         raise ValueError(error_msg)
       self.datefim = rdatefim
       self.dateini = copy.copy(rdatefim)
     elif datefim is None:
-      rdateini = dtfs.get_refdate_from_strdate_or_None(dateini)
+      rdateini = dtfs.get_refdate_from_strdate_or_none(dateini)
       if rdateini is None:
         error_msg = 'parameter dateini (%s) is an invalid date. Please, retry with a valid date.' %rdateini
         raise ValueError(error_msg)
       self.dateini = rdateini
       self.datefim = copy.copy(rdateini)
     else:
-      rdateini = dtfs.get_refdate_from_strdate_or_None(dateini)
+      rdateini = dtfs.get_refdate_from_strdate_or_none(dateini)
       if rdateini is None:
         error_msg = 'parameter dateini (%s) is an invalid date. Please, retry with a valid date.' %rdateini
         raise ValueError(error_msg)
       self.dateini = rdateini
-      rdatefim = dtfs.get_refdate_from_strdate_or_None(datefim)
+      rdatefim = dtfs.get_refdate_from_strdate_or_none(datefim)
       if rdatefim is None:
         error_msg = 'parameter datefim (%s) is an invalid date. Please, retry with a valid date.' %rdatefim
         raise ValueError(error_msg)

@@ -1,12 +1,12 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 from sqlalchemy.orm import sessionmaker
 from models.gen_models.YtVideosPageMod import YtVideosPage
 from models.sa_models.ytchannelsubscribers_samodels import YTChannelSA
 from models.sa_models.ytchannelsubscribers_samodels import YTVideoItemInfoSA
 from models.sa_models.ytchannelsubscribers_samodels import YTVideoViewsSA
 from fs.db.sqlalchdb.sqlalchemy_conn import sqlalchemy_engine
-
 Session = sessionmaker(bind=sqlalchemy_engine)
+
 
 class YtChannelVideosAndItsViews:
 
@@ -14,7 +14,7 @@ class YtChannelVideosAndItsViews:
     self.ytchannel = ytchannel
     self.vvideos_views_dict = {}
     self.tuplelistsize = 0
-    self.set_views_per_video(tuplelist_vinfos_n_vviews) #  type 'list_reverseiterator'
+    self.set_views_per_video(tuplelist_vinfos_n_vviews)  # type 'list_reverseiterator'
     self.make_views_pngs()
     # self.tuplelist_vinfo_n_vviews =
 
@@ -37,7 +37,7 @@ class YtChannelVideosAndItsViews:
     return vinfo, viewslist, dateslist
 
   def make_views_pngs(self):
-    videodict = {}
+    # videodict = {}
     for i, ytvideoid in enumerate(self.vvideos_views_dict):
       vinfo, viewslist, dateslist = self.make_views_pngs_for_videoid(ytvideoid)
       print('vinfo', vinfo)
@@ -53,10 +53,10 @@ class YtChannelVideosAndItsViews:
     outstr = ''
     line = 'VideosAndItsViews for {}\n'.format(self.ytchannel.nname)
     outstr += line
-    line = '-'*50 +'\n'
+    line = '-'*50 + '\n'
     outstr += line
     for i, ytvideoid in enumerate(self.vvideos_views_dict):
-      tuplelist_vinfos_n_vviews =  self.vvideos_views_dict[ytvideoid]
+      tuplelist_vinfos_n_vviews = self.vvideos_views_dict[ytvideoid]
       for j, tuplelist_vinfos_n_vviews_per_video in enumerate(tuplelist_vinfos_n_vviews):
         vinfo = tuplelist_vinfos_n_vviews_per_video[0]
         vviews = tuplelist_vinfos_n_vviews_per_video[1]
@@ -66,49 +66,53 @@ class YtChannelVideosAndItsViews:
     outstr += line
     return outstr
 
-def fetchYtChannelVideosAndItsViews(ytchannelid):
-  '''
+
+def fetch_ytchannelvideos_n_its_views(ytchannelid):
+  """
 
   :param ytchannelid:
   :return: ychannel_n_its_tuplelist_vinfo_n_vviews_dict
-  '''
-
+  """
   session = Session()
   ytchannel = session.query(YTChannelSA). \
-    filter(YTChannelSA.ytchannelid == ytchannelid). \
-    first()
+      filter(YTChannelSA.ytchannelid == ytchannelid). \
+      first()
   print(ytchannel)
 
   tuplelist_vinfo_n_vviews = session.query(YTVideoItemInfoSA, YTVideoViewsSA). \
-    filter(YTVideoItemInfoSA.ytchannelid == ytchannelid). \
-    filter(YTVideoViewsSA.ytvideoid == YTVideoItemInfoSA.ytvideoid). \
-    order_by(YTVideoViewsSA.infodate). \
-    all()
+      filter(YTVideoItemInfoSA.ytchannelid == ytchannelid). \
+      filter(YTVideoViewsSA.ytvideoid == YTVideoItemInfoSA.ytvideoid). \
+      order_by(YTVideoViewsSA.infodate). \
+      all()
   session.close()
 
   tuplelist_vinfo_n_vviews = reversed(tuplelist_vinfo_n_vviews)
-  ytchannelVideosAndItsViews = YtChannelVideosAndItsViews(ytchannel, tuplelist_vinfo_n_vviews)
-  return ytchannelVideosAndItsViews
+  ytchannelvideos_n_its_views = YtChannelVideosAndItsViews(ytchannel, tuplelist_vinfo_n_vviews)
+  return ytchannelvideos_n_its_views
 
-def FetchYtVideosPageByItsIdInDB(ytchannelid):
+
+def fetch_ytvideospage_by_its_dbid(ytchannelid):
   session = Session()
   ytchannel = session.query(YTChannelSA) \
-    .filter(YTChannelSA.ytchannelid == ytchannelid) \
-    .first()
+      .filter(YTChannelSA.ytchannelid == ytchannelid) \
+      .first()
   ytvideospage = None
   if ytchannel:
     ytvideospage = YtVideosPage(ytchannel.ytchannelid, ytchannel.nname)
   session.close()
   return ytvideospage
 
+
 def adhoc_test():
   ytchannelid = 'ueduardoamoreira'
-  ytchannelVideosAndItsViews = fetchYtChannelVideosAndItsViews(ytchannelid)
-  print (ytchannelVideosAndItsViews)
-  ytchannelVideosAndItsViews.make_views_pngs()
+  ytchannelvideos_n_its_views = fetch_ytchannelvideos_n_its_views(ytchannelid)
+  print (ytchannelvideos_n_its_views)
+  ytchannelvideos_n_its_views.make_views_pngs()
+
 
 def process():
   adhoc_test()
+
 
 if __name__ == '__main__':
   process()

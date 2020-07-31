@@ -1,23 +1,30 @@
 #!/usr/bin/env python3
-import datetime, os # for adhoc test
+"""
+  docstring
+"""
+import datetime
+import os
 from sqlalchemy.ext.declarative import declarative_base
-Base = declarative_base()
-from sqlalchemy import Column, Boolean, Integer, String, Date, DateTime, TIMESTAMP, ForeignKey, Text, UniqueConstraint # DateTime,
+from sqlalchemy import Column, Boolean, Integer, String, Date, DateTime, TIMESTAMP, \
+  ForeignKey, Text, UniqueConstraint
 from sqlalchemy.types import BINARY
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, text
 import fs.datefunctions.datefs as dtfs
 from sqlalchemy.sql.expression import asc, desc
 import config
 import fs.db.sqlalchdb.sqlalchemy_conn as saconn
 
+Base = declarative_base()
+
 
 def get_all_ytchannelids():
   session = saconn.Session()
   ytchannels = session.query(YTChannelSA).order_by(YTChannelSA.nname).all()
-  ytchannelids = list(map(lambda o : o.ytchannelid, ytchannels))
+  ytchannelids = list(map(lambda o: o.ytchannelid, ytchannels))
   session.close()
   return ytchannelids
+
 
 class YTChannelSA(Base):
 
@@ -31,23 +38,25 @@ class YTChannelSA(Base):
   # scrapedate = Column(Date, nullable=True) # now it's a property below
   obs = Column(Text, nullable=True)
 
-  daily_subscribers = relationship('YTDailySubscribersSA', backref='ytchannel', lazy='dynamic', order_by=(desc('infodate')))
-  vinfolist = relationship('YTVideoItemInfoSA', backref='ytchannel', lazy='dynamic', order_by=(desc('publishdatetime')))
+  daily_subscribers = relationship('YTDailySubscribersSA', backref='ytchannel', lazy='dynamic',
+                                   order_by=(desc('infodate')))
+  vinfolist = relationship('YTVideoItemInfoSA', backref='ytchannel', lazy='dynamic',
+                           order_by=(desc('publishdatetime')))
 
-  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
+  created_at = Column(TIMESTAMP, server_default=func.now())  # nullable=False, server_default=text('0'))
   updated_at = Column(TIMESTAMP, nullable=True)
 
   @property
   def scrapedate(self):
-    '''
+    """
     This attribute returns, if there is, most recent scrapedate in db for a ytchannel.
     The most recent scrapedate is taken from the daily_subscribers object list.
     Due to the desc() ordering function (see above in the fields declaration),
       its first element (index 0) is the most recent.
     The infodate attribute in this object is the sought-for most recent scrapedate.
-    '''
+    """
     try:
-      subs = self.daily_subscribers[0] # due to the desc() ordering function
+      subs = self.daily_subscribers[0]  # due to the desc() ordering function
       most_recent_scrapedate = subs.infodate
       return most_recent_scrapedate
     except IndexError:
@@ -62,10 +71,10 @@ class YTChannelSA(Base):
 
   @property
   def first_subscribers(self):
-    '''
+    """
       first_subscribers_n is the oldest subscribers number in database.
     :return:
-    '''
+    """
     return self.daily_subscribers.order_by(None).order_by(asc('infodate')).first()
 
   @property
@@ -77,20 +86,20 @@ class YTChannelSA(Base):
 
   @property
   def current_subscribers(self):
-    '''
+    """
       first_subscribers_n is the oldest subscribers number in database.
     :return:
-    '''
-    return self.daily_subscribers.first() # notice it's default as a descending order_by above
+    """
+    return self.daily_subscribers.first()  # notice it's default as a descending order_by above
 
   @property
   def current_subscribers_n(self):
-    '''
+    """
       current_subscribers_n is the same as last_subscribers_n,
       ie, it's the most recent in date; eg if system is daily run,
       that may be today or yestearday depending on hour
     :return:
-    '''
+    """
     curr_subs = self.current_subscribers
     if curr_subs:
       return curr_subs.subscribers
@@ -98,12 +107,12 @@ class YTChannelSA(Base):
 
   @property
   def videos_per_day(self):
-    '''
+    """
 
     return 'hi'
 
     :return:
-    '''
+    """
     return self.get_videos_per_day()
 
   def get_videos_per_day(self):
@@ -118,7 +127,6 @@ class YTChannelSA(Base):
     return self.get_ndays_between_first_n_current()
 
   def get_ndays_between_first_n_current(self):
-    dtini = None; dtfim = None
     if self.first_subscribers:
       dtini = self.first_subscribers.infodate
     else:
@@ -149,12 +157,15 @@ class YTChannelSA(Base):
     return self.scrapedate + datetime.timedelta(days=self.each_n_days_for_dld)
 
   def __repr__(self):
-    return '<Channel(ytchannelid="%s", nname="%s")>' %(self.ytchannelid, self.nname)
+    return '<Channel(ytchannelid="%s", nname="%s")>' % (self.ytchannelid, self.nname)
 
-class YTDailySubscribersSA(Base): # YTDailySubscribersSA <= DailySubscribers
-  '''
-  ALTER TABLE `dailychannelsubscribernumbers` ADD UNIQUE `infodate_n_subscribers_ytchannelid_uniq`(`subscribers`,`infodate`, `ytchannelid`);
-  '''
+
+class YTDailySubscribersSA(Base):
+  """
+  ALTER TABLE `dailychannelsubscribernumbers`
+    ADD UNIQUE `infodate_n_subscribers_ytchannelid_uniq`(`subscribers`,`infodate`, `ytchannelid`);
+  """
+
   __tablename__ = 'dailychannelsubscribernumbers'
 
   id = Column(Integer, primary_key=True)
@@ -162,18 +173,21 @@ class YTDailySubscribersSA(Base): # YTDailySubscribersSA <= DailySubscribers
   infodate = Column(Date)
 
   ytchannelid = Column(String, ForeignKey('channels.ytchannelid'))
-  #ytchannel = relationship(YTChannelSA)
 
-  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
-  # created_at = Column(TIMESTAMP, default=datetime.utcnow) #, nullable=False, server_default=text('0'))
+  created_at = Column(TIMESTAMP, server_default=func.now())  # nullable=False, server_default=text('0'))
   updated_at = Column(TIMESTAMP, nullable=True)
 
-  __table_args__ = (UniqueConstraint('infodate', 'subscribers', 'ytchannelid', name='infodate_n_subscribers_ytchannelid_uniq'),)
+  __table_args__ = (UniqueConstraint('infodate', 'subscribers', 'ytchannelid',
+                                     name='infodate_n_subscribers_ytchannelid_uniq'),)
 
   def __repr__(self):
-    return '<DailySubscribers(ytchannelid="%s", infdt="%s". subs=%d)>' % (self.ytchannelid, str(self.infodate), self.subscribers)
+    return '<DailySubscribers(ytchannelid="%s", infdt="%s". subs=%d)>' % \
+           (self.ytchannelid, str(self.infodate), self.subscribers)
 
-YT_VIDEO_URL_BASE_TO_INTERPOLATE = 'https://www.youtube.com/watch?v=%s'
+
+YTVIDEO_URL_BASE_TO_INTERPOLATE = config.YTVIDEO_URL_BASE_TO_INTERPOLATE
+
+
 class YTVideoItemInfoSA(Base):
 
   __tablename__ = 'individualvideostats'
@@ -190,8 +204,7 @@ class YTVideoItemInfoSA(Base):
   vviewlist = relationship('YTVideoViewsSA', backref='vinfo', lazy='dynamic', order_by=desc('infodate'))
   ytchannelid = Column(String, ForeignKey('channels.ytchannelid'))
 
-  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
-  # created_at = Column(TIMESTAMP, default=datetime.utcnow) #, nullable=False, server_default=text('0'))
+  created_at = Column(TIMESTAMP, server_default=func.now())  # nullable=False, server_default=text('0'))
   updated_at = Column(TIMESTAMP, nullable=True)
 
   def recalc_n_return_publishdtime_from_infodtime_n_calendarstr(self):
@@ -217,8 +230,8 @@ class YTVideoItemInfoSA(Base):
     try:
       yturlbasetointerpolate = config.YTVIDEO_URL_BASE_TO_INTERPOLATE
     except AttributeError:
-      yturlbasetointerpolate = 'https://www.youtube.com/watch?v=%s' # fallback_yturlbasetointerpolate
-    return yturlbasetointerpolate %self.ytvideoid
+      yturlbasetointerpolate = 'https://www.youtube.com/watch?v=%s'  # fallback yturlbasetointerpolate
+    return yturlbasetointerpolate % self.ytvideoid
 
   @property
   def local_matplot_png(self):
@@ -226,7 +239,7 @@ class YTVideoItemInfoSA(Base):
 
   @property
   def matplot_image_filename(self):
-    return '%s.png' %self.ytvideoid
+    return '%s.png' % self.ytvideoid
 
   @property
   def matplot_image_abspath(self):
@@ -236,18 +249,18 @@ class YTVideoItemInfoSA(Base):
     return image_abspath
 
   def get_local_matplot_png(self):
-    url = 'http://127.0.0.1:5000/img/%s' %self.matplot_image_filename
-    url = 'http://127.0.0.1:5000/img/test.png'
+    url = 'http://127.0.0.1:5000/static/img/%s' % self.matplot_image_filename
     return url
 
   def __repr__(self):
-    return '<YTVideoItemInfoSA(ytvideoid="%s", title="%s", infdt="%s")>' %(self.ytvideoid, self.title, self.infodate)
+    return '<YTVideoItemInfoSA(ytvideoid="%s", title="%s", infdt="%s")>' % (self.ytvideoid, self.title, self.infodate)
+
 
 class YTVideoViewsSA(Base):
-  '''
+  """
   video views taken from a videospage per date
   ALTER TABLE `videosviews` ADD UNIQUE `infodate_n_ytvideoid_uniq`(`infodate`, `ytvideoid`);
-  '''
+  """
 
   __tablename__ = 'videosviews'
 
@@ -258,20 +271,20 @@ class YTVideoViewsSA(Base):
   ytvideoid = Column(String(11), ForeignKey('individualvideostats.ytvideoid'))
   # videoinfolist = relationship(YTVideoItemInfoSA)
 
-  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
-  # created_at = Column(TIMESTAMP, default=datetime.utcnow) #, nullable=False, server_default=text('0'))
+  created_at = Column(TIMESTAMP, server_default=func.now())  # nullable=False, server_default=text('0'))
   updated_at = Column(TIMESTAMP, nullable=True)
 
   # ALTER TABLE `videosviews` ADD UNIQUE `infodate_n_ytvideoid_uniq`(`infodate`, `ytvideoid`);
   __table_args__ = (UniqueConstraint('infodate', 'ytvideoid', name='infodate_n_ytvideoid_uniq'),)
 
   def __repr__(self):
-    return '<YTVideoViewsSA(ytvideoid="%s", views="%s", infdt="%s")>' %(self.ytvideoid, self.views, self.infodate)
+    return '<YTVideoViewsSA(ytvideoid="%s", views="%s", infdt="%s")>' % (self.ytvideoid, self.views, self.infodate)
+
 
 class NewsArticlesSA(Base):
-  '''
+  """
   video views taken from a videospage per date
-  '''
+  """
 
   __tablename__ = 'newsarticles'
 
@@ -289,47 +302,52 @@ class NewsArticlesSA(Base):
   personal_rank = Column(Integer, default=0)
   summary = Column(Text, nullable=True)
   comment = Column(Text, nullable=True)
-  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
-  updated_at = Column(TIMESTAMP, nullable=True)
+  created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
+  updated_at = Column(TIMESTAMP, nullable=True, server_default=text('ON UPDATE CURRENT_TIMESTAMP'))
 
   @property
   def sha1hex(self):
-    '''
+    """
       Explanation:
         1) self.sha1 is a BINARY field in DB and a bytes class-attribute in-here;
-        2) for visualization, this bytes/BINARY attribute/field is best seen when converted to a hexadecimal representation;
+        2) for visualization, this bytes/BINARY attribute/field is best seen when
+           converted to a hexadecimal representation;
         3) the bytes-type has a .hex() method that does this conversion;
         4) so, it suffices to issue .hex() on the bytes attribute returning its hexadecimal representation.
 
       Notice
         1) that a sha1 hash is a 20-byte binary field and a 40-byte hexadecimal field (consider 8-bit bytes);
-        2) because of that size issue, a binary field for sha1's is more memory-economic (twice as much) than its string/char counterpart.
-    '''
+        2) because of that size issue, a binary field for sha1's is more memory-economic (twice as much)
+           than its string/char counterpart.
+    """
     return self.sha1.hex()
 
   def __repr__(self):
     title = self.title
     if len(title) > 50:
       title = self.title[:50] + '...'
-    return '<NewsArticlesSA(id=%s, date=%s, title="%s")>' %(str(self.id), self.publishdate, title)
+    return '<NewsArticlesSA(id=%s, date=%s, title="%s")>' % (str(self.id), self.publishdate, title)
+
 
 class NewsPublishersSA(Base):
-  '''
+  """
   video views taken from a videospage per date
-  '''
+  """
 
   __tablename__ = 'nw_publishers'
 
   id = Column(Integer, primary_key=True)
   name = Column(String(40))
-  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
+  created_at = Column(TIMESTAMP, server_default=func.now())  # nullable=False, server_default=text('0'))
   updated_at = Column(TIMESTAMP, nullable=True)
 
   articles = relationship('NewsArticlesSA', backref='publisher', lazy='dynamic', order_by=(desc('publishdate')))
 
+
 class RelativeFolderSA(Base):
-  '''
-  '''
+  """
+    docstring
+  """
 
   __tablename__ = 'nw_relativefolders'
 
@@ -340,29 +358,31 @@ class RelativeFolderSA(Base):
 
   entries = relationship('RelativeFolderSA', backref=backref('parent', remote_side=[id]))
 
-  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
-  # created_at = Column(TIMESTAMP, default=datetime.utcnow) #, nullable=False, server_default=text('0'))
-  updated_at = Column(TIMESTAMP, nullable=True)
+  created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
+  updated_at = Column(TIMESTAMP, nullable=True, server_default=text('ON UPDATE CURRENT_TIMESTAMP'))
 
   @property
   def parent_folder(self):
-    return self.entries.filter('parent_id'==self.parent_id).first()
+    return self.entries.filter('parent_id' == self.parent_id).first()
 
   @property
   def parent_foldername(self):
-    '''
-    '''
+    """
+      docstring
+    """
     parent_folder = self.parent_folder()
     if parent_folder:
       return parent_folder.foldername
     return 'w/inf'
 
   def __repr__(self):
-    return '<NewsArticlesSA(id=%d, p_id=%d, folder="%s")>' %(self.id, self.p_id, self.foldername)
+    return '<NewsArticlesSA(id=%d, p_id=%d, folder="%s")>' % (self.id, self.p_id, self.foldername)
+
 
 class TreeBaseAbsPath(Base):
-  '''
-  '''
+  """
+    docstring
+  """
 
   __tablename__ = 'nw_treebaseabspaths'
 
@@ -371,16 +391,18 @@ class TreeBaseAbsPath(Base):
   abspath = Column(String, unique=True)
   medianame = Column(String(30), nullable=True)
   lookup_order = Column(Integer, default=1)
-  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
-  updated_at = Column(TIMESTAMP, nullable=True)
+
+  created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
+  updated_at = Column(TIMESTAMP, nullable=True, server_default=text('ON UPDATE CURRENT_TIMESTAMP'))
 
   def __repr__(self):
-    return '<TreeBaseAbsPath(id=%d, tree_key="%s", abspath="%s")>' %(self.id, self.app_tree_strkey, self.abspath)
+    return '<TreeBaseAbsPath(id=%d, tree_key="%s", abspath="%s")>' % (self.id, self.app_tree_strkey, self.abspath)
 
 
 class CategorySA(Base):
-  '''
-  '''
+  """
+    docstring
+  """
 
   __tablename__ = 'nw_categories'
 
@@ -390,51 +412,54 @@ class CategorySA(Base):
 
   subcategories = relationship('CategorySA', backref=backref('category', remote_side=[id]))
 
-  created_at = Column(TIMESTAMP, server_default=func.now()) #, nullable=False, server_default=text('0'))
-  updated_at = Column(TIMESTAMP, nullable=True)
+  created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
+  updated_at = Column(TIMESTAMP, nullable=True, server_default=text('ON UPDATE CURRENT_TIMESTAMP'))
 
   @property
   def parent_category(self):
-    return self.entries.filter('category_id'==self.parent_id).first()
+    return self.entries.filter('category_id' == self.parent_id).first()
 
   @property
   def parent_name(self):
-    '''
-    '''
+    """
+      docstring
+    """
     if self.parent_category:
       return self.parent_category.name
     return 'w/inf'
 
   def __repr__(self):
-    return '<NewsArticlesSA(id=%d, p_id=%d, folder="%s")>' %(self.id, self.p_id, self.foldername)
+    return '<NewsArticlesSA(id=%d, p_id=%d, folder="%s")>' % (self.id, self.p_id, self.foldername)
+
 
 def adhoc_test():
   ytchannel_sa = YTChannelSA()
   ytchannel_sa.ytchannelid = 'ueduardoamoreira'
   ytchannel_sa.nname = 'Eduardo Moreira'
-  print ('ytchannel_sa', ytchannel_sa)
+  print('ytchannel_sa', ytchannel_sa)
   subscriber_sa = YTDailySubscribersSA()
   subscriber_sa.infodate = datetime.date(2020, 5, 30)
   subscriber_sa.subscribers = 1234
   subscriber_sa.ytchannelid = ytchannel_sa.ytchannelid
-  print ('subscriber_sa', subscriber_sa)
+  print('subscriber_sa', subscriber_sa)
   videoiteminfo_sa = YTVideoItemInfoSA()
   videoiteminfo_sa.ytvideoid = '1234-678_ab'
   videoiteminfo_sa.title = 'Title 1234-678_ab'
-  videoiteminfo_sa.infodate = datetime.date(2020, 5, 30)
-  # videoiteminfo_sa.ytchannel = ytchannel_sa
-  print ('videoiteminfo_sa', videoiteminfo_sa)
+  videoiteminfo_sa.infodatetime = datetime.date(2020, 5, 30)
+  print('videoiteminfo_sa', videoiteminfo_sa)
   videoviews_sa = YTVideoViewsSA()
   videoviews_sa.ytvideoid = 'vid12345678'
   videoviews_sa.views = 12345
   videoviews_sa.infodate = datetime.date(2020, 5, 30)
   videoviews_sa.ytvideo = videoiteminfo_sa
-  print ('videoviews_sa', videoviews_sa)
-  print ('videoviews_sa.ytvideo', videoviews_sa.ytvideo)
-  print ('videoviews_sa.ytchannel', videoviews_sa.ytchannel)
+  print('videoviews_sa', videoviews_sa)
+  print('videoviews_sa.ytvideo', videoviews_sa.ytvideo)
+  print('videoviews_sa.ytchannel', videoviews_sa.ytchannel)
+
 
 def process():
   adhoc_test()
+
 
 if __name__ == '__main__':
   process()

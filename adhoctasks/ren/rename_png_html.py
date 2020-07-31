@@ -1,19 +1,33 @@
-#!/usr/bin/python3
-'''
+#!/usr/bin/env python3
+"""
 => This script is to correct a bug in "wget --convert-links"
   to replace string ".png.html" to ".png" correcting the related image link
 => It runs against html files in a directory.
 => It was used to correct wget-fetched The Flask Megatutorial blog.miguelgrinberg.com
-'''
+"""
 import os
 
-base_abspath = '/home/dados/Books/Books (mostly epubs)/CompSci Bks/L CompLang Bks/P Languages (PHP, Processing etc) Bks/Python Bks/Web CompSi Py Bks/Web Frameworks Py Bks/Flask & PyJs Bks/Flask Bks/html Flask Bks/The Flask Megatutorial blog.miguelgrinberg.com 11Gb html Bk/post'
+base_abspath = '/home/dados/Books/Books (mostly epubs)/CompSci Bks/L CompLang Bks/' \
+               'P Languages (PHP, Processing etc) Bks/Python Bks/Web CompSi Py Bks/' \
+               'Web Frameworks Py Bks/Flask & PyJs Bks/Flask Bks/html Flask Bks/' \
+               'The Flask Megatutorial blog.miguelgrinberg.com 11Gb html Bk/post'
 
-lambdaIsHtml = lambda word : word.endswith('.html')
+
+def endswith_dothtml(word):
+  """
+    lambdaIsHtml = lambda word : word.endswith('.html')
+
+  :param word:
+  :return:
+  """
+  return word.endswith('.html')
+
+
 htmls = os.listdir(base_abspath)
-htmls = list(filter(lambdaIsHtml, htmls))
-
+htmls = list(filter(endswith_dothtml, htmls))
 n_of_replaces = 0
+
+
 def rename():
   global n_of_replaces
   for i, html in enumerate(htmls):
@@ -29,9 +43,11 @@ def rename():
     fs.close()
     n_of_replaces += 1
 
+
 def process():
   rename()
-  print ('n_of_replaces', n_of_replaces, 'total of files', len(htmls))
+  print('n_of_replaces', n_of_replaces, 'total of files', len(htmls))
+
 
 if __name__ == '__main__':
   process()

@@ -1,8 +1,12 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import os
 import fs.filefunctions.pathfunctions as pathfs
 
-n_of_renames = 0;   total_checked = 0
+
+n_of_renames = 0
+total_checked = 0
+
+
 def rename_filename_if_doublespace(filename, filepath, folderpath):
   global n_of_renames, total_checked
   _, ext = os.path.splitext(filename)
@@ -15,8 +19,9 @@ def rename_filename_if_doublespace(filename, filepath, folderpath):
     newname = filename.replace('  ', ' ')
     newnamepath = os.path.join(folderpath, newname)
     n_of_renames += 1
-    print (n_of_renames, ': renaming', filename, 'to', newname)
+    print(n_of_renames, ': renaming', filename, 'to', newname)
     os.rename(filepath, newnamepath)
+
 
 def rename_in_level2(l2folderpath):
   entries = os.listdir(l2folderpath)
@@ -27,6 +32,7 @@ def rename_in_level2(l2folderpath):
       print(filepath, 'is file')
       rename_filename_if_doublespace(filename, filepath, l2folderpath)
 
+
 def search_rename_in_level2(l1folderpath):
   entries = os.listdir(l1folderpath)
   print('L2 n of entries', len(entries))
@@ -36,6 +42,7 @@ def search_rename_in_level2(l1folderpath):
       print(entry, 'is dir')
       rename_in_level2(l2folderpath)
 
+
 def search_rename_in_level1():
   base_abspath = pathfs.get_ytvideo_htmlfiles_baseabsdir()
   entries = os.listdir(base_abspath)
@@ -43,14 +50,16 @@ def search_rename_in_level1():
   for entry in entries:
     if len(entry) == len('yyyy-mm'):
       entrypath = os.path.join(base_abspath, entry)
-      print (entrypath)
+      print(entrypath)
       if os.path.isdir(entrypath):
         print('Entry:', entry, 'is dir: going to rename_in_dir(entrypath)')
         search_rename_in_level2(entrypath)
 
+
 def process():
   search_rename_in_level1()
-  print ('n_of_renames', n_of_renames, 'total_checked', total_checked)
+  print('n_of_renames', n_of_renames, 'total_checked', total_checked)
+
 
 if __name__ == '__main__':
   process()

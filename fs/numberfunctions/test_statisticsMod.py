@@ -1,12 +1,16 @@
-#!/usr/bin/python3
-import fs.numberfunctions.statisticsMod as statm
+#!/usr/bin/env python3
+"""
+  docstring
+"""
 import unittest
+import fs.numberfunctions.statisticsMod as statM
+
 
 class TestCase(unittest.TestCase):
 
   def test_1(self):
-    '''
-      returned = statm.calc_min_max_dif_del(alist)
+    """
+      returned = statM.calc_min_max_dif_del(alist)
       The returned value is (mini, maxi, diff, delt) where:
       - mini is the least value in row
       - maxi is the greatest value in row
@@ -17,25 +21,26 @@ class TestCase(unittest.TestCase):
       expected = (mini=2, maxi=29, diff=27(ie. 29-2), delt=22(ie. 29-7))
 
     :return:
-    '''
+    """
     alist = None
     expected = (0, 0, 0, 0)
-    returned = statm.calc_min_max_dif_del(alist)
+    returned = statM.calc_min_max_dif_del(alist)
     self.assertEqual(expected, returned)
 
     alist = [7, 15, 9, -1]
     expected = (-1, 15, 16, -8)
-    returned = statm.calc_min_max_dif_del(alist)
+    returned = statM.calc_min_max_dif_del(alist)
     self.assertEqual(expected, returned)
 
     alist = [7, 15, 9, 2, 20, 11, 21, 26, 29]
     expected = (2, 29, 29-2, 29-7)
-    returned = statm.calc_min_max_dif_del(alist)
+    returned = statM.calc_min_max_dif_del(alist)
     self.assertEqual(expected, returned)
 
 
 def process():
   pass
+
 
 if __name__ == '__main__':
   process()

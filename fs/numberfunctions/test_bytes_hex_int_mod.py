@@ -1,17 +1,21 @@
-#!/usr/bin/python3
-import fs.numberfunctions.bytes_hex_int_mod as bhimod
+#!/usr/bin/env python3
+"""
+  docstring
+"""
 import unittest
+import fs.numberfunctions.bytes_hex_int_mod as bhimod
 
 # BHI_stat = bhimod.BytesHexIntStaticConvertor # static class
-BHI_inst = bhimod.BytesHexIntConvertor # instantiable class
+BHI_inst = bhimod.BytesHexIntConvertor  # instantiable class
+
 
 class TestCase(unittest.TestCase):
 
   def test_1(self):
-    '''
+    """
 
     :return:
-    '''
+    """
     expected_int = 241
     bhi_o = BHI_inst(value=expected_int, vtype='int')
     bhi_o.cycle()
@@ -40,8 +44,10 @@ class TestCase(unittest.TestCase):
     returned_hexstr = bhi_o.get_hexstr()
     self.assertEqual(expected_hexstr, returned_hexstr)
 
+
 def process():
   pass
+
 
 if __name__ == '__main__':
   process()

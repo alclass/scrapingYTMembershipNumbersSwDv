@@ -25,7 +25,7 @@ class DateFolderScraper:
     for ytvideopagesobj in self.reader.ytvideopageobj_list:
       self.counter += 1
       scraper = HTMLScraper(ytvideopagesobj)
-      qty = scraper.ytvideopageobj.nOfSubscribers
+      qty = scraper.ytvideopageobj.n_subscribers
       ytchid = scraper.ytvideopageobj.ytchannelid
       tupl = (ytchid, qty)
       self.id_n_qty_tuplelist.append(tupl)
@@ -34,7 +34,7 @@ class DateFolderScraper:
     # for i, subsrecord in enumerate(self.scrapingResuls):
     for i, ytvideopageobj in enumerate(self.reader.ytvideopageobj_list):
       # subsrecord = ytvideopageobj.scrapedrecord
-      quant = ytvideopageobj.nOfSubscribers
+      quant = ytvideopageobj.n_subscribers
       print(i+1, ytvideopageobj.refdate, ytvideopageobj.sname, 'has', quant)
       if quant < 1:
         outmsg = '''

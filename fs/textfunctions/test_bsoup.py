@@ -1,5 +1,8 @@
-#!/usr/bin/python3
-import bs4 # , datetime, json, os, string
+#!/usr/bin/env python3
+"""
+  docstring
+"""
+import bs4  # , datetime, json, os, string
 
 t = '''
 <html>
@@ -22,7 +25,7 @@ t = '''
  </span>
 '''
 bsoup = bs4.BeautifulSoup(t, 'html.parser')
-result = bsoup.find('span', attrs={'class':'yt-subscription-button-subscriber-count-branded-horizontal'})
+result = bsoup.find('span', attrs={'class': 'yt-subscription-button-subscriber-count-branded-horizontal'})
 if result:
   print(result.text)
 else:

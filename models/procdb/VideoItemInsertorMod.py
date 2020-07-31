@@ -1,14 +1,15 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 from fs.db.sqlalchdb.sqlalchemy_conn import sqlalchemy_engine
 from sqlalchemy.orm import sessionmaker
 from models.sa_models.ytchannelsubscribers_samodels import YTVideoItemInfoSA, YTVideoViewsSA
 
 Session = sessionmaker(bind=sqlalchemy_engine)
 
+
 class VideoItemInsertor:
 
   def __init__(self, videoinfo):
-    '''
+    """
     Important:
       one way to implement this class is to receive
         session, from sqlalchemy, from caller
@@ -17,9 +18,11 @@ class VideoItemInsertor:
          ie, care should be taken with session and its pool size
 
     :param videoinfo:
-    '''
-    self.total_videoinfo_insmod = 0;  self.total_videoinfo_records = 0
-    self.total_videoviews_insmod = 0; self.total_videoviews_records = 0
+    """
+    self.total_videoinfo_insmod = 0
+    self.total_videoinfo_records = 0
+    self.total_videoviews_insmod = 0
+    self.total_videoviews_records = 0
 
     self.videoinfo = videoinfo
     if self.videoinfo.infodate is None:
@@ -44,11 +47,13 @@ class VideoItemInsertor:
     return True
 
   def transpose_fields(self, videoitem_in_db, session, dbinsert=False):
-    '''
+    """
 
     :param videoitem_in_db:
+    :param session:
+    :param dbinsert:
     :return:
-    '''
+    """
     if dbinsert:
       videoitem_in_db.ytvideoid = self.videoinfo.ytvideoid
 
@@ -66,14 +71,13 @@ class VideoItemInsertor:
       changelog = ''
 
     if videoitem_in_db.title != self.videoinfo.title:
-      changelog += 'title: [%s]\n' %videoitem_in_db.title  # former_value
+      changelog += 'title: [%s]\n' % videoitem_in_db.title  # former_value
       videoitem_in_db.title = self.videoinfo.title
 
     if videoitem_in_db.duration_in_sec != self.videoinfo.duration_in_sec:
-      changelog += 'duration_in_sec: [%s]\n' %str(videoitem_in_db.duration_in_sec) # former_value
+      changelog += 'duration_in_sec: [%s]\n' % str(videoitem_in_db.duration_in_sec)  # former_value
       videoitem_in_db.duration_in_sec = self.videoinfo.duration_in_sec
 
-    publishdate = None
     if self.videoinfo.publishdate is not None:
       publishdate = self.videoinfo.publishdate
     else:
@@ -81,7 +85,7 @@ class VideoItemInsertor:
       publishdate = self.videoinfo.infodate
 
     if publishdate is None:
-      error_msg =  'Error: publishdate is None (which means both this and infodate are None)\n'
+      error_msg = 'Error: publishdate is None (which means both this and infodate are None)\n'
       error_msg += '  => value of videoinfo = ' + str(self.videoinfo)
       raise ValueError(error_msg)
 
@@ -96,32 +100,36 @@ class VideoItemInsertor:
       if videoitem_in_db.ytchannelid != self.videoinfo.ytchannel.ytchannelid:
         former_value = videoitem_in_db.ytchannelid
         videoitem_in_db.ytchannelid = self.videoinfo.ytchannel.ytchannelid
-        # changelog will be emptied if dbinsert is True, but this change would happen if a videoid could change its ytuser/ytchannel (something that's not known)
-        changelog += 'ytchannelid: [%s]\n' %former_value
+        # changelog will be emptied if dbinsert is True, but this change
+        # would happen if a videoid could change its ytuser/ytchannel (something that's not known)
+        changelog += 'ytchannelid: [%s]\n' % former_value
 
     if not dbinsert and videoitem_in_db.changelog != changelog:
-      changelog += 'on: [%s]\n' %str(former_infodate)
+      changelog += 'on: [%s]\n' % str(former_infodate)
       changelog += '-----------------\n'
       videoitem_in_db.changelog = changelog
       print('Updating videoitem_in_db', videoitem_in_db)
-      return True # recipient must commit, something was changed
+      return True  # recipient must commit, something was changed
 
     if dbinsert:
       videoitem_in_db.changelog = ''
       print('Insert videoitem_in_db', videoitem_in_db)
       session.add(videoitem_in_db)
-      return True # recipient must commit, something was changed
+      return True  # recipient must commit, something was changed
 
-    return False # recipient doesn't need to commit, nothing was changed
+    return False  # recipient doesn't need to commit, nothing was changed
 
   def inserts(self):
     session = Session()
-    self.total_videoviews_records += 1; self.total_videoviews_records += 1
+    self.total_videoviews_records += 1
+    self.total_videoviews_records += 1
     bool_modif_info = self.insert_videoinfo(session)
     bool_modif_views = self.insert_videoviews(session)
     if bool_modif_info or bool_modif_views:
-      if bool_modif_views: self.total_videoviews_insmod += 1
-      if bool_modif_info:  self.total_videoinfo_insmod += 1
+      if bool_modif_views:
+        self.total_videoviews_insmod += 1
+      if bool_modif_info:
+        self.total_videoinfo_insmod += 1
       session.commit()
     session.close()
 
@@ -149,7 +157,8 @@ class VideoItemInsertor:
     if videoitem_in_db:
       return self.update_if_needed(videoitem_in_db, session)
     videoitem_in_db = YTVideoItemInfoSA()
-    _ = self.transpose_fields(videoitem_in_db, session, dbinsert=True) # _ (underline var) is boolean not used in insert, only update
+    # _ (underline var) is boolean not used in insert, only update
+    _ = self.transpose_fields(videoitem_in_db, session, dbinsert=True)
     print('Adding/updating videoitem_in_db', videoitem_in_db)
     # views part
     return True
@@ -158,18 +167,21 @@ class VideoItemInsertor:
     outstr = '''Report VideoItemInsertor:
   total_videoinfo_insmod = %d;  self.total_videoinfo_records = %d
   total_videoviews_insmod = %d; self.total_videoviews_records = %d    
-    ''' %(
+    ''' % (
       self.total_videoinfo_insmod, self.total_videoinfo_records,
       self.total_videoviews_insmod, self.total_videoviews_records,
     )
-    print (outstr)
+    print(outstr)
+
 
 def test1():
   pass
 
+
 def process():
-  print ('Not testable for the time being.')
+  print('Not testable for the time being.')
   # test1()
+
 
 if __name__ == '__main__':
   process()

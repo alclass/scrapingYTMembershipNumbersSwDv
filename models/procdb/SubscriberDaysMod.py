@@ -1,9 +1,10 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 from models.procdb.SubscriberInsertorMod import Session
 from models.sa_models.ytchannelsubscribers_samodels import YTChannelSA
 from models.sa_models.ytchannelsubscribers_samodels import YTDailySubscribersSA
 from models.gen_models.YtVideosPageMod import transpose_sqlalchs_to_ytvideopages
-import fs.numberfunctions.statisticsMod as statmod
+import fs.numberfunctions.statisticsMod as statM
+
 
 class SubscriberDayForChannel:
 
@@ -14,8 +15,8 @@ class SubscriberDayForChannel:
   def find_daily_subscribers(self):
     session = Session()
     dailysubs = session.query(YTDailySubscribersSA). \
-      filter(YTDailySubscribersSA.ytchannelid == self.channel.ytchannelid). \
-      order_by(YTDailySubscribersSA.infodate).all()
+        filter(YTDailySubscribersSA.ytchannelid == self.channel.ytchannelid). \
+        order_by(YTDailySubscribersSA.infodate).all()
     # print('Channel', channel.nname, 'has', len(self.dailysubs), 'daily subscribers records.')
     if len(dailysubs) > 0:
       self.tabulate_subscribers_per_day(dailysubs)
@@ -29,6 +30,7 @@ class SubscriberDayForChannel:
       days_n_subscribers.append(day_n_subscriber_tuple)
     days_n_subscribers = sorted(days_n_subscribers, key=lambda x: x[0])
     self.channel.days_n_subscribers = days_n_subscribers
+
 
 class SubscriberDays:
 
@@ -44,22 +46,26 @@ class SubscriberDays:
     for channel in self.channels:
       SubscriberDayForChannel(channel)
 
-  def print_days_n_subscribers_per_channel(self):
-    print ('Fetched', len(self.channels), 'channels.')
+  def print_days_n_subscribers_per_channel(self, n_of_date_desc_rows=3):
+    print('Fetched', len(self.channels), 'channels.')
     print('-'*50)
     for i, channel in enumerate(self.channels):
-      if channel.days_n_subscribers is None:
+      days_n_subscribers = channel.get_days_n_subscribers_within_desc_up_to_n_rows(n_of_date_desc_rows)
+      if days_n_subscribers is None or len(days_n_subscribers) == 0:
         continue
-      quantlist = list(map(lambda x: x[1], channel.days_n_subscribers))
-      mini, maxi, diff, delt = statmod.calc_min_max_dif_del(quantlist)
+      quantlist = list(map(lambda x: x[1], days_n_subscribers))
+      mini, maxi, diff, delt = statM.calc_min_max_dif_del(quantlist)
       seq = i+1
-      print(seq, channel.nname, len(channel.days_n_subscribers), channel.days_n_subscribers, mini, maxi, diff, delt)
+      print(seq, channel.nname, len(days_n_subscribers), days_n_subscribers, mini, maxi, diff, delt)
+
 
 def adhoc_test():
   pass
 
+
 def process():
   adhoc_test()
+
 
 if __name__ == '__main__':
   process()

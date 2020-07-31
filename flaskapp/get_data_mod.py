@@ -2,7 +2,7 @@ def get_data():
   userdict = {'username': 'Miguel'}
   posts = [
     {
-      'author' : {'username': 'Miguel'},
+      'author': {'username': 'Miguel'},
       'body': 'Beautiful day in Portland!',
     },
     {

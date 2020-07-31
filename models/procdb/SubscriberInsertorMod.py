@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import datetime
 from models.sa_models.ytchannelsubscribers_samodels import YTDailySubscribersSA
 from fs.db.sqlalchdb.sqlalchemy_conn import sqlalchemy_engine
@@ -6,10 +6,11 @@ from sqlalchemy.orm import sessionmaker
 
 Session = sessionmaker(bind=sqlalchemy_engine)
 
+
 class SubscriberInsertor:
 
   def __init__(self, ytchid, refdate, n_subscribers):
-    '''
+    """
     Important:
       one way to implement this class is to receive
         session, from sqlalchemy, from caller
@@ -19,9 +20,9 @@ class SubscriberInsertor:
     :param ytchid:
     :param refdate:
     :param n_subscribers:
-    '''
-    self.ytchid        = ytchid
-    self.refdate       = refdate
+    """
+    self.ytchid = ytchid
+    self.refdate = refdate
     self.n_subscribers = n_subscribers
     self.boolean_dbmodified = False
     self.boolean_dbmodified = self.insert()
@@ -41,15 +42,15 @@ class SubscriberInsertor:
   def insert(self):
     session = Session()
     dailysubs = session.query(YTDailySubscribersSA).\
-      filter(YTDailySubscribersSA.ytchannelid == self.ytchid). \
-      filter(YTDailySubscribersSA.infodate == self.refdate). \
-      first()
+        filter(YTDailySubscribersSA.ytchannelid == self.ytchid). \
+        filter(YTDailySubscribersSA.infodate == self.refdate). \
+        first()
     if dailysubs:
       return self.update_if_needed(dailysubs, session)
     dailysubs = YTDailySubscribersSA(
-      ytchannelid = self.ytchid,
-      infodate        = self.refdate,
-      subscribers = self.n_subscribers
+      ytchannelid=self.ytchid,
+      infodate=self.refdate,
+      subscribers=self.n_subscribers
     )
     print('Adding', dailysubs)
     session.add(dailysubs)
@@ -57,15 +58,18 @@ class SubscriberInsertor:
     session.close()
     return True
 
+
 def test1():
   ytchid = 'upgjr23'
-  refdate = datetime.date(2020,5,2)
+  refdate = datetime.date(2020, 5, 2)
   n_subscribers = 200 * 1000
   SubscriberInsertor(ytchid, refdate, n_subscribers)
 
+
 def process():
-  print ('Not testable for the time being.')
+  print('Not testable for the time being.')
   # test1()
+
 
 if __name__ == '__main__':
   process()

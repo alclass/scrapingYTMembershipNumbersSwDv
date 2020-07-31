@@ -1,5 +1,5 @@
-'''
-
+#!/usr/bin/env python3
+"""
 1  dateini = '2020-07-05' ; datefim = '2020-07-07'
   daterange = make_daterange_with_dateini_n_datefim(dateini, datefim)
   print ('dateini', dateini, 'datefim', datefim)
@@ -15,14 +15,15 @@
   daterange = make_daterange_with_dateini_n_datefim(dateini, datefim)
   print ('dateini', dateini, 'datefim', datefim)
   print ('daterange', daterange)
-
-
-'''
-import datetime, unittest
+"""
+import datetime
+import unittest
 import fs.datefunctions.datefs as dtfs
+
 
 class EmptyMock:
   pass
+
 
 class TestCaseDates(unittest.TestCase):
 
@@ -67,32 +68,40 @@ class TestCaseDates(unittest.TestCase):
 
   def test_make_daterange_with_dateini_n_datefim(self):
 
-    dateini = '2020-07-05';  datefim = '2020-07-07'
-    expected_strdaterange = ['2020-07-05','2020-07-06','2020-07-07']
-    expected_daterange = list(map(lambda strdate : dtfs.get_refdate_from_strdate(strdate), expected_strdaterange))
+    dateini = '2020-07-05'
+    datefim = '2020-07-07'
+    expected_strdaterange = ['2020-07-05', '2020-07-06', '2020-07-07']
+    expected_daterange = list(map(lambda strdate: dtfs.get_refdate_from_strdate(strdate), expected_strdaterange))
     returned_daterange = dtfs.make_daterange_with_dateini_n_datefim(dateini, datefim)
     self.assertEqual(expected_daterange, returned_daterange)
 
-    dateini = '2220-07-05';  datefim = '2220-07-07'
+    dateini = '2220-07-05'
+    datefim = '2220-07-07'
     expected_daterange = []
     returned_daterange = dtfs.make_daterange_with_dateini_n_datefim(dateini, datefim)
     self.assertEqual(expected_daterange, returned_daterange)
 
-    dateini = '2020-07-03';  datefim = '2020-06-29'
-    expected_strdaterange = ['2020-07-03','2020-07-02','2020-07-01','2020-06-30','2020-06-29']
-    expected_daterange = list(map(lambda strdate : dtfs.get_refdate_from_strdate(strdate), expected_strdaterange))
+    dateini = '2020-07-03'
+    datefim = '2020-06-29'
+    expected_strdaterange = ['2020-07-03', '2020-07-02', '2020-07-01', '2020-06-30', '2020-06-29']
+    expected_daterange = list(map(lambda strdate: dtfs.get_refdate_from_strdate(strdate), expected_strdaterange))
     returned_daterange = dtfs.make_daterange_with_dateini_n_datefim(dateini, datefim)
     self.assertEqual(expected_daterange, returned_daterange)
 
-    dateini = None;  datefim = None
+    dateini = None
+    datefim = None
     today = datetime.date.today()
     expected_daterange = [today]
     returned_daterange = dtfs.make_daterange_with_dateini_n_datefim(dateini, datefim)
     self.assertEqual(expected_daterange, returned_daterange)
 
   def test_transform_duration_in_sec_into_hms(self):
+    """
+        the returned value will have a left-zero in the string, though as input (see below) the zero is not necessary
+    :return:
+    """
     duration_in_sec = 61
-    expected_hms = '01:01' # the returned value will have a left-zero in the string, though as input (see below) the zero is not necessary
+    expected_hms = '01:01'
     returned_hms = dtfs.transform_duration_in_sec_into_hms(duration_in_sec)
     self.assertEqual(expected_hms, returned_hms)
 
@@ -120,7 +129,7 @@ class TestCaseDates(unittest.TestCase):
     returned_output_str = dtfs.ajust_calendardatestr_to_start_with_a_number(input_str)
     self.assertEqual(expected_output_str, returned_output_str)
     input_str = 'blah bla no numbers here'
-    expected_output_str = '1 hora' # this is the default, try to move it to config.py
+    expected_output_str = '1 hora'  # this is the default, try to move it to config.py
     returned_output_str = dtfs.ajust_calendardatestr_to_start_with_a_number(input_str)
     self.assertEqual(expected_output_str, returned_output_str)
 
@@ -176,8 +185,8 @@ class TestCaseDates(unittest.TestCase):
     self.assertEqual(expected_datetime, returned_datetime)
 
   def test_transform_calendarstr_to_dateadder(self):
-    calendarDateStr = '3 dias atrás'
-    dtadder = dtfs.transform_calendarstr_to_dateadder(calendarDateStr)
+    calendar_date_str = '3 dias atrás'
+    dtadder = dtfs.transform_calendarstr_to_dateadder(calendar_date_str)
     today = datetime.date.today()
     threedays = datetime.timedelta(days=3)
     expected_date = today - threedays
@@ -185,14 +194,15 @@ class TestCaseDates(unittest.TestCase):
     self.assertEqual(expected_date, returned_date)
 
   def test_transform_date_to_datetime(self):
-    '''
+    """
 For unit test:
   - for input None expected output is None
   - for input obj(2020, 07, 11) expected output is datetime(2020, 07, 11, 0, 0, 0)
   - for input obj(2020, 07) expected output is None
   - for input obj(2020, 07, 11, 11, 11, 11) expected output is the same as input typed-datetime
   - for input obj(2020, 07, 11, 11) expected output is datetime(2020, 07, 11, 11, 0, 0)
-    '''
+    """
+
     expected_datetime = None
     returned_datetime = dtfs.transform_datelike_to_datetime(None)
     self.assertEqual(expected_datetime, returned_datetime)
@@ -204,4 +214,3 @@ For unit test:
     expected_datetime = None
     returned_datetime = dtfs.transform_datelike_to_datetime(input_pdt)
     self.assertEqual(expected_datetime, returned_datetime)
-

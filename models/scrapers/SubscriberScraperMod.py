@@ -10,7 +10,7 @@ SUBSCRIBERS_NUMBER_HTMLCLASSNAME = 'yt-subscription-button-subscriber-count-bran
 Alternatively:  
   <yt-formatted-string id="subscriber-count" class="style-scope ytd-c4-tabbed-header-renderer">365&nbsp;mil inscritos</yt-formatted-string>  
 '''
-# SubscribersStatNT = collections.namedtuple('SubscribersStatNT', ['nOfSubscribers', 'strline'])
+# SubscribersStatNT = collections.namedtuple('SubscribersStatNT', ['n_subscribers', 'strline'])
 
 def extract_number_from_known_pieces(phrase):
   if phrase is None or type(phrase) != str:
@@ -114,7 +114,7 @@ class HTMLScraper:
     if subs_scraper.subscribersnumber is None:
       print('Subscribers number not found for', extlessname)
       return
-    self.ytvideopageobj.nOfSubscribers = subs_scraper.subscribersnumber
+    self.ytvideopageobj.n_subscribers = subs_scraper.subscribersnumber
 
   def scrape_individual_video_views(self, htmlfilename, content):
     '''
@@ -132,11 +132,11 @@ class HTMLScraper:
       return
 
   def __str__(self):
-    nOfSubscribers = self.ytvideopageobj.nOfSubscribers
+    nOfSubscribers = self.ytvideopageobj.n_subscribers
     outstr = '''
     ytvideopageobj = %(ytvideopageobj)s
-    nOfSubscribers = %(nOfSubscribers)d 
-    ''' %{'ytvideopageobj': self.ytvideopageobj, 'nOfSubscribers':nOfSubscribers}
+    n_subscribers = %(nOfSubscribers)d 
+    ''' %{'ytvideopageobj': self.ytvideopageobj, 'n_subscribers':nOfSubscribers}
     return outstr
 
 def adhoc_test():

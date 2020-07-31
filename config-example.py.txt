@@ -1,5 +1,9 @@
-#!/usr/bin/python3
-import os, pathlib
+#!/usr/bin/env python3
+"""
+  docstring
+"""
+import os
+import pathlib
 
 # Section 1 YouTube config parameters
 # ===================================
@@ -11,8 +15,9 @@ YTVIDEO_URL_BASE_TO_INTERPOLATE = 'https://www.youtube.com/watch?v=%s'
 # =====================================================================
 YTVIDEO_HTMLFILES_DIRS = [
   '/media/friend/SAMSUNG/Ytvideos BRA Politics/z Other ytchannels/000_scrape_ytdata',
-  '/home/dados/DataArchival/YT_Scrape_Data/BRA_Politics_YTData',
-] # '/home/dados/Divers_Data_Archival/YTData/000_scrape_ytdata',
+  '/home/dados/Data_Archival/YTData/000_scrape_ytdata',
+]
+
 
 def get_ytvideo_datafolderbase_absdir():
   for abspath in YTVIDEO_HTMLFILES_DIRS:
@@ -20,33 +25,38 @@ def get_ytvideo_datafolderbase_absdir():
       return abspath
   return None
 
+
 STATICHTML_FOLDERNAME = 'ytchannels_statichtml'
 STATICHTML_FILENAME = 'static_html_report.html'
 FLASKAPP_FOLDERNAME = 'flaskapp'
 # the dot (.) is necessary because of return value from tuple os.path.splitext()
 HTML_EXTLIST = ['.ht', '.htm', '.html', '.shtml']
 
+
 def get_apps_baseabspath():
   return pathlib.Path(__file__).parent.absolute()
+
 
 def get_flaskapp_abspath():
   return os.path.join(get_apps_baseabspath(), FLASKAPP_FOLDERNAME)
 
+
 NEWSPAPERS_BASE_ABSPATHS = [
   '/media/friend/SAMSUNG/Ytvideos BRA Politics/z Other ytchannels/001_BRA_pol_newspapers',
-  '/home/friend/Downloads/Bks/001_BRA_pol_newspapers',
+  '/home/dados/VideoAudio/Yt videos/Ytvideos BRA Politics/z Other ytchannels',
 ]
-
+NEWSARTICLES_BASEFOLDERNAME_AS_KEY = '001_BRA_pol_newspapers'
+HTMLSCRAPEREPO_BASEFOLDERNAME_AS_KEY = '000_scrape_ytdata'
 BASE_ABSPATHS_KEYS = {
-  '001_BRA_pol_newspapers' : 'NEWSPAPERS_BASE_ABSPATHS',
-  '000_scrape_ytdata' : 'YTVIDEO_HTMLFILES_DIRS',
+  NEWSARTICLES_BASEFOLDERNAME_AS_KEY: 'NEWSPAPERS_BASE_ABSPATHS',
+  HTMLSCRAPEREPO_BASEFOLDERNAME_AS_KEY: 'YTVIDEO_HTMLFILES_DIRS',
 }
 
 # Section 3 Base directory for json "master data" (ie, ytchannel minimum info)
 # ============================================================================
-
 JSONDATA_RELFOLDER = 'ytchannels_jsondata'
-JSONDATA_FILENAME  = 'channelvideosytpages.json'
+JSONDATA_FILENAME = 'channelvideosytpages.json'
+
 
 def get_ytchannels_jsonfolderabspath():
   abspath = os.path.join(get_ytvideo_datafolderbase_absdir(), JSONDATA_RELFOLDER)
@@ -54,20 +64,21 @@ def get_ytchannels_jsonfolderabspath():
     os.makedirs(abspath)
   return abspath
 
+
 def get_ytchannels_jsonabspath():
   return os.path.join(get_ytchannels_jsonfolderabspath(), JSONDATA_FILENAME)
 
+
 # Section 4 DB parametes (do not add this config.py to git or any other vs)
 # ==========================================================================
-
 THIS_DATABASE = 'mysql'
 DATABASE_DICT = {
-  'mysql' : {
-    'ADDRESS'     : 'localhost',
-    'PORT'        : '3306',
-    'USER'        : 'user',
-    'PASSWORD'    : 'pass',
-    'DATABASENAME': 'name',
+  'mysql': {
+    'ADDRESS': 'localhost',
+    'PORT': '3306',
+    'USER': '<user>',
+    'PASSWORD': ''<userspassword>',
+    'DATABASENAME': ''<dbname>',
   }
 }
 
@@ -76,24 +87,27 @@ DATABASE_DICT = {
 DOWNLOAD_WAIT_SECONDS_MIN = 4
 DOWNLOAD_WAIT_SECONDS_MAX = 7
 
+
 # Section 6 Flask parametes
 # =========================
-
 class FlaskConfig:
-  '''
+  """
   Pattern from Grinberg's Flask book.
   In Flask:
     from config.from_object(<thismodule>.FlaskConfig)
-  '''
-  SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess' # it's used as a CSRF SECRET_KEY
+  """
+  SECRET_KEY = os.environ.get('SECRET_KEY') or 'you-will-never-guess'  # it's used as a CSRF SECRET_KEY
+
 
 def adhoc_test():
-  print (get_ytvideo_datafolderbase_absdir())
-  print (get_ytchannels_jsonabspath())
-  print (get_apps_baseabspath())
+  print(get_ytvideo_datafolderbase_absdir())
+  print(get_ytchannels_jsonabspath())
+  print(get_apps_baseabspath())
+
 
 def process():
   adhoc_test()
+
 
 if __name__ == '__main__':
   process()

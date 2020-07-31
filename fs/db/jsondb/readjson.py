@@ -1,9 +1,13 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+"""
+  docstring
+"""
 import json
 import config
 import fs.filefunctions.pathfunctions as pathfs
 
 JSON_KEY_FOR_YTCHANNELID = 'ytchid'
+
 
 class JsonYtChannel:
 
@@ -22,13 +26,12 @@ class JsonYtChannel:
     for i, d in enumerate(jsondictlist):
       nname = d['nn']
       if nname in self.nnames_set:
-        error_msg = '"name" %s is already in json database. ' %nname
+        error_msg = '"name" %s is already in json database. ' % nname
         raise KeyError(error_msg)
       self.nnames_set.add(nname)
-      channeldict = {}
-      channeldict['nname'] = nname
+      channeldict = {'nname': nname}
       ytchid = d[JSON_KEY_FOR_YTCHANNELID]
-      if ytchid is None or len(ytchid) < 2: # at least 'u1'
+      if ytchid is None or len(ytchid) < 2:  # at least 'u1'
         continue
       elif '/' in ytchid:
         error_msg = 'ytchannelid has a forward slash (/)'
@@ -41,8 +44,9 @@ class JsonYtChannel:
     for i, record_dict in enumerate(self.channelsdata):
       yield record_dict
 
+
 def process():
-  channeldict = {} # ChannelNT = namedtuple('ChannelNT', 'nname url')
+  channeldict = {}  # ChannelNT = namedtuple('ChannelNT', 'nname url')
   channels = JsonYtChannel()
   for channeldictitem in channels.loopthru():
     nname = channeldictitem['nname']
@@ -53,7 +57,8 @@ def process():
   nnames = sorted(nnames)
   for i, nname in enumerate(nnames):
     url = channeldict[nname]
-    print (i+1, nname, url)
+    print(i+1, nname, url)
+
 
 if __name__ == '__main__':
   process()

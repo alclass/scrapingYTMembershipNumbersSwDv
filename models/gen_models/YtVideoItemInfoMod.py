@@ -118,7 +118,7 @@ class VideoItem:
       'ytvideoid': self.ytvideoid,
       'title': self.title,
       'infodatetime': self.infodatetime,
-      'calendarDateStr': self.calendarDateStr,
+      'calendar_datestr': self.calendarDateStr,
       'publishdatetime': self.publishdatetime,
       'n_views': str(self.n_views),
       'durationStr': self.durationStr,
@@ -130,7 +130,7 @@ class VideoItem:
     ytvideoid = %(ytvideoid)s
     title = %(title)s
     infodatetime = %(infodatetime)s
-    calendarDateStr = %(calendarDateStr)s
+    calendar_datestr = %(calendarDateStr)s
     publishedDatetime = %(publishdatetime)s
     n_views = %(n_views)s
     durationStr = %(durationStr)s
@@ -172,7 +172,7 @@ class YtVideoItemInfo:
     if start_letter not in ['c', 'u']:
       error_msg = "YtVideoItemInfo() init start_letter not in ['c', 'u'] for ytchannelid (%s)" %ytchannelid
       raise ValueError(error_msg)
-    ytchannel = fetch.FetchYtVideosPageByItsIdInDB(ytchannelid)
+    ytchannel = fetch.fetch_ytvideospage_by_its_dbid(ytchannelid)
     if ytchannel is None:
       error_msg = 'YtVideoItemInfo() init could not fetch ytchannel (videospage) by its ytchannelid (%s)' %ytchannelid
       raise ValueError(error_msg)

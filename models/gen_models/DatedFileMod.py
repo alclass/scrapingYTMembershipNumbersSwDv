@@ -139,7 +139,7 @@ class DatedFile:
       error_msg = 'Error: len(self.filename) < 11 (%s) when trying to derive strdate.' %str(self.filename)
       raise ValueError(error_msg)
     strdate = self.filename[:10]
-    refdate = dtfs.get_refdate_from_strdate_or_None(strdate)
+    refdate = dtfs.get_refdate_from_strdate_or_none(strdate)
     if refdate is None:
       error_msg = 'Error: refdate %s has not been found; filename %s.' %(str(strdate), self.filename)
       raise ValueError(error_msg)
