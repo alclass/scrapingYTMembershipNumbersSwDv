@@ -35,32 +35,45 @@ class YtVideosPage:
     self._n_subscribers = n
 
   def dbsave_subscribers_number(self, subscribers_number):
+    pdate, ptime = dtfs.split_date_n_time_from_datetime(self.videopagedatetime)
+    if pdate is None:
+      pdate = self.refdate
+    if ptime is None:
+      infodayhour = 12
+    else:
+      infodayhour = ptime.hour
     session = Session()
     subs = session.\
         query(YTDailySubscribersSA).\
-        filter(YTDailySubscribersSA.infodate == self.refdate). \
+        filter(YTDailySubscribersSA.infodate == pdate). \
         filter(YTDailySubscribersSA.ytchannelid == self.ytchannelid). \
         first()
-    changed = False
-    if subs:
-      if subs.subscribers != subscribers_number:
-        subs.subscribers = subscribers_number
-        changed = True
-    else:
+    updated = False
+    created = False
+    if not subs:
+      created = True
+      updated = True
       subs = YTDailySubscribersSA()
-      subs.ytchannelid = self.ytchannelid
-      subs.subscribers = subscribers_number
-      subs.infodate = self.refdate
       session.add(subs)
-      changed = True
-    if changed:
-      session.commit()
+      subs.ytchannelid = self.ytchannelid
+    if created or subs.subscribers != subscribers_number:
+      subs.subscribers = subscribers_number
       self.n_subscribers = subscribers_number
+      updated = True
+    if created or subs.infodate != pdate:
+      subs.infodate = pdate
+      self.refdate = pdate
+      updated = True
+    if created or subs.infodayhour != infodayhour:
+      subs.infodayhour = infodayhour
+      updated = True
+    if updated:
+      session.commit()
       print(' * Subscribers DB-written *')
     else:
       print(' *** Subscribers NOT DB-written ***')
     session.close()
-    return changed
+    return updated
 
   @property
   def days_n_subscribers(self):

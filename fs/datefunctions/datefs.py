@@ -22,6 +22,26 @@ def convert_datetime_to_date(pdatetime):
   return None
 
 
+def extract_time_from_datetime(pdatetime):
+  if pdatetime is None:
+    return None
+  try:
+    ptime = datetime.time(pdatetime.hour, pdatetime.minute, pdatetime.second, pdatetime.microsecond)
+  except AttributeError:
+    return None
+  return ptime
+
+
+def split_date_n_time_from_datetime(pdatetime):
+  pdate = convert_datetime_to_date(pdatetime)
+  if pdate is None:
+    return None, None
+  ptime = extract_time_from_datetime(pdatetime)
+  if ptime is None:
+    return pdate, None
+  return pdate, ptime
+
+
 def add_or_subtract_to_month(pdate, delta):
   """
   Ref https://stackoverflow.com/questions/3424899/whats-the-simplest-way-to-subtract-a-month-from-a-date-in-python
@@ -53,6 +73,13 @@ def get_strdate(p_refdate=None):
   refdate = get_refdate(p_refdate)
   strdate = '%d-%s-%s' % (refdate.year, str(refdate.month).zfill(2), str(refdate.day).zfill(2))
   return strdate
+
+
+def get_refdate_from_strdate_or_today(pdate=None):
+  indate = get_refdate_from_strdate_or_none(pdate)
+  if indate is None:
+    return datetime.date.today()
+  return indate
 
 
 def get_refdate_from_strdate_or_none(strdate):
@@ -385,6 +412,23 @@ def ajust_calendardatestr_to_start_with_a_number(calendardatestr):
   if recomposed_calendarstr == '':
     recomposed_calendarstr = default_calendardatestr
   return recomposed_calendarstr
+
+
+def generate_daterange_with_dateini_n_datefin(dateini=None, datefin=None):
+  if dateini is None or datefin is None:
+    return []
+  if dateini == datefin:
+    return datefin
+  idateini = dateini
+  idatefin = datefin
+  if dateini > datefin:
+    idateini = datefin
+    idatefin = dateini
+  currdate = dateini
+  while currdate <= datefin:
+    yield currdate
+    currdate = currdate + datetime.timedelta(days=1)
+  return None
 
 
 def make_daterange_with_dateini_n_datefim(dateini=None, datefim=None):

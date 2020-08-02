@@ -214,3 +214,18 @@ For unit test:
     expected_datetime = None
     returned_datetime = dtfs.transform_datelike_to_datetime(input_pdt)
     self.assertEqual(expected_datetime, returned_datetime)
+
+  def test_split_datetime_into_date_n_time(self):
+    ye = 2020
+    mo = 1
+    da = 31
+    ho = 12
+    mi = 13
+    se = 14
+    ms = 3
+    pdatetime = datetime.datetime(ye, mo, da, ho, mi, se, ms)
+    expected_date = datetime.date(ye, mo, da)
+    expected_time = datetime.time(ho, mi, se, ms)
+    expected_date_n_time = expected_date, expected_time
+    returned_date_n_time = dtfs.split_date_n_time_from_datetime(pdatetime)
+    self.assertEqual(expected_date_n_time, returned_date_n_time)

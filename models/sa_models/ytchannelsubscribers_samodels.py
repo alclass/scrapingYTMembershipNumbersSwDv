@@ -5,11 +5,11 @@
 import datetime
 import os
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Boolean, Integer, String, Date, DateTime, TIMESTAMP, \
+from sqlalchemy import Column, Boolean, Integer, String, Date, DateTime, Time, TIMESTAMP, \
   ForeignKey, Text, UniqueConstraint
 from sqlalchemy.types import BINARY
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy.sql import func, text
+from sqlalchemy.sql import text  # func
 import fs.datefunctions.datefs as dtfs
 from sqlalchemy.sql.expression import asc, desc
 import config
@@ -43,8 +43,8 @@ class YTChannelSA(Base):
   vinfolist = relationship('YTVideoItemInfoSA', backref='ytchannel', lazy='dynamic',
                            order_by=(desc('publishdatetime')))
 
-  created_at = Column(TIMESTAMP, server_default=func.now())  # nullable=False, server_default=text('0'))
-  updated_at = Column(TIMESTAMP, nullable=True)
+  created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))  # func.now() | text('0')
+  updated_at = Column(TIMESTAMP, nullable=True, server_default=text('ON UPDATE CURRENT_TIMESTAMP'))
 
   @property
   def scrapedate(self):
@@ -171,11 +171,12 @@ class YTDailySubscribersSA(Base):
   id = Column(Integer, primary_key=True)
   subscribers = Column(Integer)
   infodate = Column(Date)
+  infodayhour = Column(Integer, nullable=True)
 
   ytchannelid = Column(String, ForeignKey('channels.ytchannelid'))
 
-  created_at = Column(TIMESTAMP, server_default=func.now())  # nullable=False, server_default=text('0'))
-  updated_at = Column(TIMESTAMP, nullable=True)
+  created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))  # func.now() | text('0')
+  updated_at = Column(TIMESTAMP, nullable=True, server_default=text('ON UPDATE CURRENT_TIMESTAMP'))
 
   __table_args__ = (UniqueConstraint('infodate', 'subscribers', 'ytchannelid',
                                      name='infodate_n_subscribers_ytchannelid_uniq'),)
@@ -198,14 +199,15 @@ class YTVideoItemInfoSA(Base):
   duration_in_sec = Column(Integer, nullable=True)
   publishdatetime = Column(DateTime, nullable=True)
   published_time_ago = Column(String(30))
-  infodatetime = Column(DateTime, nullable=True)
+  infodate = Column(Date, nullable=True)
+  infodayhour = Column(Integer, nullable=True)
   changelog = Column(Text, nullable=True)
 
   vviewlist = relationship('YTVideoViewsSA', backref='vinfo', lazy='dynamic', order_by=desc('infodate'))
   ytchannelid = Column(String, ForeignKey('channels.ytchannelid'))
 
-  created_at = Column(TIMESTAMP, server_default=func.now())  # nullable=False, server_default=text('0'))
-  updated_at = Column(TIMESTAMP, nullable=True)
+  created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))  # func.now() | text('0')
+  updated_at = Column(TIMESTAMP, nullable=True, server_default=text('ON UPDATE CURRENT_TIMESTAMP'))
 
   def recalc_n_return_publishdtime_from_infodtime_n_calendarstr(self):
     return dtfs.calculate_origdtime_from_targetdtime_n_calendarstr(self.infodatetime, self.published_time_ago)
@@ -215,8 +217,8 @@ class YTVideoItemInfoSA(Base):
     return dtfs.transform_duration_in_sec_into_hms(self.duration_in_sec)
 
   @property
-  def infodate(self):
-    return dtfs.convert_datetime_to_date(self.infodatetime)
+  def infodatetimeuptohour(self):
+    return datetime.datetime(self.infodate.year, self.infodate.month, self.infodate.day, self.infodayhour)
 
   @property
   def publishdate(self):
@@ -266,13 +268,14 @@ class YTVideoViewsSA(Base):
 
   id = Column(Integer, primary_key=True)
   views = Column(Integer, nullable=True)
-  infodate = Column(DateTime, nullable=True)
+  infodate = Column(Date)
+  infodayhour = Column(Integer, nullable=True)
 
   ytvideoid = Column(String(11), ForeignKey('individualvideostats.ytvideoid'))
   # videoinfolist = relationship(YTVideoItemInfoSA)
 
-  created_at = Column(TIMESTAMP, server_default=func.now())  # nullable=False, server_default=text('0'))
-  updated_at = Column(TIMESTAMP, nullable=True)
+  created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))  # func.now() | text('0')
+  updated_at = Column(TIMESTAMP, nullable=True, server_default=text('ON UPDATE CURRENT_TIMESTAMP'))
 
   # ALTER TABLE `videosviews` ADD UNIQUE `infodate_n_ytvideoid_uniq`(`infodate`, `ytvideoid`);
   __table_args__ = (UniqueConstraint('infodate', 'ytvideoid', name='infodate_n_ytvideoid_uniq'),)
@@ -338,8 +341,9 @@ class NewsPublishersSA(Base):
 
   id = Column(Integer, primary_key=True)
   name = Column(String(40))
-  created_at = Column(TIMESTAMP, server_default=func.now())  # nullable=False, server_default=text('0'))
-  updated_at = Column(TIMESTAMP, nullable=True)
+
+  created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))  # func.now() | text('0')
+  updated_at = Column(TIMESTAMP, nullable=True, server_default=text('ON UPDATE CURRENT_TIMESTAMP'))
 
   articles = relationship('NewsArticlesSA', backref='publisher', lazy='dynamic', order_by=(desc('publishdate')))
 

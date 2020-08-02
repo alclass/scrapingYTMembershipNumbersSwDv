@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
- docstring
+  docstring
 """
 import datetime
 import os
@@ -42,13 +42,14 @@ def get_datebased_ythtmlfiles_folderabspath(p_refdate=None):
   if datafolder_abspath is None:
     error_msg = 'datafolder_abspath options in config.py do not exist.'
     raise OSError(error_msg)
-  # mount yyyy-mm as a subfolder
-  subfolder = '%d-%s' % (refdate.year, str(refdate.month).zfill(2))
-  datafolder_abspath = os.path.join(datafolder_abspath, subfolder)
+  # mount yyyy/yyyy-mm/yyyy-mm-dd as middlepath
+  stryear = strdate[:4]
+  stryearmonth = strdate[:7]
+  middlepath = '%s/%s/%s' % (stryear, stryearmonth, strdate)
+  datafolder_abspath = os.path.join(datafolder_abspath, middlepath)
   if not os.path.isdir(datafolder_abspath):
     # if os.makedirs() does not work, research whether or not an exception will be raised
     os.makedirs(datafolder_abspath)
-  datafolder_abspath = os.path.join(datafolder_abspath, strdate)
   if not os.path.isdir(datafolder_abspath):
     # idem
     os.makedirs(datafolder_abspath)

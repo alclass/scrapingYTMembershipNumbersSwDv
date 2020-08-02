@@ -8,7 +8,7 @@ from models.sa_models.ytchannelsubscribers_samodels import YTVideoItemInfoSA
 
 class VideoItem:
 
-  def __init__(self, ytvideoid, title, calendarDateStr, n_views, durationStr, infodatetime, ytchannelid):
+  def __init__(self, ytvideoid, title, calendarDateStr, n_views, durationStr, videopagedatetime, ytchannelid):
     self.ytvideoid = ytvideoid
     self.title = title
     self.calendarDateStr = calendarDateStr
@@ -16,7 +16,10 @@ class VideoItem:
     self.n_views = None;
     self.treat_views(n_views)
     self.durationStr = durationStr
-    self.infodatetime = infodatetime  # former ytvideofiledatetime
+    self.videopagedatetime = videopagedatetime
+    self._infodate = None
+    self._infodayhour = None
+
     self.ytchannelid = ytchannelid
     self.publishdatetime = None  # to be calculated
     self.calculate_publishdate()
@@ -31,7 +34,8 @@ class VideoItem:
 
   @property
   def infodate(self):
-    return dtfs.convert_datetime_to_date(self.infodatetime)
+    self._infodate, self._infodayhour = dtfs.split_date_n_time_from_datetime(self.videopagedatetime)
+    return self._infodate
 
   def publishdate(self):
     return dtfs.convert_datetime_to_date(self.publishdatetime)
@@ -44,7 +48,7 @@ class VideoItem:
     self.calendarDateStr = dtfs.ajust_calendardatestr_to_start_with_a_number(self.calendarDateStr)
 
   def calculate_publishdate(self):
-    self.publishdatetime = dtfs.calculate_origdtime_from_targetdtime_n_calendarstr(self.infodatetime,
+    self.publishdatetime = dtfs.calculate_origdtime_from_targetdtime_n_calendarstr(self.videopagedatetime,
                                                                                    self.calendarDateStr)
   def write_item_to_db_item_n_views(self):
     bool_items = self.write_item_to_db()
@@ -55,29 +59,45 @@ class VideoItem:
 
     bool_views = self.write_views_to_db()
     if bool_views:
-      print('Written views', self.n_views, self.infodatetime)
+      print('Written views', self.n_views, self.infodate)
     else:
-      print(' *NOT* Written views', self.n_views, self.infodatetime)
+      print(' *NOT* Written views', self.n_views, self.infodate)
     return bool_items and bool_views
 
   def write_item_to_db(self):
+    pdate, ptime = dtfs.split_date_n_time_from_datetime(self.videopagedatetime)
+    if pdate is None:
+      pdate = dtfs.get_refdate_from_strdate_or_today()
+    if ptime is None:
+      infodayhour = 12
+    else:
+      infodayhour = ptime.hour
     session = Session()
-    videoitem = session.query(YTVideoItemInfoSA).filter(YTVideoItemInfoSA.ytvideoid == self.ytvideoid).first()
+    videoitem = session.\
+        query(YTVideoItemInfoSA).\
+        filter(YTVideoItemInfoSA.ytvideoid == self.ytvideoid).\
+        first()
     if videoitem:
       was_changed = False
       if videoitem.title != self.title:
         videoitem.title = self.title
         was_changed = True
-      if self.publishdatetime is not None:
-        if videoitem.publishdatetime is None or videoitem.publishdatetime > self.publishdatetime:
-          videoitem.publishdatetime = self.publishdatetime
-          videoitem.published_time_ago = self.calendarDateStr
-          videoitem.infodatetime = self.infodatetime
-          was_changed = True
-      if self.duration_in_sec is not None or self.duration_in_sec == 0:
-        if videoitem.publishdatetime != self.publishdatetime:
-          videoitem.publishdatetime = self.publishdatetime
-          was_changed = True
+      if self.publishdatetime is not None and videoitem.publishdatetime is None:
+        videoitem.publishdatetime = self.publishdatetime
+        videoitem.published_time_ago = self.calendarDateStr
+        was_changed = True
+      # logically, if infodate has already been recorded, pdate will be later and no update will occurr,
+      # but it'll help when databases are out of sync and infodate must be the lesser of the two
+      if videoitem.infodate is None or videoitem.infodate > pdate:
+        videoitem.infodate = pdate
+        was_changed = True
+      if videoitem.infodayhour is None and infodayhour is not None:
+        if pdate <= videoitem.infodate:
+          videoitem.infodayhour = infodayhour
+        was_changed = True
+      if videoitem.duration_in_sec is None or videoitem.duration_in_sec == 0:
+        videoitem.duration_in_sec = self.duration_in_sec
+        was_changed = True
       if was_changed:
         session.commit()
       session.close()
@@ -88,7 +108,8 @@ class VideoItem:
     videoitem.duration_in_sec = self.duration_in_sec
     videoitem.publishdatetime = self.publishdatetime
     videoitem.published_time_ago = self.calendarDateStr
-    videoitem.infodatetime = self.infodatetime
+    videoitem.infodate = pdate
+    videoitem.infodayhour = infodayhour
     videoitem.ytchannelid = self.ytchannelid
     session.add(videoitem)
     session.commit()
@@ -107,7 +128,7 @@ class VideoItem:
     vviews = YTVideoViewsSA()
     vviews.ytvideoid = self.ytvideoid
     vviews.views = self.n_views
-    vviews.infodate = dtfs.convert_datetime_to_date(self.infodatetime)
+    vviews.infodate = self.infodate
     session.add(vviews)
     session.commit()
     session.close()

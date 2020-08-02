@@ -91,14 +91,15 @@ def extract_videoitems_from_videopage(ytchannelid, refdate):
     return
   timestamp = ytvideopage.filesdatetime.st_atime
   print(ytvideopage.filesdatetime.st_atime)
-  videopagefilesdatetime = datetime.datetime.fromtimestamp(timestamp)
-  print(videopagefilesdatetime)
+  videopagedatetime = datetime.datetime.fromtimestamp(timestamp)
+  print(videopagedatetime)
 
   text = ytvideopage.get_html_text()
   # 1st) get the subscribers number
+  ytvideopage.videopagedatetime = videopagedatetime
   extract_subscribers_from_htmltext(text, ytvideopage)
   # 2nd) get the video items
-  extract_vitems_from_htmltext(text, ytvideopage, videopagefilesdatetime)
+  extract_vitems_from_htmltext(text, ytvideopage)
 
 
 def extract_subscribers_from_htmltext(text, ytvideopage):
@@ -108,7 +109,7 @@ def extract_subscribers_from_htmltext(text, ytvideopage):
   return ytvideopage.dbsave_subscribers_number(subscribers_number)
 
 
-def extract_vitems_from_htmltext(text, ytvideopage, videopagefilesdatetime):
+def extract_vitems_from_htmltext(text, ytvideopage):
   begpos = text.find(beginningStr)
   counter = 0
   # there are about 29 videos per pages, the while below intends to loop them all
@@ -120,9 +121,9 @@ def extract_vitems_from_htmltext(text, ytvideopage, videopagefilesdatetime):
       counter += 1
       try:
         json_as_dict = json.loads(jsondictchunk)
-        viscraper = VideoItemsPageScraper(ytvideopage.ytchannelid, videopagefilesdatetime)
+        viscraper = VideoItemsPageScraper(ytvideopage.ytchannelid, ytvideopage.videopagedatetime)
         viscraper.introspect_json_to_find_items(json_as_dict)
-        bool_written = viscraper.dbsave_videoitem()
+        bool_written = viscraper.dbsave_videoitem()  # videopagefilesdatetime already in object
         if bool_written:
           print(' * WRITTEN *')
         else:
