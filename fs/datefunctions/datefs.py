@@ -131,9 +131,9 @@ def is_stryyyydashmm_good(yyyymm7char):
     day = 1
     _ = datetime.date(year, month, day)
     return True
-  except IndexError:
+  except IndexError:  # for non-existing indices
     pass
-  except ValueError:  # but for int() and for datetime.infodate()
+  except ValueError:  # for int() and for datetime.infodate()
     pass
   return False
 
@@ -160,17 +160,36 @@ def return_refdate_as_datetimedate_or_today(refdate=None):
   return get_refdate()
 
 
-def is_year_month_day_good(year, month, day=1):
+def is_year_month_day_good(year, month, day):
+  """
+    This function is also used by is_year_month_good(year, month)
+  :param year:
+  :param month:
+  :param day:
+  :return:
+  """
   try:
-    _ = datetime.date(year, month, day)  # if this op is complete, year_month is good
+    _ = datetime.date(int(year), int(month), int(day))
     return True
   except ValueError:
     pass
   return False
 
 
-def str_is_inversed_year_month(str_year_month):
+def is_year_month_good(year, month):
+  return is_year_month_day_good(year, month, day=1)
+
+
+def is_strdate_a_7char_yyyymm(str_year_month):
+  """
+    Valid one: 2020-01
+    Invalid ones: 20201, 202001
+  :param str_year_month:
+  :return:
+  """
   if str_year_month is None:
+    return False
+  if len(str_year_month) != 7:
     return False
   try:
     pp = str_year_month.split('-')
@@ -186,8 +205,52 @@ def str_is_inversed_year_month(str_year_month):
   return False
 
 
-def str_is_inversed_date(strdate):
+def is_strdate_a_nondashed_8char_yyyymmdd(strdate):
+  """
+    Valid one: 20200101
+    Invalid ones: 202011, 2020011, 2020101
+  :param strdate:
+  :return:
+  """
   if strdate is None:
+    return False
+  if len(strdate) != 8:
+    return False
+  try:
+    year = int(strdate[: 4])
+    month = int(strdate[4: 6])
+    day = int(strdate[6: ])
+    _ = datetime.date(year, month, day)  # if this op is complete, infodate is good
+    return True
+  except ValueError:
+      pass
+  return False
+
+
+def is_strdate_a_10char_yyyymmdd(strdate):
+  """
+    Valid one: 2020-01-01
+    Invalid ones: 2020-1-1, 2020-01-1, 2020-1-01,
+  :param strdate:
+  :return:
+  """
+  if strdate is None:
+    return False
+  if len(strdate) != 10:
+    return False
+  return is_strdate_a_dashed_8to10char_yyyymmdd(strdate)
+
+
+def is_strdate_a_dashed_8to10char_yyyymmdd(strdate):
+  """
+    Valid ones: 2020-1-1, 2020-01-1, 2020-1-01, 2020-01-01
+    Invalid ones: 202011, 202101, 2020101, 2020011
+  :param strdate:
+  :return:
+  """
+  if strdate is None:
+    return False
+  if len(strdate) < 8 or len(strdate) > 10:
     return False
   try:
     pp = strdate.split('-')

@@ -59,7 +59,7 @@ def show_help_n_exit():
 
 
 def find_ini_fim_full_date_range_in_data_n_confim():
-  dateini, datefim = autofind.find_dateini_n_dateend_thru_yyyymmdd_level2_folders()
+  dateini, datefim = autofind.find_dateini_n_datefin_thru_yyyymmdd_level3_folders()
   screen_msg = 'Please confirm dateini as %s and datefim as %s:' % (dateini, datefim)
   print(screen_msg)
   ans = input('Confirm (Y/n) [default is Y, type in N/n to unconfirm] ? ')

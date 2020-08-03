@@ -36,33 +36,13 @@ def joinabspath_with_tuple(path_n_entry_tuple):
   return os.path.join(path_n_entry_tuple[0], path_n_entry_tuple[1])
 
 
-def is_entry_a_folder(ppath):
-  """
-    Former lambda lambdaentryisfolder
-  :param ppath:
-  :return:
-  """
-  return os.path.isdir(ppath)
-
-
 def does_str_form_date(word):
   """
     Former lambda lambdastrformdate & lambdafilterinyyyymmdd
   :param word:
   :return:
   """
-  return dtfs.str_is_inversed_date(word)
-
-
-def is_str_year_slash_month(word):
-  """
-    Former lambda lambdafilterinyyyymm
-    lambdafilterinyyyymm   = lambda word : dtfs.str_is_inversed_year_month(word)
-
-  :param word:
-  :return:
-  """
-  return dtfs.str_is_inversed_year_month(word)
+  return dtfs.is_strdate_a_dashed_8to10char_yyyymmdd(word)
 
 
 def get_level1folderabspath(pdate=None):
@@ -83,6 +63,8 @@ def get_level1folderabspath(pdate=None):
 def does_str_form_yyyydate(word):
   if word is None:
     return False
+  if len(word) != 4:
+    return False
   strdate = word + '-1-1'
   if dtfs.get_refdate_from_strdate_or_none(strdate):
     return True
@@ -91,6 +73,8 @@ def does_str_form_yyyydate(word):
 
 def does_str_form_yyyymmdate(word):
   if word is None:
+    return False
+  if len(word) != 7:
     return False
   strdate = word + '-1'
   if dtfs.get_refdate_from_strdate_or_none(strdate):
@@ -149,7 +133,7 @@ def find_1stlevel_yyyy_dir_abspaths(plevel0abspath=None):
     return []
   zippedforlambda = list(zip([level0abspath]*len(entries), entries))
   abspath_entries = list(map(joinabspath_with_tuple, zippedforlambda))
-  yyyy_level1_abspath_entries = list(filter(is_entry_a_folder, abspath_entries))
+  yyyy_level1_abspath_entries = list(filter(lambda f: os.path.isdir(f), abspath_entries))
   return yyyy_level1_abspath_entries
 
 
@@ -177,8 +161,7 @@ def find_2ndlevel_yyyymm_dir_foldernames(level1abspath=None):
 def find_2ndlevel_yyyymm_dir_abspaths(level1abspath=None):
   """
 
-  :param level2abspathentry:
-  :param level2entries:
+  :param level1abspath:
   :return:
   """
   l2abspaths = find_1stlevel_yyyy_dir_abspaths(level1abspath)
@@ -209,7 +192,7 @@ def find_3rdlevel_yyyymmdd_dir_abspaths_from_a_2ndlevel(level2abspathentry, leve
     return
   zippedforlambda = zip([level2abspathentry]*len(level2entries), level2entries)
   level2_abspath_entries = list(map(joinabspath_with_tuple, zippedforlambda))
-  level2_abspath_entries = list(filter(is_entry_a_folder, level2_abspath_entries))
+  level2_abspath_entries = list(filter(lambda f: os.path.isdir(f), level2_abspath_entries))
   return level2_abspath_entries
 
 
@@ -283,7 +266,7 @@ def does_edgedate_folder_exist(pdate):
   return False
 
 
-def mount_level3folderabspath_with_date(pdate=None, plevel0baseabspath=None):
+def mount_level3folderabspath_with_date(pdate=None, create_folder=True, plevel0baseabspath=None):
   indate = pdate
   if indate is None or len(str(indate)) < 10:
     indate = dtfs.get_refdate_from_strdate_or_today()
@@ -294,13 +277,14 @@ def mount_level3folderabspath_with_date(pdate=None, plevel0baseabspath=None):
   level0baseabspath = find_0thlevel_dir_abspaths(plevel0baseabspath)
   level3abspath = os.path.join(level0baseabspath, middlepath)
   if not os.path.isdir(level3abspath):
-    os.makedirs(level3abspath)
+    if create_folder:
+      os.makedirs(level3abspath)
   return level3abspath
 
 
 def generate_all_ytvideopages_abspath_asc_date():
   # dates_n_paths_od = get_ordered_dict_with_dates_n_abspaths()
-  dateini, datefin = find_dateini_n_dateend_thru_yyyymmdd_level2_folders()
+  dateini, datefin = find_dateini_n_datefin_thru_yyyymmdd_level3_folders()
   for pdate in dtfs.generate_daterange_with_dateini_n_datefin(dateini, datefin):
     yyyymmdd_dir_abspath = mount_level3folderabspath_with_date(pdate)
     if yyyymmdd_dir_abspath is None:
@@ -337,7 +321,7 @@ def get_entries_in_level3abspath_from_date(pdate=None, p_level3folderabspath=Non
   """
 
   :param pdate:
-  :param p_level2folderabspath:
+  :param p_level3folderabspath:
   :return:
   """
   level3folderabspath = p_level3folderabspath
@@ -351,7 +335,7 @@ def get_htmlfilenames_from_date(pdate=None,  p_level3folderabspath=None):
   """
 
   :param pdate:
-  :param p_level2folderabspath:
+  :param p_level3folderabspath:
   :return:
   """
   level3folderabspath = p_level3folderabspath
@@ -387,7 +371,96 @@ def get_htmlfilepaths_from_date(pdate=None):
   return htmlfile_abspath_list
 
 
-def find_dateini_n_dateend_thru_yyyymmdd_level2_folders():
+def get_l1foldernames(l0abspath=None):
+  l0abspath = find_0thlevel_dir_abspaths(l0abspath)
+  foldernames = os.listdir(l0abspath)
+  foldernames = list(filter(does_str_form_yyyydate, foldernames))
+  zippedforlambda = list(zip([l0abspath]*len(foldernames), foldernames))
+  path_n_foldernames = filter(lambda tupl : os.path.join, zippedforlambda)
+  foldernames = list(map(lambda tupl : tupl[1], path_n_foldernames))
+  foldernames = list(sorted(foldernames))
+  return foldernames
+
+
+def get_l2foldernames_for_l1foldername(stryyyfoldername, l0abspath=None):
+  if stryyyfoldername is None:
+    return []
+  l0abspath = find_0thlevel_dir_abspaths(l0abspath)
+  l1abspath = os.path.join(l0abspath, stryyyfoldername)
+  foldernames = os.listdir(l1abspath)
+  foldernames = list(filter(does_str_form_yyyymmdate, foldernames))
+  zippedforlambda = list(zip([l1abspath]*len(foldernames), foldernames))
+  path_n_foldernames = filter(lambda tupl : os.path.join, zippedforlambda)
+  foldernames = list(map(lambda tupl : tupl[1], path_n_foldernames))
+  foldernames = list(sorted(foldernames))
+  return foldernames
+
+
+def get_l3foldernames_for_l2foldername(stryyymmfoldername, l0abspath=None):
+  if stryyymmfoldername is None:
+    return []
+  if not does_str_form_yyyymmdate(stryyymmfoldername):
+    return []
+  middlepath = stryyymmfoldername[:4] + '/' + stryyymmfoldername
+  l0abspath = find_0thlevel_dir_abspaths(l0abspath)
+  l2abspath = os.path.join(l0abspath, middlepath)
+  foldernames = os.listdir(l2abspath)
+  foldernames = list(filter(does_str_form_date, foldernames))
+  zippedforlambda = list(zip([l2abspath]*len(foldernames), foldernames))
+  path_n_foldernames = filter(lambda tupl : os.path.join, zippedforlambda)
+  foldernames = list(map(lambda tupl : tupl[1], path_n_foldernames))
+  foldernames = list(sorted(foldernames))
+  return foldernames
+
+
+def find_oldest_yyyymmdd_level3_foldername(l0abspath=None):
+  l0abspath = find_0thlevel_dir_abspaths(l0abspath)
+  foldernames = find_1stlevel_yyyy_dir_foldernames(l0abspath)
+  if len(foldernames) == 0:
+    return None
+  foldernames = sorted(foldernames)
+  oldest_foldername = foldernames[0]
+  foldernames = get_l2foldernames_for_l1foldername(oldest_foldername)
+  if len(foldernames) == 0:
+    return None
+  foldernames = sorted(foldernames)
+  oldest_foldername = foldernames[0]
+  foldernames = get_l3foldernames_for_l2foldername(oldest_foldername)
+  if len(foldernames) == 0:
+    return None
+  foldernames = sorted(foldernames)
+  oldest_foldername = foldernames[0]
+  return oldest_foldername
+
+
+def find_newest_yyyymmdd_level3_foldername(l0abspath=None):
+  l0abspath = find_0thlevel_dir_abspaths(l0abspath)
+  foldernames = find_1stlevel_yyyy_dir_foldernames(l0abspath)
+  if len(foldernames) == 0:
+    return None
+  foldernames = sorted(foldernames)
+  newest_foldername = foldernames[-1]
+  foldernames = get_l2foldernames_for_l1foldername(newest_foldername)
+  if len(foldernames) == 0:
+    return None
+  foldernames = sorted(foldernames)
+  newest_foldername = foldernames[-1]
+  foldernames = get_l3foldernames_for_l2foldername(newest_foldername)
+  if len(foldernames) == 0:
+    return None
+  foldernames = sorted(foldernames)
+  newest_foldername = foldernames[-1]
+  return newest_foldername
+
+
+def find_dateini_n_datefin_thru_yyyymmdd_level3_folders():
+  strdate_ini = find_oldest_yyyymmdd_level3_foldername()
+  strdate_fin = find_newest_yyyymmdd_level3_foldername()
+  dateini = dtfs.get_refdate_from_strdate_or_none(strdate_ini)
+  datefin = dtfs.get_refdate_from_strdate_or_none(strdate_fin)
+  return dateini, datefin
+
+def find_dateini_n_datefin_thru_yyyymmdd_level3_folders_olderversion():
   """
 
   :return:
@@ -427,7 +500,20 @@ def adhoc_test2():
   print('find_yyyymmdd_level3_foldernames()', find_yyyymmdd_level3_foldernames())
   print('mount_level3folderabspath_with_date()', mount_level3folderabspath_with_date())
   pdate = dtfs.get_refdate_from_strdate_or_today()
-  print('does_edgedate_folder_exist(%s)' %pdate, does_edgedate_folder_exist(pdate))
+  print('does_edgedate_folder_exist(%s)' % pdate, does_edgedate_folder_exist(pdate))
+  foldernames = get_l3foldernames_for_l2foldername('2020-07')
+  print('l3 foldernames', foldernames)
+  foldernames = get_l2foldernames_for_l1foldername('2020')
+  print('l2 foldernames', foldernames)
+  foldernames = get_l1foldernames('2020')
+  print('l1 foldernames', foldernames)
+  oldest_yyyymmdd = find_oldest_yyyymmdd_level3_foldername()
+  print('oldest_yyyymmdd', oldest_yyyymmdd)
+  newest_yyyymmdd = find_newest_yyyymmdd_level3_foldername()
+  print('newest_yyyymmdd', newest_yyyymmdd)
+  dateini, datefin = find_dateini_n_datefin_thru_yyyymmdd_level3_folders()
+  print('dateini, datefin', dateini, datefin)
+
 
 def process():
   """
