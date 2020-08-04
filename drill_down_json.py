@@ -4,12 +4,15 @@
 """
 import datetime
 import json
+import logging
 from models.gen_models.YtVideosPageMod import YtVideosPage
 from models.gen_models.YtVideoItemInfoMod import VideoItem
 from models.sa_models.ytchannelsubscribers_samodels import YTChannelSA
 from models.sa_models.ytchannelsubscribers_samodels import get_all_ytchannelids
 import fs.textfunctions.scraper_helpers as scraphlp
 from fs.db.sqlalchdb.sqlalchemy_conn import Session
+
+logger = logging.getLogger(__name__)
 
 
 class VideoItemsPageScraper:
@@ -90,9 +93,10 @@ def extract_videoitems_from_videopage(ytchannelid, refdate):
     # print('Filepath does not exist for', ytchannelid, ':: returning...')
     return
   timestamp = ytvideopage.filesdatetime.st_atime
-  print(ytvideopage.filesdatetime.st_atime)
   videopagedatetime = datetime.datetime.fromtimestamp(timestamp)
-  print(videopagedatetime)
+  log_msg = '%s %s %s' % (str(ytvideopage.filesdatetime.st_atime), str(videopagedatetime), ytchannelid)
+  print(log_msg)
+  logger.info(log_msg)
 
   text = ytvideopage.get_html_text()
   # 1st) get the subscribers number
@@ -125,15 +129,18 @@ def extract_vitems_from_htmltext(text, ytvideopage):
         viscraper.introspect_json_to_find_items(json_as_dict)
         bool_written = viscraper.dbsave_videoitem()  # videopagefilesdatetime already in object
         if bool_written:
-          print(' * WRITTEN *')
+          situation_written_or_not = ' * WRITTEN *'
         else:
-          print(' *** not WRITTEN ***')
-        print(counter, viscraper)
+          situation_written_or_not = ' *** not WRITTEN ***'
+        log_msg = '%s %d %s' % (situation_written_or_not, counter, str(viscraper))
+        print(log_msg)
+        logger.info(log_msg)
       except json.decoder.JSONDecodeError:
         print('=' * 50)
         # TO-DO log it to a file, so that we'll be able to find a flawd videopage file
-        print('=> Failed for', ytvideopage.ytchannelid, ytvideopage.filename)
-        print('=' * 50)
+        log_msg = '=> Failed for %s %s' % (ytvideopage.ytchannelid, ytvideopage.filename)
+        print(log_msg)
+        logger.info(log_msg)
         continue
     text = text[endpos:]
     begpos = text.find(beginningStr)

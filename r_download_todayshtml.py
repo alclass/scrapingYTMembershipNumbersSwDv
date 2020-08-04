@@ -1,39 +1,53 @@
 #!/usr/bin/env python3
 """
-This script downloads YouTube video pages that belong to channels
-  in the database.  It will only download pages once a day
-  as each html file is named per day.
+This script downloads YouTube video pages (*) that belong to channels
+  in the database.
 
-Statistically, some of these downloaded video pages will be DOM-empty,
-  ie, they can not be scraped by the technique in this system,
-  which uses the DOM.
+(*) The URL pattern for these pages are youtu.be/<channelsid>/videos and
+    they are found via the [videos] tab from the YouTube channel's home page.
 
-The searched info in this case is observed to be found in the Javascript,
-  but this system unfortunately does not look into the Javascript,
-  so a redownload may solve the issue.
-  (Some times more than one redownload may be necessary.)
+  This script is planned to download pages once a day
+  as each html file is named per day and kept in a configured folder.
 
-Thus as a downloaded file is DOM-empty, it's deleted and then put in
-  a list for later redownloading. (It takes some seconds delay.)
+Obs:
+  1) files may be deleted on days afterwards but should be kept on the
+     day's download that so that a second dowload does not happen or,
+     alternatively, deleted for a renewed download on that same day;
+  2) attribute each_n_days, if used, will make some videopages to be download
+     <each_n_days> after its last download;
 
-The param arg --maxtries=<number> defines how many times
-  a redownload roll may happen.  Its DEFAULT is 3.
+When this script was first written (May 2020) it was possible to find scrapeable data
+  in the DOM. About in July 2020, all downloaded videopages did not have
+  info in the DOM anymore,
+  but they were found in the JavaScript in the page. So after June/July 2020 this system
+  was updated to scrape data directly from the JavaScript source text.
 
-At the end, a print message will show how many files are still empty,
-  and, after 3 tries, it's expected that no remaining files
-  will still be DOM-empty, ie, they will all be DOM-scrapeable.
+When previously scraping was against the DOM,
+  library BeautifulSoup was used. When data moved
+  to the JavaScript source, BeautifulSoup was changed for a home-solution that
+  used string.find() to cut off pre-string and post-string,
+  and load the middle string into
+  a Json object that, in turn, was casts into a dict.
+  The sought-for info hopefully was in the dict.
 
-Usage:
-  #<scriptname> [--maxtries=<number>] [--allactive=<boolean>]
+Script's Usage:
+==============
+  #<scriptname> [--allactive=<boolean>]
 obs:
-  --maxtries  => maximum number of tries when download file does not have data-extractable;
-  if --maxtries is not given, the default will be used. (At the time of this writing, it's 7.)
-
   --allactive  => downloads all active channels in db, if False,
     it downloads according to dld_each_days parameter in db;
   if --allactive is not given, the default will be used. (At the time of this writing, it's ', ie, True.)
+
+DEPRECATED:
+  1) The param arg --maxtries=<number> defined how many times
+  a redownload roll may happen.  Its DEFAULT is 3.
+  --maxtries  => maximum number of tries when download file does not have data-extractable;
+  if --maxtries is not given, the default will be used. (At the time of this writing, it's 7.)
+
+  [It's not used anymore because redownloads do not happen when a 200 OK status code was gotten.]
 """
 import datetime
+import logging
 import os
 import requests
 import time
@@ -45,6 +59,14 @@ import models.sa_models.ytchannelsubscribers_samodels as samodels
 import fs.datefunctions.datefs as dtfs
 from fs.db.jsondb import readjson
 import drill_down_json as drill
+import config
+
+_, logfilename = os.path.split(__file__)
+logfilename = str(datetime.date.today()) + '_' + logfilename[:-3] + '.log'
+logfilepath = os.path.join(config.get_logfolder_abspath(), logfilename)
+logging.basicConfig(filename=logfilepath, filemode='w', format='%(name)s %(levelname)s %(message)s')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class DownloadYtVideoPages:
@@ -107,7 +129,9 @@ class DownloadYtVideoPages:
     for i, ytchannel in enumerate(self.ytchannels):
       if not self.download_all_active_ones:
         if not ytchannel.is_downloadable_on_date:
-          print('File', ytchannel.filename, 'not be downloaded today. Continuing...')
+          log_msg = 'File ' + ytchannel.filename + 'not be downloaded today. Continuing...'
+          print(log_msg)
+          logger.info(log_msg)
           continue
       entry_abspath = ytchannel.datedpage_filepath
       if os.path.isfile(entry_abspath):
@@ -116,13 +140,16 @@ class DownloadYtVideoPages:
         continue
       seq = i+1
       n_of_m = '%d/%d/%d' % (seq, self.total_channels, self.n_of_download_rolls)
-      print(n_of_m, '>>> Going to download', ytchannel.murl)
+      log_msg = n_of_m + ' >>> Going to download ' + ytchannel.murl
+      print(log_msg)
+      logger.info(log_msg)
       # DOWNLOAD happens here
       res = requests.get(ytchannel.videospageurl, allow_redirects=True)
       if res.status_code != 200:
         self.n_fail_200 += 1
         error_msg = 'Page [%s] returned a not 200 status response' % ytchannel.videospageurl
         print(error_msg)
+        logger.error(error_msg)
         # instead of raising an exception, log message to a file
         # raise IOError(error_msg)
         continue
@@ -133,8 +160,10 @@ class DownloadYtVideoPages:
 
       wait_secs = dtfs.get_random_config_download_wait_nsecs()
       datedpagefn = ytchannel.datedpage_filename
-      print(' => written ', datedpagefn)
+      log_msg = ' => written ' + datedpagefn
+      print(log_msg)
       print(':: wait', wait_secs, 'seconds.')
+      logger.info(log_msg)
       drill.extract_videoitems_from_videopage(ytchannel.ytchannelid, today)
 
       time.sleep(wait_secs)
@@ -144,9 +173,13 @@ class DownloadYtVideoPages:
 
     :return:
     """
-    print('Report:          n_of_download_rolls =', self.n_of_download_rolls)
-    print('n_exists =', self.n_exists, '; n_downloaded =', self.n_downloaded,
-          '; n_fail_200 =', self.n_fail_200, '; total_channels =', self.total_channels)
+    log_msg = 'Report:          n_of_download_rolls = ' + str(self.n_of_download_rolls)
+    print(log_msg)
+    logger.info(log_msg)
+    log_msg = 'n_exists = %d ; n_downloaded = %d ; n_fail_200 = %d ; total_channels = %d' \
+              % (self.n_exists, self.n_downloaded, self.n_fail_200, self.total_channels)
+    print(log_msg)
+    logger.info(log_msg)
 
 
 class DownloadProcessOption:
@@ -186,6 +219,7 @@ class DownloadProcessOption:
     downloader = DownloadYtVideoPages(self.n_download_rolls, self.download_all_active_ones)
     downloader.download_ytvideopages()
     downloader.report()
+    logging.shutdown()  # to close all files/handlers
     self.n_download_rolls += 1
 
   def run_emptyfinder_n_redownload_n_times(self):

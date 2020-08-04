@@ -1,10 +1,13 @@
 #!/usr/bin/python3
+import logging
 import fs.datefunctions.datefs as dtfs
 import models.procdb.sqlalch_fetches as fetch
 from fs.db.sqlalchdb.sqlalchemy_conn import Session
-from models.gen_models.YtVideosPageMod import YtVideosPage
 from models.sa_models.ytchannelsubscribers_samodels import YTVideoViewsSA
 from models.sa_models.ytchannelsubscribers_samodels import YTVideoItemInfoSA
+
+logger = logging.getLogger(__name__)
+
 
 class VideoItem:
 
@@ -52,16 +55,20 @@ class VideoItem:
                                                                                    self.calendarDateStr)
   def write_item_to_db_item_n_views(self):
     bool_items = self.write_item_to_db()
-    if bool_items:
-      print('Written item', self.ytvideoid, self.title)
-    else:
-      print(' *NOT* Written item', self.ytvideoid, self.title)
+    situation_written_or_not = 'Written item'
+    if not bool_items:
+      situation_written_or_not = ' *NOT* ' + situation_written_or_not
+    log_msg = situation_written_or_not + ' ' + self.ytvideoid + ' ' + self.title + str(self.infodate)
+    print(log_msg)
+    logger.info(log_msg)
 
     bool_views = self.write_views_to_db()
-    if bool_views:
-      print('Written views', self.n_views, self.infodate)
-    else:
-      print(' *NOT* Written views', self.n_views, self.infodate)
+    situation_written_or_not = 'Written item'
+    if not bool_views:
+      situation_written_or_not = ' *NOT* ' + situation_written_or_not
+    log_msg = situation_written_or_not + str(self.n_views) + str(self.infodate)
+    print(log_msg)
+    logger.info(log_msg)
     return bool_items and bool_views
 
   def write_item_to_db(self):
