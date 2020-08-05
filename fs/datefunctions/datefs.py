@@ -32,6 +32,34 @@ def extract_time_from_datetime(pdatetime):
   return ptime
 
 
+def round_hour_with_time(ptime):
+  """
+    Notice: this function doesn't round hour 23 for the time being for it should "carry one"
+      which it does do at this moment
+
+  :param ptime:
+  :return:
+  """
+  if ptime is None:
+    return None
+  try:
+    hour = ptime.hour
+    if hour > 22:
+      return hour
+    if hour % 2 == 0:
+      if ptime.minute < 31:
+        return hour
+      else:
+        return hour + 1
+    if ptime.minute < 30:
+      return hour
+    else:
+      return hour + 1
+  except AttributeError:
+    pass
+  return None
+
+
 def split_date_n_time_from_datetime(pdatetime):
   pdate = convert_datetime_to_date(pdatetime)
   if pdate is None:
@@ -630,7 +658,9 @@ def process():
   print('n_wait', n_wait)
   n_wait = get_random_config_download_wait_nsecs()
   print('n_wait', n_wait)
-
+  ptime = datetime.time(13, 29, 0)
+  dayhour = round_hour_with_time(ptime)
+  print(ptime, 'round hour to', dayhour)
 
 if __name__ == '__main__':
   process()

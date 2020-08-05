@@ -107,7 +107,7 @@ def extract_videoitems_from_videopage(ytchannelid, refdate):
 
   text = ytvideopage.get_html_text()
   # 1st) get the subscribers number
-  ytvideopage.videopagedatetime = videopagedatetime
+  # ytvideopage.videopagedatetime = videopagedatetime
   extract_subscribers_from_htmltext(text, ytvideopage)
   # 2nd) get the video items
   extract_vitems_from_htmltext(text, ytvideopage)

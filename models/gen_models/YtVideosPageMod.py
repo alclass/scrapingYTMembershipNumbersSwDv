@@ -2,10 +2,10 @@
 """
   docstring
 """
-import datetime
 import os
 from prettytable import PrettyTable
 from sqlalchemy.sql.expression import desc
+import fs.filefunctions.autofinders as autof
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.pathfunctions as pathfs
 import fs.db.sqlalchdb.dbfetchesmod as dbfetch
@@ -20,9 +20,16 @@ class YtVideosPage:
     self.nname = nname
     self._sname = None
     self.refdate = dtfs.get_refdate_or_today(refdate)
+    self._videopagedatetime = None
     self._n_subscribers = None
     self._days_n_subscribers = []
     self._downloadable_on_date = None  # to set 'lazily' as boolean
+
+  @property
+  def videopagedatetime(self):
+    if self._videopagedatetime is None:
+      self._videopagedatetime = self.filesdatetime
+    return self._videopagedatetime
 
   @property
   def n_subscribers(self):
@@ -242,7 +249,7 @@ class YtVideosPage:
 
   @property
   def absfolderpath(self):
-    return pathfs.get_datebased_ythtmlfiles_folderabspath(self.refdate)
+    return autof.mount_level3folderabspath_with_date(self.refdate, create_folder=False)
 
   @property
   def datedpage_filename(self):

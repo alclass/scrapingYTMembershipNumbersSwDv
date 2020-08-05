@@ -70,8 +70,7 @@ class VideoItem:
     # defaults
     if self._infodate is None:
       self._infodate = dtfs.get_refdate_from_strdate_or_today()
-    if self._infodayhour is None:
-      self._infodayhour = 12  # midday to "average" uncertainty
+    self._infodayhour = dtfs.round_hour_with_time(self._infodayhour.hour) or 12
     log_msg = 'set_infodate_n_infodayhour() infodate = %s | infodayhour = %s | videopagedatetime = %s' \
               % (str(self._infodate), str(self._infodayhour), str(self.videopagedatetime))
     logger.info(log_msg)
@@ -153,6 +152,7 @@ class VideoItem:
 
   def insert_videoitem(self, pdate, session):
     videoitem = YTVideoItemInfoSA()
+    session.add(videoitem)
     videoitem.ytvideoid = self.ytvideoid
     videoitem.title = self.title
     videoitem.duration_in_sec = self.duration_in_sec
@@ -161,12 +161,11 @@ class VideoItem:
     videoitem.infodate = pdate
     videoitem.infodayhour = self.infodayhour
     videoitem.ytchannelid = self.ytchannelid
-    session.add(videoitem)
     session.commit()
-    session.close()
     log_msg = 'session closed in insert_videoitem() ' + str(videoitem)
     print(log_msg)
     logger.info(log_msg)
+    session.close()
     return True
 
   def update_videoitem(self, videoitem, session):
@@ -213,10 +212,10 @@ class VideoItem:
       was_changed = True
     if was_changed:
       session.commit()
-    session.close()
     log_msg = 'session closed in update_videoitem() commit=' + str(was_changed) + ' ' + str(videoitem)
     print(log_msg)
     logger.info(log_msg)
+    session.close()
     return was_changed
 
   def write_item_to_db(self):
