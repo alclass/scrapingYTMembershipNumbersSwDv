@@ -19,7 +19,7 @@ class YtVideosPage:
     self.ytchannelid = ytchannelid
     self.nname = nname
     self._sname = None
-    self.refdate = dtfs.get_refdate(refdate)
+    self.refdate = dtfs.get_refdate_or_today(refdate)
     self._n_subscribers = None
     self._days_n_subscribers = []
     self._downloadable_on_date = None  # to set 'lazily' as boolean

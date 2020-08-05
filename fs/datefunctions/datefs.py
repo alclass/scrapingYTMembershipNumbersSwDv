@@ -62,15 +62,25 @@ def add_or_subtract_to_month(pdate, delta):
   return pdate.replace(day=d, month=m, year=y)
 
 
-def get_refdate(p_refdate=None):
-  if p_refdate is None or type(p_refdate) != datetime.date:
-    refdate = datetime.date.today()
-    return refdate
-  return p_refdate
+def get_refdate_or_none(p_refdate=None):
+  if p_refdate is None:
+    return None
+  if type(p_refdate) == datetime.date:
+    return p_refdate
+  if type(p_refdate) == datetime.datetime:
+    return convert_datetime_to_date(p_refdate)
+  return get_refdate_from_strdate_or_none(str(p_refdate))
+
+
+def get_refdate_or_today(p_refdate=None):
+  indate = get_refdate_or_none(p_refdate)
+  if indate is None:
+    return datetime.date.today()
+  return indate
 
 
 def get_strdate(p_refdate=None):
-  refdate = get_refdate(p_refdate)
+  refdate = get_refdate_or_today(p_refdate)
   strdate = '%d-%s-%s' % (refdate.year, str(refdate.month).zfill(2), str(refdate.day).zfill(2))
   return strdate
 
@@ -102,12 +112,12 @@ def get_refdate_from_strdate_or_none(strdate):
 
 def get_refdate_from_strdate(strdate=None):
   if strdate is None:
-    return get_refdate()
+    return get_refdate_or_today()
   if type(strdate) in [datetime.date, datetime.datetime]:
     return strdate
   strdate = str(strdate)
   if len(strdate) != 10:
-    return get_refdate()
+    return get_refdate_or_today()
   try:
     pp = strdate.split('-')
     year = int(pp[0])
@@ -118,7 +128,7 @@ def get_refdate_from_strdate(strdate=None):
     pass
   except ValueError:
     pass
-  return get_refdate()
+  return get_refdate_or_today()
 
 
 def is_stryyyydashmm_good(yyyymm7char):
@@ -157,7 +167,7 @@ def return_refdate_as_datetimedate_or_today(refdate=None):
     pass
   except ValueError:
     pass
-  return get_refdate()
+  return get_refdate_or_today()
 
 
 def is_year_month_day_good(year, month, day):
@@ -178,6 +188,19 @@ def is_year_month_day_good(year, month, day):
 
 def is_year_month_good(year, month):
   return is_year_month_day_good(year, month, day=1)
+
+
+def is_year_good(year):
+  return is_year_month_day_good(year, month=1, day=1)
+
+
+def is_stryyyy_good(stryyyy):
+  try:
+    year = int(stryyyy)
+    return is_year_good(year)
+  except ValueError:
+    pass
+  return False
 
 
 def is_strdate_a_7char_yyyymm(str_year_month):
@@ -265,6 +288,16 @@ def is_strdate_a_dashed_8to10char_yyyymmdd(strdate):
       pass
   return False
 
+
+def does_str_form_yyyymm7chardate(word):
+  if word is None:
+    return False
+  if len(word) != 7:
+    return False
+  strdate = word + '-1'
+  if get_refdate_from_strdate_or_none(strdate):
+    return True
+  return False
 
 def calc_past_date_from_refdate_back_n_days(p_refdate, p_backdays=None):
   refdate = return_refdate_as_datetimedate_or_today(p_refdate)

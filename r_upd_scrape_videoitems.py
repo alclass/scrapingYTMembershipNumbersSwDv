@@ -32,11 +32,22 @@ Examples:
       5) $this_script --all
   will process for all dates inside the database;
 """
+import datetime
+import logging
+import os
 import sys
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.autofinders as autofind
-from models.scrapers.YTVideoItemScraperMod import YTVideoItemScraper
+from adhoctasks.obsolete.YTVideoItemScraperMod import YTVideoItemScraper
 from models.gen_models.DatedHtmlsTraversorMod import DatedHtmlsTraversor
+import config
+
+_, logfilename = os.path.split(__file__)
+logfilename = str(datetime.date.today()) + '_' + logfilename[:-3] + '.log'
+logfilepath = os.path.join(config.get_logfolder_abspath(), logfilename)
+logging.basicConfig(filename=logfilepath, filemode='w', format='%(name)s %(levelname)s %(message)s')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def scrap_videospageinfo_html(videospageinfo):
@@ -48,8 +59,14 @@ def scrap_videospageinfo_html(videospageinfo):
   :param videospageinfo:
   :return:
   """
+  log_msg = 'In function scrap_videospageinfo_html() : videospageinfo = ' + str(videospageinfo)
+  print(log_msg)
+  logger.info(log_msg)
   videoitemscraper = YTVideoItemScraper(videospageinfo)
   videoitemscraper.scrape_html_on_folder()
+  log_msg = 'In function scrap_videospageinfo_html() : videoitemscraper = ' + str(videoitemscraper)
+  print(log_msg)
+  logger.info(log_msg)
   videoitemscraper.save_to_db()
 
 

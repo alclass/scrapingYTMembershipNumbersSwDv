@@ -36,7 +36,7 @@ def get_ytvideo_htmlfiles_baseabsdir():
 
 
 def get_datebased_ythtmlfiles_folderabspath(p_refdate=None):
-  refdate = dtfs.get_refdate(p_refdate)
+  refdate = dtfs.get_refdate_or_today(p_refdate)
   strdate = dtfs.get_strdate(refdate)
   datafolder_abspath = get_ytvideo_htmlfiles_baseabsdir()
   if datafolder_abspath is None:

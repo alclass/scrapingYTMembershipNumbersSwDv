@@ -67,7 +67,7 @@ class RunEmtpyFinderThuFolder:
     '''
     self.n_of_empties = 0
     self.empty_ones = []
-    filepaths = autofind.get_htmlfilepaths_from_date()
+    filepaths = autofind.find_htmlfilepaths_from_date()
     for i, filepath in enumerate(filepaths):
       htmlvideospagemetainfo = HtmlInDateFolder(filepath)
       htmlfileobj = YTVideoItemBsoupEmpty(htmlvideospagemetainfo)

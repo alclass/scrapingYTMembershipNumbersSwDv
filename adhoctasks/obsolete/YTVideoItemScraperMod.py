@@ -6,7 +6,7 @@
 '''
 import bs4, json, os
 import fs.textfunctions.scraper_helpers as scraphlp
-from models.gen_models.YtVideoItemInfoMod import YtVideoItemInfo
+from adhoctasks.obsolete.YtVideoItemInfoMod import YtVideoItemInfo
 from models.procdb.VideoItemInsertorMod import VideoItemInsertor
 from models.gen_models.HtmlInDateFolderMod import HtmlInDateFolder
 

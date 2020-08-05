@@ -5,14 +5,21 @@
 import datetime
 import json
 import logging
+import os
 from models.gen_models.YtVideosPageMod import YtVideosPage
-from models.gen_models.YtVideoItemInfoMod import VideoItem
+from models.gen_models.YtVideoItemMod import VideoItem
 from models.sa_models.ytchannelsubscribers_samodels import YTChannelSA
 from models.sa_models.ytchannelsubscribers_samodels import get_all_ytchannelids
 import fs.textfunctions.scraper_helpers as scraphlp
 from fs.db.sqlalchdb.sqlalchemy_conn import Session
+import config
 
+_, logfilename = os.path.split(__file__)
+logfilename = str(datetime.date.today()) + '_' + logfilename[:-3] + '.log'
+logfilepath = os.path.join(config.get_logfolder_abspath(), logfilename)
+logging.basicConfig(filename=logfilepath, filemode='w', format='%(name)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class VideoItemsPageScraper:
@@ -116,7 +123,7 @@ def extract_subscribers_from_htmltext(text, ytvideopage):
 def extract_vitems_from_htmltext(text, ytvideopage):
   begpos = text.find(beginningStr)
   counter = 0
-  # there are about 29 videos per pages, the while below intends to loop them all
+  # there are about 29 videos per page, the while below intends to loop thru them all
   while begpos > -1:
     text = text[begpos:]
     endpos = text.find(endStr)

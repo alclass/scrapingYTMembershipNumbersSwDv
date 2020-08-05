@@ -219,7 +219,7 @@ class DownloadProcessOption:
     downloader = DownloadYtVideoPages(self.n_download_rolls, self.download_all_active_ones)
     downloader.download_ytvideopages()
     downloader.report()
-    logging.shutdown()  # to close all files/handlers
+    # logging.shutdown()  # to close all files/handlers
     self.n_download_rolls += 1
 
   def run_emptyfinder_n_redownload_n_times(self):

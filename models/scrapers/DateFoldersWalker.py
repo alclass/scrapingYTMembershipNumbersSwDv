@@ -4,10 +4,10 @@
   Without parameter, it scrapes today's folder.
   An optional parameter --daysbefore=<n> scrapes n days before, if related folder exists.
 '''
-import bs4, os, sys
+import os
 import fs.filefunctions.autofinders as autofind
 import fs.textfunctions.regexp_helpers as regexp
-from models.scrapers.YTVideoItemScraperMod import YTVideoItemScraper
+from adhoctasks.obsolete.YTVideoItemScraperMod import YTVideoItemScraper
 
 def scrape_htmls_in_datenamed_folder(datefolder_abspath, strdate, seq_date):
   '''

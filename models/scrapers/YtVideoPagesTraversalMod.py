@@ -7,7 +7,7 @@ from models.gen_models.YtVideosPageMod import YtVideosPage
 class YtVideoPagesTraversal:
 
   def __init__(self, refdate=None):
-    self.refdate = dtfs.get_refdate(refdate)
+    self.refdate = dtfs.get_refdate_or_today(refdate)
     self._ytvideopageobj_list = []
     self.n_tries_in_producing_list = 0 # it has only 3 tries to fill-in list for it may be empty anyways
 

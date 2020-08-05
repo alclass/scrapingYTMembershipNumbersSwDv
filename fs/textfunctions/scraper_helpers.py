@@ -2,8 +2,19 @@
 """
   docstring
 """
+import datetime
 import json
+import logging
+import os
 import string
+import config
+
+_, logfilename = os.path.split(__file__)
+logfilename = str(datetime.date.today()) + '_' + logfilename[:-3] + '.log'
+logfilepath = os.path.join(config.get_logfolder_abspath(), logfilename)
+logging.basicConfig(filename=logfilepath, filemode='w', format='%(name)s %(levelname)s %(message)s')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def consume_left_side_float_number(word):
@@ -147,6 +158,11 @@ def videoitems_drill_down(json_as_dict):
     duration_str = innerdict['thumbnailOverlayTimeStatusRenderer']['text']['simpleText']
   except KeyError:
     duration_str = '0:0'
+  log_msg = 'Scraped from json: <ytvideoid=%s t=[%s] cal=%s v=%s ds=%s>' \
+            % (ytvideoid, title, calendar_date_str, n_views, duration_str)
+  print(log_msg)
+  logger.info(log_msg)
+
   return ytvideoid, title, calendar_date_str, n_views, duration_str
 
 

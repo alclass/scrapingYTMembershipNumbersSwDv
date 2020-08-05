@@ -1,9 +1,20 @@
 #!/usr/bin/python3
-import copy, datetime, os
+import copy
+import datetime
+import logging
+import os
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.pathfunctions as pathfs
+import fs.filefunctions.autofinders as autof
 from models.gen_models.HtmlInDateFolderMod import HtmlInDateFolder
-# import fs.textfunctions.regexp_helpers as regexp
+import config
+
+_, logfilename = os.path.split(__file__)
+logfilename = str(datetime.date.today()) + '_' + logfilename[:-3] + '.log'
+logfilepath = os.path.join(config.get_logfolder_abspath(), logfilename)
+logging.basicConfig(filename=logfilepath, filemode='w', format='%(name)s %(levelname)s %(message)s')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 lambdaentryhashtmlext  = lambda word : pathfs.does_filename_have_ext_from_extlist(word, extlist=['htm', 'html'])
 
@@ -77,33 +88,14 @@ class DatedHtmlsTraversor:
     self.files_on_current_folder = list(filter(lambdaentryhashtmlext, self.files_on_current_folder))
 
   def traverse(self):
-    while self.datepointer <= self.datefim:
-      self.fill_in_current_folder()
-      if len(self.files_on_current_folder) == 0:
-        self.datepointer = self.datepointer + datetime.timedelta(days=1)
-        continue
-      n_html_files = len(self.files_on_current_folder)
-      self.n_of_htmls_processed_day_by_day.append(n_html_files)
-      while len(self.files_on_current_folder) > 0:
-        popped_filename = self.files_on_current_folder.pop()
-        # print('popped_filename', popped_filename)
-        htmlfileobj = HtmlInDateFolder(popped_filename)
-        if htmlfileobj.filename_is_out_of_convention:
-          continue
-        yield htmlfileobj
-      self.datepointer = self.datepointer + datetime.timedelta(days=1)
-    print ('Traverse is finished')
-
-    # to adhoc-test if range works with datetime
-    # for i, datenamedfolder in enumerate(range(self.dateini, self.datefim)):
-    total = 0
-    for i, n_of_htmls_processed_day_by_day in enumerate(self.n_of_htmls_processed_day_by_day):
-      datenamedfolder = self.dateini + datetime.timedelta(days=i)
-      current_n = self.n_of_htmls_processed_day_by_day[i]
-      print (datenamedfolder, 'with', current_n)
-      total += current_n
-    print('Total of HTML files:', sum(self.n_of_htmls_processed_day_by_day), '/', total)
-    return None
+    for pdate in dtfs.generate_daterange_with_dateini_n_datefin(self.dateini, self.datefim):
+      html_abspaths = autof.find_3rdlevel_yyyymm_files_abspaths_on_date(pdate)
+      total_html_abspaths = len(html_abspaths)
+      log_msg = 'Total of HTML files: %d on date %s' % (total_html_abspaths, pdate)
+      print(log_msg)
+      logger.info(log_msg)
+      for html_abspath in html_abspaths:
+        yield html_abspath
 
   def asdict(self):
     asdict = {}

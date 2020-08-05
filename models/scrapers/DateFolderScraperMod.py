@@ -7,7 +7,7 @@ from models.scrapers.SubscriberScraperMod import HTMLScraper
 class DateFolderScraper:
 
   def __init__(self, refdate=None):
-    self.refdate = dtfs.get_refdate(refdate)
+    self.refdate = dtfs.get_refdate_or_today(refdate)
     # self.strdate is @property
     self.reader = readmod.YtVideoPagesTraversal(refdate)
     self.counter = 0

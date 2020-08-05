@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import fs.datefunctions.datefs as dtfs
+import fs.filefunctions.autofinders as autof
 import fs.filefunctions.pathfunctions as pathfs
 import fs.textfunctions.regexp_helpers as regexp
 
@@ -146,16 +147,10 @@ class HtmlInDateFolder:
       folder_abspath is level2_abspath
     :return:
     """
-    basedir_abspath = pathfs.get_ytvideo_htmlfiles_baseabsdir()
-    if self.foldername is None:
+    level3folderabspath = autof.mount_level3folderabspath_with_date(self.refdate)
+    if level3folderabspath is None:
       return None
-    level1_abspath = os.path.join(basedir_abspath, self.foldername_level1)
-    if not os.path.isdir(level1_abspath):
-      os.makedirs(level1_abspath)
-    level2_abspath = os.path.join(level1_abspath, self.foldername)
-    if not os.path.isdir(level2_abspath):
-      os.makedirs(level2_abspath)
-    return level2_abspath
+    return level3folderabspath
 
   # derivable : file_abspath
   @property
