@@ -32,16 +32,17 @@ def extract_time_from_datetime(pdatetime):
   return ptime
 
 
-def round_hour_with_time(ptime):
+def get_roundint_hour_from_time(ptime, default_hour=12):
   """
     Notice: this function doesn't round hour 23 for the time being for it should "carry one"
       which it does do at this moment
 
   :param ptime:
+  :param default_hour:
   :return:
   """
   if ptime is None:
-    return None
+    return default_hour
   try:
     hour = ptime.hour
     if hour > 22:
@@ -57,7 +58,7 @@ def round_hour_with_time(ptime):
       return hour + 1
   except AttributeError:
     pass
-  return None
+  return default_hour
 
 
 def split_date_n_time_from_datetime(pdatetime):
@@ -270,7 +271,7 @@ def is_strdate_a_nondashed_8char_yyyymmdd(strdate):
   try:
     year = int(strdate[: 4])
     month = int(strdate[4: 6])
-    day = int(strdate[6: ])
+    day = int(strdate[6:])
     _ = datetime.date(year, month, day)  # if this op is complete, infodate is good
     return True
   except ValueError:
@@ -326,6 +327,7 @@ def does_str_form_yyyymm7chardate(word):
   if get_refdate_from_strdate_or_none(strdate):
     return True
   return False
+
 
 def calc_past_date_from_refdate_back_n_days(p_refdate, p_backdays=None):
   refdate = return_refdate_as_datetimedate_or_today(p_refdate)
@@ -538,20 +540,28 @@ def ajust_calendardatestr_to_start_with_a_number(calendardatestr):
   return recomposed_calendarstr
 
 
-def generate_daterange_with_dateini_n_datefin(dateini=None, datefin=None):
-  if dateini is None or datefin is None:
-    return []
-  if dateini == datefin:
-    return datefin
-  idateini = dateini
-  idatefin = datefin
-  if dateini > datefin:
-    idateini = datefin
-    idatefin = dateini
+def generate_daterange_with_dateini_n_datefin(dateini=None, datefin=None, allow_future=False):
+  dateini = get_refdate_or_today(dateini)
+  datefin = get_refdate_or_today(datefin)
+  today = datetime.date.today()
+  if not allow_future:
+    if dateini > today and datefin > today:
+      return None
+    if dateini > today:
+      dateini = today
+    if datefin > today:
+      datefin = today
   currdate = dateini
-  while currdate <= datefin:
+  if dateini == datefin:
     yield currdate
-    currdate = currdate + datetime.timedelta(days=1)
+  elif dateini < datefin:
+    while currdate <= datefin:
+      yield currdate
+      currdate = currdate + datetime.timedelta(days=1)
+  else:
+    while currdate >= datefin:
+      yield currdate
+      currdate = currdate - datetime.timedelta(days=1)
   return None
 
 
@@ -652,15 +662,33 @@ def adhoc_test2():
   print(dt_res)
 
 
-def process():
-  adhoc_test2()
+def adhoc_test3():
   n_wait = get_random_config_download_wait_nsecs()
   print('n_wait', n_wait)
   n_wait = get_random_config_download_wait_nsecs()
   print('n_wait', n_wait)
   ptime = datetime.time(13, 29, 0)
-  dayhour = round_hour_with_time(ptime)
+  dayhour = get_roundint_hour_from_time(ptime)
   print(ptime, 'round hour to', dayhour)
+
+
+def adhoc_test4():
+  for pdate in generate_daterange_with_dateini_n_datefin():
+    print(pdate)
+  print('-'*30)
+  inidate = '2020-8-6'
+  findate = '2020-8-8'
+  for pdate in generate_daterange_with_dateini_n_datefin(inidate, findate, allow_future=True):
+    print(pdate)
+  print('-'*30)
+  inidate = '2020-8-15'
+  findate = '2020-8-4'
+  for pdate in generate_daterange_with_dateini_n_datefin(inidate, findate):
+    print(pdate)
+
+
+def process():
+  adhoc_test4()
 
 if __name__ == '__main__':
   process()

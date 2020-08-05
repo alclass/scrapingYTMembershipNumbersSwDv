@@ -42,7 +42,7 @@ class VideoItem:
     self.n_views = None
     self._duration_in_sec = None
     self._infodate = None
-    self._infodayhour = None
+    self._infodayhour = 12
     self._videopagedate = None
     self._videopagetime = None
     self._publishdatetime = None  # to be calculated against first access to self.publishdate
@@ -70,7 +70,7 @@ class VideoItem:
     # defaults
     if self._infodate is None:
       self._infodate = dtfs.get_refdate_from_strdate_or_today()
-    self._infodayhour = dtfs.round_hour_with_time(self._infodayhour.hour) or 12
+    self._infodayhour = dtfs.get_roundint_hour_from_time(self._infodayhour, 12)   # or 12
     log_msg = 'set_infodate_n_infodayhour() infodate = %s | infodayhour = %s | videopagedatetime = %s' \
               % (str(self._infodate), str(self._infodayhour), str(self.videopagedatetime))
     logger.info(log_msg)
@@ -81,8 +81,9 @@ class VideoItem:
       self.set_infodate_n_infodayhour()
     return self._infodate
 
+  @property
   def infodayhour(self):
-    if self._infodate is None or self._infodayhour is None:
+    if self._infodayhour is None:
       self.set_infodate_n_infodayhour()
     return self._infodayhour
 
@@ -101,8 +102,13 @@ class VideoItem:
     self.calendar_strdate = dtfs.ajust_calendardatestr_to_start_with_a_number(self.calendar_strdate)
 
   def set_publishdatetime(self):
+    try:
+      timestamp = self.videopagedatetime.st_atime
+      pdatetime = datetime.datetime.fromtimestamp(timestamp)
+    except AttributeError:
+      return
     self._publishdatetime = dtfs.calculate_origdtime_from_targetdtime_n_calendarstr(
-      self.videopagedatetime,
+      pdatetime,
       self.calendar_strdate
     )
     log_msg = 'self._publishdatetime = %s' % (str(self._publishdatetime))
@@ -150,7 +156,7 @@ class VideoItem:
     logger.info(log_msg)
     return bool_items and bool_views
 
-  def insert_videoitem(self, pdate, session):
+  def insert_videoitem(self, session):
     videoitem = YTVideoItemInfoSA()
     session.add(videoitem)
     videoitem.ytvideoid = self.ytvideoid
@@ -158,8 +164,9 @@ class VideoItem:
     videoitem.duration_in_sec = self.duration_in_sec
     videoitem.publishdatetime = self.publishdatetime
     videoitem.published_time_ago = self.calendar_strdate
-    videoitem.infodate = pdate
-    videoitem.infodayhour = self.infodayhour
+    videoitem.infodate = self.infodate
+    h = int(self.infodayhour)
+    videoitem.infodayhour = h if h < 24 else 12
     videoitem.ytchannelid = self.ytchannelid
     session.commit()
     log_msg = 'session closed in insert_videoitem() ' + str(videoitem)
@@ -168,51 +175,51 @@ class VideoItem:
     session.close()
     return True
 
-  def update_videoitem(self, videoitem, session):
+  def update_videoitem(self, dbvideoitem, session):
     was_changed = False
-    if videoitem.title != self.title:
+    if dbvideoitem.title != self.title:
       if self.title is not None:
         if self.title != 'No Title':
           if len(self.title) > 0:
-            log_msg = 'Updating title from [' + videoitem.title + '] to [' + self.title + ']'
-            videoitem.title = self.title
+            log_msg = 'Updating title from [' + dbvideoitem.title + '] to [' + self.title + ']'
+            dbvideoitem.title = self.title
             print(log_msg)
             logger.info(log_msg)
             was_changed = True
-    if self.publishdatetime is not None and videoitem.publishdatetime is None:
-      videoitem.publishdatetime = self.publishdatetime
+    if self.publishdatetime is not None and dbvideoitem.publishdatetime is None:
+      dbvideoitem.publishdatetime = self.publishdatetime
       log_msg = 'Updating published_time_ago from ['\
-                + videoitem.published_time_ago + '] to [' + self.calendar_strdate + ']'
-      videoitem.published_time_ago = self.calendar_strdate
+                + dbvideoitem.published_time_ago + '] to [' + self.calendar_strdate + ']'
+      dbvideoitem.published_time_ago = self.calendar_strdate
       print(log_msg)
       logger.info(log_msg)
       was_changed = True
     # logically, if infodate has already been recorded, pdate will be later and no update will occurr,
     # but it'll help when databases are out of sync and infodate must be the lesser of the two
-    if videoitem.infodate is None or videoitem.infodate > self.infodate:
+    if dbvideoitem.infodate is None or dbvideoitem.infodate > self.infodate:
       log_msg = 'Updating infodate from ['\
-                + str(videoitem.infodate) + '] to [' + str(self.infodate) + ']'
-      videoitem.infodate = self.infodate
+                + str(dbvideoitem.infodate) + '] to [' + str(self.infodate) + ']'
+      dbvideoitem.infodate = self.infodate
       print(log_msg)
       logger.info(log_msg)
       was_changed = True
-    if videoitem.infodayhour is None or self.infodayhour != videoitem.infodayhour:
+    if dbvideoitem.infodayhour is None or self.infodayhour != dbvideoitem.infodayhour:
       log_msg = 'Updating infodayhour from ['\
-                + str(videoitem.infodayhour) + '] to [' + str(self.infodayhour) + ']'
-      videoitem.infodayhour = self.infodayhour
+                + str(dbvideoitem.infodayhour) + '] to [' + str(self.infodayhour) + ']'
+      dbvideoitem.infodayhour = self.infodayhour
       print(log_msg)
       logger.info(log_msg)
       was_changed = True
-    if videoitem.duration_in_sec is None or videoitem.duration_in_sec == 0:
+    if dbvideoitem.duration_in_sec is None or dbvideoitem.duration_in_sec == 0:
       log_msg = 'Updating duration_in_sec from ['\
-                + str(videoitem.duration_in_sec) + '] to [' + str(self.duration_in_sec) + ']'
-      videoitem.duration_in_sec = self.duration_in_sec
+                + str(dbvideoitem.duration_in_sec) + '] to [' + str(self.duration_in_sec) + ']'
+      dbvideoitem.duration_in_sec = self.duration_in_sec
       print(log_msg)
       logger.info(log_msg)
       was_changed = True
     if was_changed:
       session.commit()
-    log_msg = 'session closed in update_videoitem() commit=' + str(was_changed) + ' ' + str(videoitem)
+    log_msg = 'session closed in update_videoitem() commit=' + str(was_changed) + ' ' + str(dbvideoitem)
     print(log_msg)
     logger.info(log_msg)
     session.close()
@@ -227,7 +234,7 @@ class VideoItem:
     if videoitem:
       bool_ret = self.update_videoitem(videoitem, session)
     else:
-      bool_ret = self.insert_videoitem(videoitem, session)
+      bool_ret = self.insert_videoitem(session)
     session.close()
     return bool_ret
 

@@ -25,10 +25,13 @@ def list_newsarticles_view():
 
 
 def list_ytchannels_view():
+  """
+  # order_by(desc(samodels.YTChannelSA.scrapedate)). \
+  :return:
+  """
   # session = Session()
-  ytchannels = g.sa_ext_session.query(samodels.YTChannelSA). \
-    order_by(samodels.YTChannelSA.nname). \
-    all()
+  ytchannels = g.sa_ext_session.query(samodels.YTChannelSA).order_by(samodels.YTChannelSA.nname).all()
+  ytchannels = sorted(ytchannels, key=lambda o: o.most_recent_video.publishdate, reverse=True)
   return render_template('ytchannel_lister_tmpl.html', title='YouTube Channels Observed', ytchannels=ytchannels)
 
 
