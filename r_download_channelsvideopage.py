@@ -1,23 +1,37 @@
 #!/usr/bin/env python3
 """
-This script downloads YouTube video pages (*) that belong to channels
-  in the database.
+This script downloads selected YouTube video pages (*) that belong to
+  channels (or users or "c"), scrape them and insert/update data to
+   a SQL database.
 
-(*) The URL pattern for these pages are youtu.be/<channelsid>/videos and
-    they are found via the [videos] tab from the YouTube channel's home page.
+(*) The URL pattern for these pages are youtu.be/<channelsid>/videos (**).
+    They are found via the [videos] tab from the YouTube channel's home page.
+
+(**) This system changes a little the channelid so that it avoids creating
+     a second field in the channels dbtable. This may be changed but for the time
+     the rules or channelids are:
+     1) if the URL has /user/, the id is prepended with a "u"
+        eg id eduardoamoreira becomes ueduardoamoreira
+     2) if the URL has /channel/, the id is prepended with a "c"
+        eg id <base64str> becomes "c"+<base64str>  (the channels are "longer" base64 strings)
+     3) if the URL has /c/, the id is prepended with a "d"
+        eg id --- becomes "d"+ ---
 
   This script is planned to download pages once a day
-  as each html file is named per day and kept in a configured folder.
+  as each html file is named per day and kept in a configured data folder.
+  (This system allows a list of configured data folders, the first that exists at runtime is picked up.)
 
 Obs:
-  1) files may be deleted on days afterwards but should be kept on the
-     day's download that so that a second dowload does not happen or,
+  1) files may be manually deleted on days afterwards but should be kept on the
+     day's download that so that a redowload does not happen or,
      alternatively, deleted for a renewed download on that same day;
   2) attribute each_n_days, if used, will make some videopages to be download
      <each_n_days> after its last download;
+    eg if a channel has each_n_days=2, a download for its videopage,
+       if script is run daily, will happen on every other day.
 
 When this script was first written (May 2020) it was possible to find scrapeable data
-  in the DOM. About in July 2020, all downloaded videopages did not have
+  in the DOM. About in July 2020, two months later, all downloaded videopages did not have
   info in the DOM anymore,
   but they were found in the JavaScript in the page. So after June/July 2020 this system
   was updated to scrape data directly from the JavaScript source text.
@@ -27,8 +41,8 @@ When previously scraping was against the DOM,
   to the JavaScript source, BeautifulSoup was changed for a home-solution that
   used string.find() to cut off pre-string and post-string,
   and load the middle string into
-  a Json object that, in turn, was casts into a dict.
-  The sought-for info hopefully was in the dict.
+  a Json object which, in turn, was cast into a dict.
+  (It's expected that the sought-for info is in the dict.)
 
 Script's Usage:
 ==============
@@ -44,7 +58,7 @@ DEPRECATED:
   --maxtries  => maximum number of tries when download file does not have data-extractable;
   if --maxtries is not given, the default will be used. (At the time of this writing, it's 7.)
 
-  [It's not used anymore because redownloads do not happen when a 200 OK status code was gotten.]
+  OBS: it's not used anymore because redownloads should not happen when a 200 OK status code was gotten.
 """
 import datetime
 import logging
@@ -67,6 +81,34 @@ logfilepath = os.path.join(config.get_logfolder_abspath(), logfilename)
 logging.basicConfig(filename=logfilepath, filemode='w', format='%(name)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+
+def download_save_n_retrieve_text(ytvideopage, seqnum=1, delete_before_dld=False):
+  print('In download_save_n_retrieve_text(ytvideopage()')
+  print(ytvideopage)
+  entry_abspath = ytvideopage.datedpage_filepath
+  if os.path.isfile(entry_abspath) and not delete_before_dld:
+    n_of_m = '%d' % (seqnum)
+    log_msg = n_of_m + ' >>> File already exists, not going to download ' + ytvideopage.murl
+    print(log_msg)
+    return None
+  n_of_m = '%d' % (seqnum)
+  log_msg = n_of_m + ' >>> Going to download ' + ytvideopage.murl
+  print(log_msg)
+  logger.info(log_msg)
+  # DOWNLOAD happens here
+  res = requests.get(ytvideopage.videospageurl, allow_redirects=True)
+  if res.status_code != 200:
+    error_msg = 'Page [%s] returned a not 200 status response' % ytvideopage.videospageurl
+    print(error_msg)
+    logger.error(error_msg)
+    # instead of raising an exception, log message to a file
+    # raise IOError(error_msg)
+    return False
+  fp = open(entry_abspath, 'w')
+  fp.write(res.text)
+  fp.close()
+  return res.text
 
 
 class DownloadYtVideoPages:
@@ -133,30 +175,11 @@ class DownloadYtVideoPages:
           print(log_msg)
           logger.info(log_msg)
           continue
-      entry_abspath = ytchannel.datedpage_filepath
-      if os.path.isfile(entry_abspath):
-        self.n_exists += 1
-        print(self.n_exists, '[EXISTS]', entry_abspath)
-        continue
-      seq = i+1
-      n_of_m = '%d/%d/%d' % (seq, self.total_channels, self.n_of_download_rolls)
-      log_msg = n_of_m + ' >>> Going to download ' + ytchannel.murl
-      print(log_msg)
-      logger.info(log_msg)
-      # DOWNLOAD happens here
-      res = requests.get(ytchannel.videospageurl, allow_redirects=True)
-      if res.status_code != 200:
-        self.n_fail_200 += 1
-        error_msg = 'Page [%s] returned a not 200 status response' % ytchannel.videospageurl
-        print(error_msg)
-        logger.error(error_msg)
-        # instead of raising an exception, log message to a file
-        # raise IOError(error_msg)
-        continue
-      self.n_downloaded += 1
-      fp = open(entry_abspath, 'w')
-      fp.write(res.text)
-      fp.close()
+
+      seq = i + 1
+      ret_val = download_save_n_retrieve_text(ytchannel, seq)
+      if ret_val:
+        self.n_downloaded += 1
 
       wait_secs = dtfs.get_random_config_download_wait_nsecs()
       datedpagefn = ytchannel.datedpage_filename

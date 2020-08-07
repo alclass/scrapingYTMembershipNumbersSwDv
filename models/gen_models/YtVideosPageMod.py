@@ -264,9 +264,10 @@ class YtVideosPage:
   def datedpage_filepath(self):
     datedagefn = self.datedpage_filename
     if datedagefn is None:
-      error_msg = '@property datedpage_filepath returned None'
+      error_msg = 'Attribute datedagefn in @property datedpage_filepath in ' + str(__class__) + ' returned None'
       raise ValueError(error_msg)
-    return os.path.join(self.absfolderpath, self.datedpage_filename)
+    yyymmdd_absfolderpath = autof.mount_level3folderabspath_with_date(self.refdate, create_folder=True)
+    return os.path.join(yyymmdd_absfolderpath, self.datedpage_filename)
 
   @property
   def datedpage_exists(self):
