@@ -5,9 +5,11 @@ import datetime
 import logging
 import os
 import sys
+from sqlalchemy.sql.expression import desc
 import config
+import fs.textfunctions.shellcommands as shell
 import models.sa_models.ytchannelsubscribers_samodels as sam
-import models.gen_models.YtVideosPageMod as ytvpmod
+import models.gen_models.YtVideosPageMod as ytvpM
 import fs.db.sqlalchdb.sqlalchemy_conn as con
 import r_download_channelsvideopage as dldmod
 import drill_down_json as drill
@@ -31,6 +33,7 @@ def get_channel_from_args():
   likename = sys.argv[1]
   session = con.Session()
   ytchannel = session.query(sam.YTChannelSA).filter(sam.YTChannelSA.nname.contains("%" + likename + "%")).first()
+  session.close()
   confirm_msg = 'Download channel %s ? (Y/n) ' % ytchannel.nname
   ans = input(confirm_msg)
   if ans not in ['', 'Y', 'y']:
@@ -38,13 +41,37 @@ def get_channel_from_args():
   return ytchannel
 
 
-def process():
-  ytchannel = get_channel_from_args()
-  ytvideopage = ytvpmod.YtVideosPage(ytchannel.ytchannelid, ytchannel.nname)
+def get_most_recent_video_for(ytchannel):
+  session = con.Session()
+  vinfo = session.query(sam.YTVideoItemInfoSA). \
+      filter(sam.YTVideoItemInfoSA.ytchannelid == ytchannel.ytchannelid).\
+      order_by(desc(sam.YTVideoItemInfoSA.publishdatetime)).\
+      first()
+  session.close()
+  return vinfo
+
+
+def download_scrape_n_dbsave(ytvideopage):
   text = dldmod.download_save_n_retrieve_text(ytvideopage, delete_before_dld=True)
   drill.extract_subscribers_from_htmltext(text, ytvideopage)
   drill.extract_vitems_from_htmltext(text, ytvideopage)
 
+
+def process():
+  ytchannel = get_channel_from_args()
+  ytvideopage = ytvpM.YtVideosPage(ytchannel.ytchannelid, ytchannel.nname)
+  vinfo_before = get_most_recent_video_for(ytchannel)
+  download_scrape_n_dbsave(ytvideopage)
+  vinfo_after = get_most_recent_video_for(ytchannel)
+  print('='*30)
+  print(ytchannel.nname, 'most_recent_video', vinfo_before)
+  print('-'*30)
+  print('Refetched most_recent_video', vinfo_after)
+  ans = input('Do you want to download that? (Y/n) ')
+  if ans in ['Y', 'y', '']:
+    url = vinfo_after.form_video_url()
+    shell.issue_youtubedl_videoget_comm(url)
+  return
 
 
 if __name__ == '__main__':

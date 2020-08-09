@@ -56,23 +56,43 @@ def get_datebased_ythtmlfiles_folderabspath(p_refdate=None):
   return datafolder_abspath
 
 
-def datedpage_filename(strdate, sname, ytchid):
+def datedpage_filename(strdate, sname, ytchannelid):
   """
-    sname as an entering parameter should already have up to 10 chars
+    datedpage_filename is a composition of 3 fields, ie:
+      1) strdate which a 10-char yyyy-mm-dd
+      2) sname which is a contraction of nname having 10 or less characters
+      3) ytchannelid is the ytid preprend with a letter in {u, c, d}
+
+  None cases that can be treated:
+    1) if strdate is None (not given), it'll default to today's date
+    2) if sname is None (not given), a search on datafolder will occurr
+       see function find_datedpage_filename_on_folder(ytchannelid, refdate)
+    3) if ytchannelid is None (not given), a ValueError exception will be raised
+
   :param strdate:
   :param sname:
-  :param ytchid:
+  :param ytchannelid:
   :return:
   """
+  if ytchannelid is None:
+    error_msg = 'Error: ytchannelid is None in datedpage_filename(strdate, sname, ytchannelid)'
+    raise ValueError(error_msg)
+
+  ytchannelid = str(ytchannelid)
+  if len(ytchannelid) == 0:
+    error_msg = 'Error: ytchannelid is empty in datedpage_filename(strdate, sname, ytchannelid)'
+    raise ValueError(error_msg)
+
+  refdate = dtfs.get_refdate_from_strdate_or_today(strdate)
   if sname is None:
-    refdate = dtfs.get_refdate_from_strdate(strdate)
-    return find_datedpage_filename_on_folder(ytchid, refdate)
+     return find_datedpage_filename_on_folder(ytchannelid, refdate)
   truncatedname = sname
+  truncatedname = truncatedname.lstrip(' \t').rstrip(' \t\r\n')
   if len(truncatedname) > 10:
     truncatedname = sname[:10]
   if truncatedname.endswith(' '):
-    truncatedname.strips(' ')
-  return strdate + ' ' + truncatedname + ' [' + ytchid + ']' + '.html'
+    truncatedname = truncatedname.strip(' ')
+  return strdate + ' ' + truncatedname + ' [' + ytchannelid + ']' + '.html'
 
 
 def find_datedpage_filename_on_folder(ytchid, refdate=None):

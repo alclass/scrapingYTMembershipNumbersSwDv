@@ -65,8 +65,10 @@ class YTChannelSA(Base):
 
   @property
   def most_recent_video(self):
-    if self.vinfolist.count() > 0:
+    try:
       return self.vinfolist[0]
+    except IndexError:
+      pass
     return None
 
   @property
@@ -254,6 +256,10 @@ class YTVideoItemInfoSA(Base):
     url = 'http://127.0.0.1:5000/static/img/%s' % self.matplot_image_filename
     return url
 
+  def form_video_url(self):
+    url = config.YTVIDEO_URL_BASE_TO_INTERPOLATE % self.ytvideoid
+    return url
+
   def __repr__(self):
     return '<YTVideoItemInfoSA(ytvideoid="%s", title="%s", infdt="%s")>' % (self.ytvideoid, self.title, self.infodate)
 
@@ -301,7 +307,7 @@ class NewsArticlesSA(Base):
   url = Column(String, nullable=True)
   url_main_img = Column(String, nullable=True)
   cat_id = Column(Integer, ForeignKey('nw_categories.id'), nullable=True)
-  is_read = Column(Boolean, ForeignKey('nw_categories.id'), default=False)
+  is_read = Column(Boolean, default=False)
   personal_rank = Column(Integer, default=0)
   summary = Column(Text, nullable=True)
   comment = Column(Text, nullable=True)
@@ -332,7 +338,7 @@ class NewsArticlesSA(Base):
     return '<NewsArticlesSA(id=%s, date=%s, title="%s")>' % (str(self.id), self.publishdate, title)
 
 
-class NewsPublishersSA(Base):
+class NewsPublisherSA(Base):
   """
   video views taken from a videospage per date
   """
