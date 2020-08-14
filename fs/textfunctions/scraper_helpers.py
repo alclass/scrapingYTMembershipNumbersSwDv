@@ -142,7 +142,8 @@ def extract_subscriber_number(text):
 def videoitems_drill_down(json_as_dict):
   ytvideoid = json_as_dict['gridVideoRenderer']['videoId']
   try:
-    title = json_as_dict['gridVideoRenderer']['title']['simpleText']
+    # before ['gridVideoRenderer']['title']['simpleText']
+    title = json_as_dict['gridVideoRenderer']['title']['runs'][0]['text']
   except KeyError:
     title = 'No Title'
   try:
@@ -171,14 +172,14 @@ def find_subscriber_count_text_in_js(content):
   return extract_number_from_phrase_unit_mil_k_mi(phrase)
 
 
-def adhoc_test():
+def adhoc_test1():
   t = '"subscriberCountText": {"runs": [{"text": "365 mil inscritos"}]},'
   result = find_subscriber_count_text_in_js(t)
-  print (result)
+  print(result)
 
 
 def process():
-  adhoc_test()
+  adhoc_test1()
 
 
 if __name__ == '__main__':

@@ -2,7 +2,6 @@
 """
   docstring
 """
-import datetime
 import os
 import re
 import config
@@ -33,75 +32,6 @@ def get_ytchannelvideospage_url_from_ytchid(ytchid):
 
 def get_ytvideo_htmlfiles_baseabsdir():
   return config.get_ytvideo_datafolderbase_absdir()
-
-
-def get_datebased_ythtmlfiles_folderabspath(p_refdate=None):
-  refdate = dtfs.get_refdate_or_today(p_refdate)
-  strdate = dtfs.get_strdate(refdate)
-  datafolder_abspath = get_ytvideo_htmlfiles_baseabsdir()
-  if datafolder_abspath is None:
-    error_msg = 'datafolder_abspath options in config.py do not exist.'
-    raise OSError(error_msg)
-  # mount yyyy/yyyy-mm/yyyy-mm-dd as middlepath
-  stryear = strdate[:4]
-  stryearmonth = strdate[:7]
-  middlepath = '%s/%s/%s' % (stryear, stryearmonth, strdate)
-  datafolder_abspath = os.path.join(datafolder_abspath, middlepath)
-  if not os.path.isdir(datafolder_abspath):
-    # if os.makedirs() does not work, research whether or not an exception will be raised
-    os.makedirs(datafolder_abspath)
-  if not os.path.isdir(datafolder_abspath):
-    # idem
-    os.makedirs(datafolder_abspath)
-  return datafolder_abspath
-
-
-def datedpage_filename(strdate, sname, ytchannelid):
-  """
-    datedpage_filename is a composition of 3 fields, ie:
-      1) strdate which a 10-char yyyy-mm-dd
-      2) sname which is a contraction of nname having 10 or less characters
-      3) ytchannelid is the ytid preprend with a letter in {u, c, d}
-
-  None cases that can be treated:
-    1) if strdate is None (not given), it'll default to today's date
-    2) if sname is None (not given), a search on datafolder will occurr
-       see function find_datedpage_filename_on_folder(ytchannelid, refdate)
-    3) if ytchannelid is None (not given), a ValueError exception will be raised
-
-  :param strdate:
-  :param sname:
-  :param ytchannelid:
-  :return:
-  """
-  if ytchannelid is None:
-    error_msg = 'Error: ytchannelid is None in datedpage_filename(strdate, sname, ytchannelid)'
-    raise ValueError(error_msg)
-
-  ytchannelid = str(ytchannelid)
-  if len(ytchannelid) == 0:
-    error_msg = 'Error: ytchannelid is empty in datedpage_filename(strdate, sname, ytchannelid)'
-    raise ValueError(error_msg)
-
-  refdate = dtfs.get_refdate_from_strdate_or_today(strdate)
-  if sname is None:
-     return find_datedpage_filename_on_folder(ytchannelid, refdate)
-  truncatedname = sname
-  truncatedname = truncatedname.lstrip(' \t').rstrip(' \t\r\n')
-  if len(truncatedname) > 10:
-    truncatedname = sname[:10]
-  if truncatedname.endswith(' '):
-    truncatedname = truncatedname.strip(' ')
-  return strdate + ' ' + truncatedname + ' [' + ytchannelid + ']' + '.html'
-
-
-def find_datedpage_filename_on_folder(ytchid, refdate=None):
-  folderabspath = get_datebased_ythtmlfiles_folderabspath(refdate)
-  entries = os.listdir(folderabspath)
-  for entry in entries:
-    if entry.find(ytchid) > -1:
-      return entry
-  return None
 
 
 def is_htmldatedfilename_under_convention(filename):
@@ -206,6 +136,13 @@ def get_statichtml_fileabspath():
   return os.path.join(get_statichtml_folderabspath(), get_statichtml_filename())
 
 
+def get_fileabspath_ontopof_basedir_ifexists(filename):
+  fileabspath = os.path.join(get_fileabspath_ontopof_basedir(filename))
+  if not os.path.isfile(fileabspath):
+    return None
+  return fileabspath
+
+
 def adhoc_test():
   result = get_fileabspath_ontopof_basedir('test.txt')
   print(result)
@@ -213,27 +150,9 @@ def adhoc_test():
   print(result)
   result = get_fileabspath_ontopof_basedir('test')
   print(result)
-  folderabspath = get_datebased_ythtmlfiles_folderabspath()
-  print(folderabspath)
-  refdate = datetime.date(2020, 5, 19)
-  folderabspath = get_datebased_ythtmlfiles_folderabspath(refdate)
-  print(folderabspath)
-  print(config.get_ytchannels_jsonabspath())
-  ytchid = 'cUCWE75Qq5ExU0qlwQSkx18wQ'  # Clayson's channel
-  filename = find_datedpage_filename_on_folder(ytchid)
-  print('for today', ytchid, 'filename is', filename)
-  filename = find_datedpage_filename_on_folder(ytchid, refdate)
-  print('for', str(refdate), ytchid, 'filename is', filename)
   filename = 'blah [cUCWE75Qq5ExU0qlwQSkx18wQ].html'  # Clayson's channel
   extracted_ytchid = extract_ytchid_from_filename(filename)
   print('extracted_ytchid', extracted_ytchid)
-
-
-def get_fileabspath_ontopof_basedir_ifexists(filename):
-  fileabspath = os.path.join(get_fileabspath_ontopof_basedir(filename))
-  if not os.path.isfile(fileabspath):
-    return None
-  return fileabspath
 
 
 def process():

@@ -17,8 +17,10 @@ class YtVideosPage:
 
   def __init__(self, ytchannelid, nname=None, refdate=None):
     self.ytchannelid = ytchannelid
-    self.nname = nname
     self._sname = None
+    self.nname = nname
+    if nname is not None:
+      self.set_sname_by_nname()
     self.refdate = dtfs.get_refdate_or_today(refdate)
     self._videopagedatetime = None
     self._n_subscribers = None
@@ -187,7 +189,7 @@ class YtVideosPage:
         # error_msg = 'Error: sname could not be established in @property filename
         # [class YtVideosPage]'
         # raise ValueError(error_msg)
-    return pathfs.datedpage_filename(self.strdate, self._sname, self.ytchannelid)
+    return autof.form_datedpage_filename_with_triple(self.strdate, self._sname, self.ytchannelid)
 
   def set_sname_by_nname(self):
     if self.nname is None:
@@ -196,7 +198,7 @@ class YtVideosPage:
 
   @property
   def ytvideospagefile_abspath(self):
-    abspath = pathfs.get_datebased_ythtmlfiles_folderabspath(self.refdate)
+    abspath = autof.find_level3folderabspath_or_todays(self.refdate)
     filename = self.filename
     return os.path.join(abspath, filename)
 
@@ -209,8 +211,7 @@ class YtVideosPage:
 
   def find_set_n_get_sname_by_folder_or_none(self):
     ending = ' [%s].html' % self.ytchannelid
-    abspath = pathfs.get_datebased_ythtmlfiles_folderabspath(self.refdate)
-    entries = os.listdir(abspath)
+    entries = autof.find_htmlfilenames_from_date(self.refdate)
     sought_entry = list(filter(lambda x: x.find(ending) > -1, entries))
     if len(sought_entry) == 1:
       filename = sought_entry[0]
@@ -258,7 +259,7 @@ class YtVideosPage:
       error_msg = '@property datedpage has sname as None (strdate=%s, sname=%s, ytchannelid=%s)' \
                   % (self.strdate, self.sname, self.ytchannelid)
       raise ValueError(error_msg)
-    return pathfs.datedpage_filename(self.strdate, self.sname, self.ytchannelid)
+    return autof.form_datedpage_filename_with_triple(self.strdate, self.sname, self.ytchannelid)
 
   @property
   def datedpage_filepath(self):

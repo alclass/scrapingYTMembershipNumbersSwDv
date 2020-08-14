@@ -120,6 +120,34 @@ def extract_subscribers_from_htmltext(text, ytvideopage):
   return ytvideopage.dbsave_subscribers_number(subscribers_number)
 
 
+def extract_vitems_from_htmltext_nondb(text, ytvideopage):
+  begpos = text.find(beginningStr)
+  counter = 0
+  # there are about 29 videos per page, the while below intends to loop thru them all
+  viscrapers = []
+  while begpos > -1:
+    text = text[begpos:]
+    endpos = text.find(endStr)
+    if endpos > -1:
+      jsondictchunk = text[: endpos + len(endStr)]
+      counter += 1
+      try:
+        json_as_dict = json.loads(jsondictchunk)
+        viscraper = VideoItemsPageScraper(ytvideopage.ytchannelid, ytvideopage.videopagedatetime)
+        viscraper.introspect_json_to_find_items(json_as_dict)
+        viscrapers.append(viscraper)
+      except json.decoder.JSONDecodeError:
+        print('=' * 50)
+        # TO-DO log it to a file, so that we'll be able to find a flawd videopage file
+        log_msg = '=> Failed for %s %s' % (ytvideopage.ytchannelid, ytvideopage.filename)
+        print(log_msg)
+        logger.info(log_msg)
+        continue
+    text = text[endpos:]
+    begpos = text.find(beginningStr)
+  return viscrapers
+
+
 def extract_vitems_from_htmltext(text, ytvideopage):
   begpos = text.find(beginningStr)
   counter = 0

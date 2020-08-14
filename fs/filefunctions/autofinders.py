@@ -3,10 +3,58 @@
   docstring
 """
 from collections import OrderedDict
+import datetime
 import os
 import config
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.pathfunctions as pathfs
+
+
+def find_datedpage_filename_on_folder(ytchid, refdate=None):
+  entries = find_htmlfilenames_from_date(refdate)
+  for entry in entries:
+    if entry.find(ytchid) > -1:
+      return entry
+  return None
+
+
+def form_datedpage_filename_with_triple(strdate, sname, ytchannelid):
+  """
+    datedpage_filename is a composition of 3 fields, ie:
+      1) strdate which a 10-char yyyy-mm-dd
+      2) sname which is a contraction of nname having 10 or less characters
+      3) ytchannelid is the ytid preprend with a letter in {u, c, d}
+
+  None cases that can be treated:
+    1) if strdate is None (not given), it'll default to today's date
+    2) if sname is None (not given), a search on datafolder will occurr
+       see function find_datedpage_filename_on_folder(ytchannelid, refdate)
+    3) if ytchannelid is None (not given), a ValueError exception will be raised
+
+  :param strdate:
+  :param sname:
+  :param ytchannelid:
+  :return:
+  """
+  if ytchannelid is None:
+    error_msg = 'Error: ytchannelid is None in datedpage_filename(strdate, sname, ytchannelid)'
+    raise ValueError(error_msg)
+
+  ytchannelid = str(ytchannelid)
+  if len(ytchannelid) == 0:
+    error_msg = 'Error: ytchannelid is empty in datedpage_filename(strdate, sname, ytchannelid)'
+    raise ValueError(error_msg)
+
+  refdate = dtfs.get_refdate_from_strdate_or_today(strdate)
+  if sname is None:
+     return find_datedpage_filename_on_folder(ytchannelid, refdate)
+  truncatedname = sname
+  truncatedname = truncatedname.lstrip(' \t').rstrip(' \t\r\n')
+  if len(truncatedname) > 10:
+    truncatedname = sname[:10]
+  if truncatedname.endswith(' '):
+    truncatedname = truncatedname.strip(' ')
+  return strdate + ' ' + truncatedname + ' [' + ytchannelid + ']' + '.html'
 
 
 def endswith_htmls_n_startswith_date(filename):
@@ -542,6 +590,24 @@ def adhoc_test3():
     seq += 1
     print(seq, strdate, l3abspath)
 
+
+def adhoc_test():
+  result = pathfs.get_fileabspath_ontopof_basedir('test.txt')
+  print(result)
+  result = pathfs.get_fileabspath_ontopof_basedir_ifexists('test')
+  print(result)
+  result = pathfs.get_fileabspath_ontopof_basedir('test')
+  print(result)
+  refdate = datetime.date(2020, 5, 19)
+  print(config.get_ytchannels_jsonabspath())
+  ytchid = 'cUCWE75Qq5ExU0qlwQSkx18wQ'  # Clayson's channel
+  filename = find_datedpage_filename_on_folder(ytchid)
+  print('for today', ytchid, 'filename is', filename)
+  filename = find_datedpage_filename_on_folder(ytchid, refdate)
+  print('for', str(refdate), ytchid, 'filename is', filename)
+  filename = 'blah [cUCWE75Qq5ExU0qlwQSkx18wQ].html'  # Clayson's channel
+  extracted_ytchid = pathfs.extract_ytchid_from_filename(filename)
+  print('extracted_ytchid', extracted_ytchid)
 
 def process():
   """
