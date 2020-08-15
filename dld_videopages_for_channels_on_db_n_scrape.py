@@ -72,7 +72,7 @@ from models.procdb.SubscriberInsertorMod import Session
 import models.sa_models.ytchannelsubscribers_samodels as samodels
 import fs.datefunctions.datefs as dtfs
 from fs.db.jsondb import readjson
-import drill_down_json as drill
+from models.scrapers import drill_down_json as drill
 import config
 
 _, logfilename = os.path.split(__file__)

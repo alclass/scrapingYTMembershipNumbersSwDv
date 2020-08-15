@@ -23,6 +23,7 @@ logging.basicConfig(filename=logfilepath, filemode='w', format='%(name)s %(level
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+
 def download_n_save_to_folder(videopage, entry_abspath):
   log_msg = 'Downloading ' + videopage.videospageurl
   print(log_msg)
@@ -42,6 +43,7 @@ def download_n_save_to_folder(videopage, entry_abspath):
   fp.write(res.text)
   fp.close()
 
+
 class ChannelsVideoPageDownloader:
 
   def __init__(self, ytchannel):
@@ -54,10 +56,11 @@ class ChannelsVideoPageDownloader:
         return False
     download_n_save_to_folder(self.videopage, self.videopage.datedpage_filepath)
 
+
 def find_by_likename(likename):
   session = con.Session()
   ytchannel = session.query(sam.YTChannelSA).\
-    filter(sam.YTChannelSA.nname.like("%" + likename + "%")).first()
+      filter(sam.YTChannelSA.nname.like("%" + likename + "%")).first()
   # print(ytchannel)
   session.close()
   return ytchannel
@@ -72,10 +75,11 @@ def find_by_likenames(likenames):
 
 
 def fetch_ytchannels_n_process():
-  likenames = []
-  likenames.append('portal do josé')
-  likenames.append('villa')
-  likenames.append('henry bug')
+  likenames = [
+    'portal do josé',
+    'villa',
+    'henry bug',
+  ]
   # likenames.append('plantão brasil')
   for ytchannel in find_by_likenames(likenames):
     print('fetch_ytchannelsprocess', ytchannel)

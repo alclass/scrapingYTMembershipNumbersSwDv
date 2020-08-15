@@ -4,7 +4,7 @@
   "each_n_days" is the number of days that should pass before a new download-for-scrape happens.
 
   To update "each_n_days" values either in db, in its dictfile or in its json file,
-    run r_each_n_days_for_dld.py from the app's root folder.
+    run sync_each_n_days_for_dld_to_n_from_dbs.py from the app's root folder.
 """
 from models.procdb.SubscriberInsertorMod import Session
 import models.sa_models.ytchannelsubscribers_samodels as samodels

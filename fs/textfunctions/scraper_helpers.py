@@ -141,11 +141,16 @@ def extract_subscriber_number(text):
 
 def videoitems_drill_down(json_as_dict):
   ytvideoid = json_as_dict['gridVideoRenderer']['videoId']
+  title = None
   try:
-    # before ['gridVideoRenderer']['title']['simpleText']
     title = json_as_dict['gridVideoRenderer']['title']['runs'][0]['text']
   except KeyError:
-    title = 'No Title'
+    pass
+  if title is None:
+    try:
+      title = json_as_dict['gridVideoRenderer']['title']['simpleText']
+    except KeyError:
+      title = 'No Title'
   try:
     calendar_date_str = json_as_dict['gridVideoRenderer']['publishedTimeText']['simpleText']
   except KeyError:

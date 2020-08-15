@@ -11,8 +11,8 @@ import fs.textfunctions.shellcommands as shell
 import models.sa_models.ytchannelsubscribers_samodels as sam
 import models.gen_models.YtVideosPageMod as ytvpM
 import fs.db.sqlalchdb.sqlalchemy_conn as con
-import r_download_channelsvideopage as dldmod
-import drill_down_json as drill
+import dld_videopages_for_channels_on_db_n_scrape as dldmod
+from models.scrapers import drill_down_json as drill
 
 _, logfilename = os.path.split(__file__)
 logfilename = str(datetime.date.today()) + '_' + logfilename[:-3] + '.log'
@@ -22,22 +22,24 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def get_channel_from_args():
+def get_channel_from_args(confirm_msg_to_interpolate=None):
   if len(sys.argv) < 2:
     print('''
     ================ Missing Parameter ================ 
     Please, enter a nname or part of it to download a ytchannel.
     ================ ================  ================ 
     ''')
-    sys.exit(1)
+    ans = input('Press any key and/or [ENTER] ')
+    return None
   likename = sys.argv[1]
   session = con.Session()
   ytchannel = session.query(sam.YTChannelSA).filter(sam.YTChannelSA.nname.contains("%" + likename + "%")).first()
   session.close()
-  confirm_msg = 'Download channel %s ? (Y/n) ' % ytchannel.nname
-  ans = input(confirm_msg)
-  if ans not in ['', 'Y', 'y']:
-    return None
+  if confirm_msg_to_interpolate is not None:
+    confirm_msg = confirm_msg_to_interpolate % ytchannel.nname
+    ans = input(confirm_msg)
+    if ans not in ['', 'Y', 'y']:
+      return None
   return ytchannel
 
 
@@ -58,7 +60,8 @@ def download_scrape_n_dbsave(ytvideopage):
 
 
 def process():
-  ytchannel = get_channel_from_args()
+  confirm_msg_to_interpolate = 'Download channel %s ? (Y/n) '  # % ytchannel.nname
+  ytchannel = get_channel_from_args(confirm_msg_to_interpolate)
   ytvideopage = ytvpM.YtVideosPage(ytchannel.ytchannelid, ytchannel.nname)
   vinfo_before = get_most_recent_video_for(ytchannel)
   download_scrape_n_dbsave(ytvideopage)

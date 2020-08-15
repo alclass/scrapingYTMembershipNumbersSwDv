@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from models.sa_models.ytchannelsubscribers_samodels import get_all_ytchannelids
 import fs.datefunctions.datefs as dtfs
-import drill_down_json as drill
-import r_upd_scrape_videoitems as prev_scrap
+from models.scrapers import drill_down_json as drill
+import z_deprec_upd_scrape_videoitems as prev_scrap
 
 
 def get_ini_fim_daterange():
