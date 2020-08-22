@@ -176,16 +176,15 @@ class VideoItem:
     return True
 
   def update_videoitem(self, dbvideoitem, session):
-    was_changed = False
-    if dbvideoitem.title != self.title:
-      if self.title is not None:
-        if self.title != 'No Title':
-          if len(self.title) > 0:
-            log_msg = 'Updating title from [' + dbvideoitem.title + '] to [' + self.title + ']'
-            dbvideoitem.title = self.title
-            print(log_msg)
-            logger.info(log_msg)
-            was_changed = True
+    """
+
+    The quadruple fields: publishdatetime, infodate, infotime and published_time_ago
+      should all be treated together as in a group, so, because of that,
+      attempts to update them here were removed (code fragment below in this docstring).
+
+    (A separate script will be written to check consistency of the four crossing info with
+      mtime of its html video page file, if it still exists.)
+
     if self.publishdatetime is not None and dbvideoitem.publishdatetime is None:
       dbvideoitem.publishdatetime = self.publishdatetime
       log_msg = 'Updating published_time_ago from ['\
@@ -210,13 +209,29 @@ class VideoItem:
       print(log_msg)
       logger.info(log_msg)
       was_changed = True
-    if dbvideoitem.duration_in_sec is None or dbvideoitem.duration_in_sec == 0:
-      log_msg = 'Updating duration_in_sec from ['\
-                + str(dbvideoitem.duration_in_sec) + '] to [' + str(self.duration_in_sec) + ']'
-      dbvideoitem.duration_in_sec = self.duration_in_sec
-      print(log_msg)
-      logger.info(log_msg)
-      was_changed = True
+
+    :param dbvideoitem:
+    :param session:
+    :return:
+    """
+    was_changed = False
+    if dbvideoitem.title != self.title:
+      if self.title is not None:
+        if self.title != 'No Title':
+          if len(self.title) > 0:
+            log_msg = 'Updating title from [' + dbvideoitem.title + '] to [' + self.title + ']'
+            dbvideoitem.title = self.title
+            print(log_msg)
+            logger.info(log_msg)
+            was_changed = True
+    if self.duration_in_sec is not None and self.duration_in_sec > 0:
+      if dbvideoitem.duration_in_sec != self.duration_in_sec:
+        log_msg = 'Updating duration_in_sec from ['\
+                  + str(dbvideoitem.duration_in_sec) + '] to [' + str(self.duration_in_sec) + ']'
+        dbvideoitem.duration_in_sec = self.duration_in_sec
+        print(log_msg)
+        logger.info(log_msg)
+        was_changed = True
     if was_changed:
       session.commit()
     log_msg = 'session closed in update_videoitem() commit=' + str(was_changed) + ' ' + str(dbvideoitem)
@@ -245,12 +260,25 @@ class VideoItem:
         filter(YTVideoViewsSA.infodate == self.infodate). \
         first()
     if vviews:
+      was_changed = False
+      if self.n_views is not None and vviews.views != self.n_views:
+        was_changed = True
+        vviews.views = self.n_views
+      if self.infotime is not None and vviews.infotime != self.infotime:
+        was_changed = True
+        vviews.infotime = self.infotime
+      if was_changed:
+        session.commit()
       session.close()
-      return False
+      if was_changed:
+        return True
+      else:
+        return False
     vviews = YTVideoViewsSA()
     vviews.ytvideoid = self.ytvideoid
     vviews.views = self.n_views
     vviews.infodate = self.infodate
+    vviews.infotime = self.infotime
     session.add(vviews)
     session.commit()
     log_msg = 'Committed videoviews object ' + str(vviews)

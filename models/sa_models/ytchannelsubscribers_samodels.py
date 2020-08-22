@@ -279,7 +279,7 @@ class YTVideoViewsSA(Base):
   __tablename__ = 'videosviews'
 
   id = Column(Integer, primary_key=True)
-  views = Column(Integer, nullable=True)
+  views = Column(Integer, nullable=False, default=0)
   infodate = Column(Date, index=True, nullable=False)
   infotime = Column(Time, nullable=False)
 
