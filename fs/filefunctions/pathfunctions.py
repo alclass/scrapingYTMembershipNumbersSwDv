@@ -71,6 +71,34 @@ def extract_ytchid_from_filename(filename):
   return None
 
 
+def extract_middlepath_from_mountpoint_n_abspath(mountpoint, abspath):
+  """
+  if not abspath.startswith(mountpoint):
+    return None
+  if mountpoint != '/':
+    if abspath.find('/') > -1 and mountpoint.find('/') > -1:
+      mm = mountpoint.split('/')
+      aa = abspath.split('/')
+      if len(aa) < len(mm):
+        return None
+      if mm[-1] != aa[len(mm)-1]:
+        return None
+
+  :param mountpoint:
+  :param abspath:
+  :return:
+  """
+  if len(abspath) < len(mountpoint):
+    return None
+  if not abspath.startswith(mountpoint):
+    return None
+  if len(abspath) == len(mountpoint):
+    return ''
+  middlepath = abspath[len(mountpoint):]
+  middlepath = middlepath.strip('/')
+  return middlepath
+
+
 def get_fileabspath_ontopof_basedir(filename):
   datafolder_abspath = get_ytvideo_htmlfiles_baseabsdir()
   if datafolder_abspath is None:
@@ -153,6 +181,10 @@ def adhoc_test():
   filename = 'blah [cUCWE75Qq5ExU0qlwQSkx18wQ].html'  # Clayson's channel
   extracted_ytchid = extract_ytchid_from_filename(filename)
   print('extracted_ytchid', extracted_ytchid)
+  mountpoint = '/a/b/c/d/science'
+  abspath = '/a/b/c/d/science/physics/relativity///'
+  middlepath = extract_middlepath_from_mountpoint_n_abspath(mountpoint, abspath)
+  print('middlepath', middlepath)
 
 
 def process():

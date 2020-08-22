@@ -234,9 +234,10 @@ def find_3rdlevel_yyyymmdd_dir_abspaths_from_a_2ndlevel(level2abspathentry, leve
 
 def find_all_3rdlevel_yyyymmdd_dir_abspaths(level0abspath=None):
   """
-  Second level path entries that are named as yyyy-mm-dd and are directories:
+  Third level path entries that are named as yyyy-mm-dd and are directories:
     obs:
       1) it takes all paths across all first level directories;
+      2) this function is memory-greedy, to use a generator version see <generetor_version>
 
   :return:
   """
@@ -244,7 +245,7 @@ def find_all_3rdlevel_yyyymmdd_dir_abspaths(level0abspath=None):
   total_yyyymmdd_level2abspathentries = []
   for level2_abspath_entry in yyyymm_level2_abspath_entries:
     level2entries = os.listdir(level2_abspath_entry)
-    level2_abspath_entries = find_3rdlevel_yyyymmdd_dir_abspaths_from_a_2ndlevel(level2_abspath_entry, level2entries)
+    level2_abspath_entries = [os.path.join(level2_abspath_entry, e) for e in level2entries]
     total_yyyymmdd_level2abspathentries += level2_abspath_entries
   return total_yyyymmdd_level2abspathentries
 
@@ -511,9 +512,9 @@ def mount_level3folderabspath_with_date(pdate=None, create_folder=True, plevel0b
   return level3abspath
 
 
-def generate_all_ytvideopages_abspath_asc_date():
+def generate_all_ytvideopages_abspath_asc_date(level0abspath=None):
   # dates_n_paths_od = get_ordered_dict_with_dates_n_abspaths()
-  dateini, datefin = find_dateini_n_datefin_thru_yyyymmdd_level3_folders()
+  dateini, datefin = find_dateini_n_datefin_thru_yyyymmdd_level3_folders(level0abspath)
   for pdate in dtfs.generate_daterange_with_dateini_n_datefin(dateini, datefin):
     yyyymmdd_dir_abspath = mount_level3folderabspath_with_date(pdate)
     if yyyymmdd_dir_abspath is None:

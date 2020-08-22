@@ -61,6 +61,13 @@ def get_roundint_hour_from_time(ptime, default_hour=12):
   return default_hour
 
 
+def zero_microsec_in_datetime(pdatetime):
+  pdt = pdatetime
+  if pdt is None:
+    return None
+  return datetime.datetime(pdt.year, pdt.month, pdt.day, pdt.hour, pdt.minute, pdt.second)
+
+
 def split_date_n_time_from_datetime(pdatetime):
   pdate = convert_datetime_to_date(pdatetime)
   if pdate is None:

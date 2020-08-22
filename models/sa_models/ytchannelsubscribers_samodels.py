@@ -5,7 +5,7 @@
 import datetime
 import os
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Boolean, Integer, String, Date, DateTime, TIMESTAMP, \
+from sqlalchemy import Column, Boolean, Integer, String, Date, DateTime, Time, TIMESTAMP, \
   ForeignKey, Text, UniqueConstraint
 from sqlalchemy.types import BINARY
 from sqlalchemy.orm import relationship, backref
@@ -198,14 +198,14 @@ class YTVideoItemInfoSA(Base):
   id = Column(Integer, primary_key=True)
   ytvideoid = Column(String(11), unique=True)
   title = Column(String)
-  duration_in_sec = Column(Integer, nullable=True)
-  publishdatetime = Column(DateTime, nullable=True)
+  duration_in_sec = Column(Integer, nullable=False, default=0)
+  publishdatetime = Column(DateTime, nullable=False, index=True)
   published_time_ago = Column(String(30))
-  infodate = Column(Date, nullable=True)
-  infodayhour = Column(Integer, nullable=True)
-  changelog = Column(Text, nullable=True)
+  infodate = Column(Date, nullable=False)
+  infotime = Column(Time, nullable=False)
+  # changelog = Column(Text, nullable=True)
 
-  vviewlist = relationship('YTVideoViewsSA', backref='vinfo', lazy='dynamic', order_by=desc('infodate'))
+  vviewlist = relationship('YTVideoViewsSA', backref='ytvideo', lazy='dynamic', order_by=desc('infodate'))
   ytchannelid = Column(String, ForeignKey('channels.ytchannelid'))
 
   created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))  # func.now() | text('0')
@@ -220,7 +220,11 @@ class YTVideoItemInfoSA(Base):
 
   @property
   def infodatetimeuptohour(self):
-    return datetime.datetime(self.infodate.year, self.infodate.month, self.infodate.day, self.infodayhour)
+    """
+
+    :return:
+    """
+    return datetime.datetime(self.infodate.year, self.infodate.month, self.infodate.day, self.infotime.hour)
 
   @property
   def publishdate(self):
@@ -261,7 +265,9 @@ class YTVideoItemInfoSA(Base):
     return url
 
   def __repr__(self):
-    return '<YTVideoItemInfoSA(ytvideoid="%s", title="%s", infdt="%s")>' % (self.ytvideoid, self.title, self.infodate)
+    hms = self.duration_in_hms or ''
+    return '<YTVideoItemInfoSA(vid="%s", t="%s", infdt="%s %s", d="%s")>' \
+           % (self.ytvideoid, self.title, self.infodate, self.infotime, hms)
 
 
 class YTVideoViewsSA(Base):
@@ -274,11 +280,13 @@ class YTVideoViewsSA(Base):
 
   id = Column(Integer, primary_key=True)
   views = Column(Integer, nullable=True)
-  infodate = Column(Date)
-  infodayhour = Column(Integer, nullable=True)
+  infodate = Column(Date, index=True, nullable=False)
+  infotime = Column(Time, nullable=False)
 
   ytvideoid = Column(String(11), ForeignKey('individualvideostats.ytvideoid'))
-  # videoinfolist = relationship(YTVideoItemInfoSA)
+  # this attribute can be used as: thisobj.ytvideo.title; or even "longer" as thisobj.ytvideo.ytchannel.nname
+  # dynamic lazy is not accepted below because it's a one-to-one relationship
+  videoitem = relationship('YTVideoItemInfoSA', backref='videoinfo', order_by=desc('infodate'))
 
   created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))  # func.now() | text('0')
   updated_at = Column(TIMESTAMP, nullable=True, server_default=text('ON UPDATE CURRENT_TIMESTAMP'))
@@ -287,7 +295,7 @@ class YTVideoViewsSA(Base):
   __table_args__ = (UniqueConstraint('infodate', 'ytvideoid', name='infodate_n_ytvideoid_uniq'),)
 
   def __repr__(self):
-    return '<YTVideoViewsSA(ytvideoid="%s", views="%s", infdt="%s")>' % (self.ytvideoid, self.views, self.infodate)
+    return '<YTVideoViewsSA(ytvideoid="%s", views="%s", infdt="%s %s")>' % (self.ytvideoid, self.views, self.infodate, self.infotime)
 
 
 class NewsArticlesSA(Base):

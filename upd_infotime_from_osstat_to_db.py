@@ -2,7 +2,7 @@
 """
   This script makes available the following functionalities:
     1) prints out a list of dates and times from video items table;
-    2) updates db correcting infodayhour for records that do not have this field-value;
+    2) updates db correcting infotime for records that do not have this field-value;
 """
 import datetime
 import os
@@ -44,7 +44,7 @@ def show_dates_n_times_of_videoitems_table():
   seq = 0
   field_names = [
     'seq', 'ytvideoid', 'nname', 'titletrunc',
-    'infodate', 'infodayhour',
+    'infodate', 'infotime',
     'publishdatetime', 'calendarStr', 'created_at'
   ]
   ptab = remake_ptab(field_names)
@@ -55,7 +55,7 @@ def show_dates_n_times_of_videoitems_table():
       vitem.ytvideoid,
       vitem.ytchannel.nname,
       vitem.infodate,
-      vitem.infodayhour,
+      vitem.infotime,
       vitem.publishdatetime,
       vitem.published_time_ago,
       vitem.created_at,

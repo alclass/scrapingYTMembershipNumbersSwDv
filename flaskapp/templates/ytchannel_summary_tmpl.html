@@ -36,11 +36,11 @@
 
   {% for vinfo in vinfolist %}
     <p style="color:orange;">{{ loop.index }} => <a href="{{ vinfo.ytvideo_url }}">{{ vinfo.title }}</a> <br>
-      on {{ vinfo.publishdate }} {{ vinfo.published_time_ago }} {{ vinfo.infodate }} duration {{ vinfo.duration_in_hms }} {{ vinfo.ytvideoid }}</p>
+      {{ vinfo.duration_in_hms }} | {{ vinfo.ytvideoid }} | {{ '{:%Y-%m-%d %H:%M}'.format(vinfo.publishdatetime) }} | {{ vinfo.infodate }} {{ '{:%H:%M}'.format(vinfo.infotime) }} | há {{ vinfo.published_time_ago }}</p>
       <table border="1">
         <tr>
           <th>seq</th>
-          <th>date</th>
+          <th>date time</th>
           <th>views</th>
           <th>diff</th>
         </tr>
@@ -48,7 +48,7 @@
         {% for vview in vinfo.vviewlist %}
           <tr style="color:orange;">
             <td>{{ loop.index }}</td>
-            <td>{{ vview.infodate }}</td>
+            <td>{{ vview.infodate }} {{ '{:%H:%M}'.format(vview.infotime) }}</td>
             <td>{{ vview.views }}</td>
             {% if loop.first %}
               <td>---</td>

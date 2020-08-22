@@ -42,7 +42,7 @@ class VideoItem:
     self.n_views = None
     self._duration_in_sec = None
     self._infodate = None
-    self._infodayhour = 12
+    self._infotime = 12
     self._videopagedate = None
     self._videopagetime = None
     self._publishdatetime = None  # to be calculated against first access to self.publishdate
@@ -51,7 +51,7 @@ class VideoItem:
   def set_n_treat_derived_fields(self, n_views):
     self.treat_views(n_views)
     self.treat_calendar_strdate()
-    self.set_infodate_n_infodayhour()
+    self.set_infodate_n_infotime()
     self.set_publishdatetime()
     self.set_videopagedate_n_time()
 
@@ -65,27 +65,28 @@ class VideoItem:
     log_msg = 'self.n_views = %d' % self.n_views
     logger.info(log_msg)
 
-  def set_infodate_n_infodayhour(self):
-    self._infodate, self._infodayhour = dtfs.split_date_n_time_from_datetime(self.videopagedatetime)
+  def set_infodate_n_infotime(self):
+    self._infodate, self._infotime = dtfs.split_date_n_time_from_datetime(self.videopagedatetime)
     # defaults
     if self._infodate is None:
       self._infodate = dtfs.get_refdate_from_strdate_or_today()
-    self._infodayhour = dtfs.get_roundint_hour_from_time(self._infodayhour, 12)   # or 12
-    log_msg = 'set_infodate_n_infodayhour() infodate = %s | infodayhour = %s | videopagedatetime = %s' \
-              % (str(self._infodate), str(self._infodayhour), str(self.videopagedatetime))
+    if self._infotime is None:
+      self._infotime = datetime.datetime.now()
+    log_msg = 'set_infodate_n_infotime() infodate = %s | infotime = %s | videopagedatetime = %s' \
+              % (str(self._infodate), str(self._infotime), str(self.videopagedatetime))
     logger.info(log_msg)
 
   @property
   def infodate(self):
-    if self._infodate is None or self._infodayhour is None:
-      self.set_infodate_n_infodayhour()
+    if self._infodate is None or self._infotime is None:
+      self.set_infodate_n_infotime()
     return self._infodate
 
   @property
-  def infodayhour(self):
-    if self._infodayhour is None:
-      self.set_infodate_n_infodayhour()
-    return self._infodayhour
+  def infotime(self):
+    if self._infotime is None:
+      self.set_infodate_n_infotime()
+    return self._infotime
 
   def set_duration_in_sec(self):
     self._duration_in_sec = dtfs.transform_hms_into_duration_in_sec(self.durationStr)
@@ -165,8 +166,7 @@ class VideoItem:
     videoitem.publishdatetime = self.publishdatetime
     videoitem.published_time_ago = self.calendar_strdate
     videoitem.infodate = self.infodate
-    h = int(self.infodayhour)
-    videoitem.infodayhour = h if h < 24 else 12
+    videoitem.infotime = self.infotime
     videoitem.ytchannelid = self.ytchannelid
     session.commit()
     log_msg = 'session closed in insert_videoitem() ' + str(videoitem)
@@ -203,10 +203,10 @@ class VideoItem:
       print(log_msg)
       logger.info(log_msg)
       was_changed = True
-    if dbvideoitem.infodayhour is None or self.infodayhour != dbvideoitem.infodayhour:
-      log_msg = 'Updating infodayhour from ['\
-                + str(dbvideoitem.infodayhour) + '] to [' + str(self.infodayhour) + ']'
-      dbvideoitem.infodayhour = self.infodayhour
+    if dbvideoitem.infotime is None or self.infotime != dbvideoitem.infotime:
+      log_msg = 'Updating infotime from [' \
+                + str(dbvideoitem.infotime) + '] to [' + str(self.infotime) + ']'
+      dbvideoitem.infotime = self.infotime
       print(log_msg)
       logger.info(log_msg)
       was_changed = True

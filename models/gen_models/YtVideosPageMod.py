@@ -2,6 +2,7 @@
 """
   docstring
 """
+import datetime
 import os
 from prettytable import PrettyTable
 from sqlalchemy.sql.expression import desc
@@ -48,9 +49,9 @@ class YtVideosPage:
     if pdate is None:
       pdate = self.refdate
     if ptime is None:
-      infodayhour = 12
+      infotime = datetime.datetime.now()
     else:
-      infodayhour = ptime.hour
+      infotime = ptime
     session = Session()
     subs = session.\
         query(YTDailySubscribersSA).\
@@ -73,8 +74,8 @@ class YtVideosPage:
       subs.infodate = pdate
       self.refdate = pdate
       updated = True
-    if created or subs.infodayhour != infodayhour:
-      subs.infodayhour = infodayhour
+    if created or subs.infotime != infotime:
+      subs.infotime = infotime
       updated = True
     if updated:
       session.commit()
