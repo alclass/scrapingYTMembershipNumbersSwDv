@@ -14,6 +14,8 @@ import fs.datefunctions.datefs as dtfs
 from sqlalchemy.sql.expression import asc, desc
 import config
 import fs.db.sqlalchdb.sqlalchemy_conn as saconn
+import fs.filefunctions.pathfunctions as pathfs
+import fs.filefunctions.autofinders as autof
 
 Base = declarative_base()
 
@@ -34,6 +36,7 @@ class YTChannelSA(Base):
   ytchannelid = Column(String, unique=True)
   nname = Column(String)
   category_id = Column(Integer, ForeignKey('nw_categories.id'), nullable=True)
+  active = Column(Boolean, default=True)
   each_n_days_for_dld = Column(Integer, default=1)
   # scrapedate = Column(Date, nullable=True) # now it's a property below
   obs = Column(Text, nullable=True)
@@ -45,6 +48,12 @@ class YTChannelSA(Base):
 
   created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))  # func.now() | text('0')
   updated_at = Column(TIMESTAMP, nullable=True, server_default=text('ON UPDATE CURRENT_TIMESTAMP'))
+
+  @property
+  def sname(self):
+    sname = self.nname if len(self.nname) <= 10 else self.nname[:10]
+    sname = sname.strip(' ')
+    return sname
 
   @property
   def scrapedate(self):
@@ -152,6 +161,23 @@ class YTChannelSA(Base):
       return True
     return False
 
+  def form_conventioned_datedvideopage_filename(self, refdate=None):
+    return pathfs.form_conventioned_datedvideopage_filename(refdate, self.sname, self.ytchannelid)
+
+  def find_datedpage_datafilepath(self, refdate=None):
+    filename = self.form_conventioned_datedvideopage_filename(refdate)
+    abspath = autof.find_level3folderabspath_or_todays(refdate)
+    return os.path.join(abspath, filename)
+
+  def get_text_from_conventioned_datedvideopage_file(self, refdate=None):
+    filepath = self.find_datedpage_datafilepath(refdate)
+    if filepath is None:
+      return None
+    if not os.path.isfile(filepath):
+      return None
+    with open(filepath, encoding='utf8') as fp:
+      return fp.read()
+
   def find_next_download_date(self):
     today = datetime.date.today()
     if self.scrapedate is None:
@@ -172,20 +198,19 @@ class YTDailySubscribersSA(Base):
 
   id = Column(Integer, primary_key=True)
   subscribers = Column(Integer)
-  infodate = Column(Date)
-  infodayhour = Column(Integer, nullable=True)
+  infodate = Column(Date, index=True, nullable=False)
+  infotime = Column(Time, nullable=False)
 
   ytchannelid = Column(String, ForeignKey('channels.ytchannelid'))
 
   created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))  # func.now() | text('0')
   updated_at = Column(TIMESTAMP, nullable=True, server_default=text('ON UPDATE CURRENT_TIMESTAMP'))
 
-  __table_args__ = (UniqueConstraint('infodate', 'subscribers', 'ytchannelid',
-                                     name='infodate_n_subscribers_ytchannelid_uniq'),)
+  __table_args__ = (UniqueConstraint('ytchannelid', 'infodate', name='ytchannelid_n_infodate_uniq'),)
 
   def __repr__(self):
-    return '<DailySubscribers(ytchannelid="%s", infdt="%s". subs=%d)>' % \
-           (self.ytchannelid, str(self.infodate), self.subscribers)
+    return '<DailySubscribers(ytchannelid="%s", infdt="%s". subs=%s)>' % \
+           (self.ytchannelid, self.infodate, str(self.subscribers))
 
 
 YTVIDEO_URL_BASE_TO_INTERPOLATE = config.YTVIDEO_URL_BASE_TO_INTERPOLATE
@@ -295,7 +320,8 @@ class YTVideoViewsSA(Base):
   __table_args__ = (UniqueConstraint('infodate', 'ytvideoid', name='infodate_n_ytvideoid_uniq'),)
 
   def __repr__(self):
-    return '<YTVideoViewsSA(ytvideoid="%s", views="%s", infdt="%s %s")>' % (self.ytvideoid, self.views, self.infodate, self.infotime)
+    return '<YTVideoViewsSA(ytvideoid="%s", views="%s", infdt="%s %s")>' \
+           % (self.ytvideoid, self.views, self.infodate, self.infotime)
 
 
 class NewsArticlesSA(Base):

@@ -2,7 +2,7 @@
 """
   docstring
 """
-import fs.numberfunctions.statisticsMod as statM
+import fs.numberfunctions.statisticsmod as statM
 import models.procdb.SubscriberDaysMod as subsM
 import fs.filefunctions.pathfunctions as pathfs
 import fs.graphics.barchartmod as bar

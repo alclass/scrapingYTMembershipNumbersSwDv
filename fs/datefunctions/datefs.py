@@ -32,6 +32,16 @@ def extract_time_from_datetime(pdatetime):
   return ptime
 
 
+def get_daterange_for_month(pdate):
+  refdate = get_refdate_from_strdate_or_today(pdate)
+  ye = refdate.year
+  mo = refdate.month
+  inidate = refdate.replace(day=1)
+  last_day_in_month = calendar.monthrange(ye, mo)[1]
+  findate = refdate.replace(day=last_day_in_month)
+  return inidate, findate
+
+
 def get_roundint_hour_from_time(ptime, default_hour=12):
   """
     Notice: this function doesn't round hour 23 for the time being for it should "carry one"
@@ -694,8 +704,17 @@ def adhoc_test4():
     print(pdate)
 
 
+def adhoc_test5():
+  pdate = '2020-08-14'
+  inidate, findate = get_daterange_for_month(pdate)
+  print('inidate, findate', inidate, findate)
+  pdate = '2020-2-2'
+  inidate, findate = get_daterange_for_month(pdate)
+  print('inidate, findate', inidate, findate)
+
+
 def process():
-  adhoc_test4()
+  adhoc_test5()
 
 if __name__ == '__main__':
   process()

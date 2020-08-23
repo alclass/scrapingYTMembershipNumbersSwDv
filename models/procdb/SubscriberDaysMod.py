@@ -4,7 +4,7 @@ from models.procdb.SubscriberInsertorMod import Session
 from models.sa_models.ytchannelsubscribers_samodels import YTChannelSA
 from models.sa_models.ytchannelsubscribers_samodels import YTDailySubscribersSA
 from models.gen_models.YtVideosPageMod import transpose_sqlalchs_to_ytvideopages
-import fs.numberfunctions.statisticsMod as statM
+import fs.numberfunctions.statisticsmod as statM
 
 subs_report_ntconstr = coll.namedtuple('SubsReport', 'seq nname d1 subs1 d2 subs2 d3 subs3 mini maxi diff delt')
 

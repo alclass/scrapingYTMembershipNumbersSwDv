@@ -89,7 +89,7 @@ class DatedHtmlsTraversor:
 
   def traverse(self):
     for pdate in dtfs.generate_daterange_with_dateini_n_datefin(self.dateini, self.datefim):
-      html_abspaths = autof.find_3rdlevel_yyyymm_files_abspaths_on_date(pdate)
+      html_abspaths = autof.find_3rdlevel_yyyymmdd_files_abspaths_on_date(pdate)
       total_html_abspaths = len(html_abspaths)
       log_msg = 'Total of HTML files: %d on date %s' % (total_html_abspaths, pdate)
       print(log_msg)

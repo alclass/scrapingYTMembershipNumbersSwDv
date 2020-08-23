@@ -8,6 +8,7 @@ import logging
 import os
 import string
 import config
+import fs.numberfunctions.numbermod as nmod
 
 _, logfilename = os.path.split(__file__)
 logfilename = str(datetime.date.today()) + '_' + logfilename[:-3] + '.log'
@@ -16,48 +17,6 @@ logging.basicConfig(filename=logfilepath, filemode='w', format='%(name)s %(level
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-
-def consume_left_side_float_number(word):
-  """
-
-  :param word:
-  :return:
-  """
-  if word is None:
-    return None
-  if type(word) == int or type(word) == float:
-    return float(word)
-  numberstr = ''
-  for c in word:
-    if c in string.digits:
-      numberstr += c
-    elif c in [',', '.']:
-      numberstr += '.'
-    else:
-      break
-  if numberstr == '':
-    return None
-  floatnumber = float(numberstr)
-  return floatnumber
-
-
-def consume_left_side_int_number_w_optional_having_comma_or_point(word):
-  if word is None:
-    return None
-  if type(word) == int:
-    return word
-  numberstr = ''
-  for c in word:
-    if c in string.digits:
-      numberstr += c
-    elif c in [',', '.']:
-      continue
-    else:
-      break
-  if numberstr == '':
-    return None
-  intnumber = int(numberstr)
-  return intnumber
 
 
 def extract_number_from_phrase_unit_mil_k_mi(arialabel):
@@ -72,7 +31,7 @@ def extract_number_from_phrase_unit_mil_k_mi(arialabel):
   :param arialabel:
   :return:
   """
-  floatnumber = consume_left_side_float_number(arialabel)
+  floatnumber = nmod.consume_left_side_float_number(arialabel)
   if floatnumber is None:
     return -1
   if type(arialabel) != str:
@@ -124,19 +83,49 @@ subscriberEndStr = '"}]},'
 # "subscriberCountText":{"runs":[{"text":"69,2 mil inscritos"}]}
 
 
+def extract_subscriber_2nd_try(text):
+  """
+  "subscriberCountText":{"simpleText":"556 mil inscritos"},
+  :param text:
+  :return:
+  """
+  begpos = text.find('"subscriberCountText":{"simpleText":"')
+  if begpos > -1:
+    chunk = text[begpos+len('"subscriberCountText":'): ]
+    endpos = chunk.find('"}')
+    if endpos > -1:
+      chunk = chunk[ : endpos+2]
+      print(chunk)
+      pdict = json.loads(chunk)
+      value = pdict['simpleText']
+      n_of_subscribers = extract_number_from_phrase_unit_mil_k_mi(value)
+      return n_of_subscribers
+  return None
+
+
 def extract_subscriber_number(text):
+  """
+  :param text:
+  :return:
+  """
+  subscriber_number = None
   begpos = text.find(subscriberBegStr)
   if begpos > -1:
     trunk = text[begpos + len(subscriberPrefixBegStr):]
     endpos = trunk.find(subscriberEndStr)
     if endpos > -1:
       trunk = trunk[: endpos + len(subscriberEndStr) - 1]
-      pdict = json.loads(trunk)
-      print(pdict)
-      subscriber_text = pdict['runs'][0]['text']
-      subscriber_number = extract_number_from_phrase_unit_mil_k_mi(subscriber_text)
-      return subscriber_number
-  return None
+      try:
+        pdict = json.loads(trunk)
+        print(pdict)
+        subscriber_text = pdict['runs'][0]['text']
+        subscriber_number = extract_number_from_phrase_unit_mil_k_mi(subscriber_text)
+      except json.decoder.JSONDecodeError:
+        pass
+  if subscriber_number is None:
+    # 2nd try
+    subscriber_number = extract_subscriber_2nd_try(text)
+  return subscriber_number
 
 
 def videoitems_drill_down(json_as_dict):

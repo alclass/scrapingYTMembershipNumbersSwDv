@@ -5,9 +5,42 @@
 from collections import OrderedDict
 import datetime
 import os
-import config
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.pathfunctions as pathfs
+import fs.textfunctions.regexp_helpers as regexp
+import config
+
+
+def find_ytchannelid_n_videopagefilemodifiedtimestamp_tuplelist_for_date(refdate):
+  abspaths = find_3rdlevel_yyyymmdd_files_abspaths_on_date(refdate)
+  ytchannelids_n_modifiedtimestamps = []
+  for abspath in abspaths:
+    _, filename = os.path.split(abspath)
+    name, _ = os.path.splitext(filename)
+    ytchannelid = regexp.find_ytchannelid_within_brackets_in_filename(name)
+    t_osstat = os.stat(abspath)
+    createdatetime = t_osstat.st_mtime
+    ytchannelid_n_modifiedtimestamp = (ytchannelid, createdatetime)
+    ytchannelids_n_modifiedtimestamps.append(ytchannelid_n_modifiedtimestamp)
+  return ytchannelids_n_modifiedtimestamps
+
+
+def fetch_ytchannelids_from_refdate_datafolder(refdate, level0folderabspath=None):
+  """
+  htmlfilenames = find_htmlfilenames_from_date(refdate, level0folderabspath)
+  ytchannelids = map(lambda fn: pathfs.extract_ytchid_from_filename, htmlfilenames)
+  return list(ytchannelids)
+
+  :param refdate:
+  :param level0folderabspath:
+  :return:
+  """
+  htmlfilenames = find_htmlfilenames_from_date(refdate, level0folderabspath)
+  ytchannelids = []
+  for htmlfilename in htmlfilenames:
+     ytchannelid = pathfs.extract_ytchid_from_filename(htmlfilename)
+     ytchannelids.append(ytchannelid)
+  return ytchannelids
 
 
 def find_datedpage_filename_on_folder(ytchid, refdate=None):
@@ -54,7 +87,14 @@ def form_datedpage_filename_with_triple(strdate, sname, ytchannelid):
     truncatedname = sname[:10]
   if truncatedname.endswith(' '):
     truncatedname = truncatedname.strip(' ')
-  return strdate + ' ' + truncatedname + ' [' + ytchannelid + ']' + '.html'
+  return str(refdate) + ' ' + truncatedname + ' [' + ytchannelid + ']' + '.html'
+
+
+def form_datedpage_filepath_with_triple(strdate, sname, ytchannelid):
+  refdate = dtfs.get_refdate_from_strdate_or_today(strdate)
+  filename = form_datedpage_filename_with_triple(refdate, sname, ytchannelid)
+  l3folder_abspath = find_level3folderabspath_or_todays(refdate)
+  return os.path.join(l3folder_abspath, filename)
 
 
 def endswith_htmls_n_startswith_date(filename):
@@ -329,11 +369,14 @@ def find_dateini_n_datefin_thru_yyyymmdd_level3_folders_olderversion():
   return oldestdate, newestdate
 
 
-def find_3rdlevel_yyyymm_files_abspaths_on_date(pdate=None, level0abspath=None):
+def find_3rdlevel_yyyymmdd_files_abspaths_on_date(pdate=None, level0abspath=None):
   l3abspath = mount_level3folderabspath_with_date(pdate, create_folder=False, plevel0baseabspath=level0abspath)
   if l3abspath is None:
     return []
-  entries = os.listdir(l3abspath)
+  try:
+    entries = os.listdir(l3abspath)
+  except FileNotFoundError:
+    return []
   entries = filter(lambda f: endswith_htmls_n_startswith_date(f), entries)
   files_abspaths = [os.path.join(l3abspath, e) for e in list(entries)]
   return files_abspaths
@@ -569,8 +612,8 @@ def adhoc_test2():
   print('l1 foldernames', foldernames)
   dateini, datefin = find_dateini_n_datefin_thru_yyyymmdd_level3_folders()
   print('dateini, datefin', dateini, datefin)
-  files_abspaths = find_3rdlevel_yyyymm_files_abspaths_on_date()
-  print('dateini, datefin find_3rdlevel_yyyymm_files_abspaths_on_date()', files_abspaths)
+  files_abspaths = find_3rdlevel_yyyymmdd_files_abspaths_on_date()
+  print('dateini, datefin find_3rdlevel_yyyymmdd_files_abspaths_on_date()', files_abspaths)
   files_abspaths = find_1stlevel_yyyy_dir_abspaths()
   print('find_1stlevel_yyyy_dir_abspaths()', files_abspaths)
 

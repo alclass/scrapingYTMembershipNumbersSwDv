@@ -38,17 +38,6 @@ class SubscribersScraperToDB:
       print(i+1, 'insert_day:', ytchid, n_subscribers)  # refdate is an instance var (self)
       self.insert_day(ytchid, n_subscribers)
 
-  def set_scrapedate_in_dbchannels(self, ytchid):
-    session = Session()
-    ytchannel = session.\
-        query(samodels.YTChannelSA). \
-        filter(samodels.YTChannelSA.ytchannelid == ytchid).\
-        first()
-    if ytchannel:
-      ytchannel.scrapedate = self.refdate
-      session.commit()
-    session.close()
-
   def insert_day(self, ytchid, n_subscribers):
     # TO-DO : log in file when a n_subscribers < 0 (or = -1) happens
     self.total_lookedup += 1
@@ -60,7 +49,6 @@ class SubscribersScraperToDB:
     if insertor.boolean_dbmodified:
       self.modified_processed += 1
     print(self.modified_processed, 'dbmodified', insertor.boolean_dbmodified)
-    self.set_scrapedate_in_dbchannels(ytchid)
 
   def report(self):
     outstr = '''

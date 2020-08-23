@@ -72,6 +72,7 @@ from models.procdb.SubscriberInsertorMod import Session
 import models.sa_models.ytchannelsubscribers_samodels as samodels
 import fs.datefunctions.datefs as dtfs
 from fs.db.jsondb import readjson
+import fs.db.dbfetchers.centralfetchersmod as fetcher
 from models.scrapers import drill_down_json as drill
 import config
 
@@ -88,11 +89,11 @@ def download_save_n_retrieve_text(ytvideopage, seqnum=1, delete_before_dld=False
   print(ytvideopage)
   entry_abspath = ytvideopage.datedpage_filepath
   if os.path.isfile(entry_abspath) and not delete_before_dld:
-    n_of_m = '%d' % (seqnum)
+    n_of_m = '%d' % seqnum
     log_msg = n_of_m + ' >>> File already exists, not going to download ' + ytvideopage.murl
     print(log_msg)
     return None
-  n_of_m = '%d' % (seqnum)
+  n_of_m = '%d' % seqnum
   log_msg = n_of_m + ' >>> Going to download ' + ytvideopage.murl
   print(log_msg)
   logger.info(log_msg)
@@ -148,13 +149,15 @@ class DownloadYtVideoPages:
     :return:
     """
     session = Session()
-    dbytchannels = session.query(samodels.YTChannelSA). \
+    if self.download_all_active_ones:
+      dbytchannels = fetcher.fetch_all_active_ytchannels_in_db(session)
+    else:
+      dbytchannels = session.query(samodels.YTChannelSA). \
         order_by(samodels.YTChannelSA.nname). \
         all()
     for ytchannel in dbytchannels:
-      if not self.download_all_active_ones:
-        if not ytchannel.is_downloadable_on_date():
-          continue
+      if not ytchannel.is_downloadable_on_date():
+        continue
       ytchannelpage = ytvidpagesMod.YtVideosPage(ytchannel.ytchannelid, ytchannel.nname)
       ytchannelpage.is_downloadable_on_date = True
       ytchannelpage.set_sname_by_nname()

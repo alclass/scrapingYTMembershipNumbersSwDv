@@ -26,6 +26,8 @@ class DateFolderScraper:
       self.counter += 1
       scraper = HTMLScraper(ytvideopagesobj)
       qty = scraper.ytvideopageobj.n_subscribers
+      if qty is None:
+        continue
       ytchid = scraper.ytvideopageobj.ytchannelid
       tupl = (ytchid, qty)
       self.id_n_qty_tuplelist.append(tupl)

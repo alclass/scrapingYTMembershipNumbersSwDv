@@ -10,6 +10,7 @@ import fs.filefunctions.autofinders as autof
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.pathfunctions as pathfs
 import fs.db.sqlalchdb.dbfetchesmod as dbfetch
+import fs.db.dbfetchers.centralfetchersmod as fetcher
 from fs.db.sqlalchdb.sqlalchemy_conn import Session
 from models.sa_models.ytchannelsubscribers_samodels import YTDailySubscribersSA
 
@@ -184,12 +185,10 @@ class YtVideosPage:
     if self._sname is None:
       self.find_set_n_get_sname_by_folder_or_none()
       if self._sname is None:
-        # this will happen when a ytchannel from db is trying to find a corresponding
-        # youtube videos page on a certain date and that does not exist
-        self._sname = 'in-wait'
-        # error_msg = 'Error: sname could not be established in @property filename
-        # [class YtVideosPage]'
-        # raise ValueError(error_msg)
+        self._sname = fetcher.fetch_sname_with_ytchannelid(self.ytchannelid)
+        if self._sname is None:
+          error_msg = 'Error: sname for ytchannelid (%s) does not exist' % self.ytchannelid
+          raise OSError(error_msg)
     return autof.form_datedpage_filename_with_triple(self.strdate, self._sname, self.ytchannelid)
 
   def set_sname_by_nname(self):

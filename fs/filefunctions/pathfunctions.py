@@ -34,9 +34,23 @@ def get_ytvideo_htmlfiles_baseabsdir():
   return config.get_ytvideo_datafolderbase_absdir()
 
 
+def form_conventioned_datedvideopage_filename(refdate, sname, ytchannelid):
+  """
+  Eg
+    "2020-08-22 Henry Buga [uhenrybugalho].html"
+  :param refdate:
+  :param sname:
+  :param ytchannelid:
+  :return:
+  """
+  pdate = dtfs.get_refdate_from_strdate_or_today(refdate)
+  filename = '%(refdate)s %(sname)s [%(ytchannelid)s].html' % {'refdate': pdate, 'sname': sname, 'ytchannelid': ytchannelid}
+  return filename
+
+
 def is_htmldatedfilename_under_convention(filename):
   """
-    Convention is "(1-char-strdate) ([publisher-nname]) (title-or-slug)(.ext)"
+    Convention is "(10-char-strdate) ([publisher-nname]) (title-or-slug)(.ext)"
   :param filename:
   :return:
   """

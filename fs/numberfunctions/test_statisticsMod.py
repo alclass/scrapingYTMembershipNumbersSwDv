@@ -3,7 +3,7 @@
   docstring
 """
 import unittest
-import fs.numberfunctions.statisticsMod as statM
+import fs.numberfunctions.statisticsmod as statM
 
 
 class TestCase(unittest.TestCase):
