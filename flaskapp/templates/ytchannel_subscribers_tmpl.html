@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Subscribers Evolution</h1>
+  <h2 style="color:red;">
+    <a href="/channel/{{ ytchannel.ytchannelid }}">
+    {{ ytchannel.nname }}
+    </a>
+  </h2>
+  <hr>
+  </p>
+  <table border="1">
+    <tr>
+      <th>seq</th>
+      <th>subscribers</th>
+      <th>date / time</th>
+      <th>diff</th>
+    </tr>
+  {%- set previous_dict = {'previous': 0, 'total': 0, 'rowdiff': 0} -%}
+  {%- set total = 0 -%}
+  {% for sub in subscribers_list %}
+  <tr style="color:orange;">
+    <td>{{ loop.index }}</td>
+    <td>{{ sub.infodate }} {{ sub.infotime }}</td>
+    <td>{{ sub.subscribers }}</td>
+    {% if loop.first %}
+      <td>---</td>
+    {% else %}
+    <td>
+      {% if previous_dict.update({'rowdiff': previous_dict.previous - sub.subscribers}) %}{% endif %}
+      {{ previous_dict.rowdiff }}
+    </td>
+    {% endif %}
+    {% if previous_dict.update({'total': previous_dict.total + previous_dict.rowdiff}) %}{% endif %}
+    {% if previous_dict.update({'previous': sub.subscribers}) %}{% endif %}
+  </tr>
+  {% endfor %}
+  </table>
+
+
+
+<p>total: {{ previous_dict.total }} | average {{ previous_dict.total / 30 }} per day</p>
+
+{% endblock %}

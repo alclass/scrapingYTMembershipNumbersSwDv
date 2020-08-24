@@ -3,7 +3,7 @@ import calendar
 import datetime
 import config
 import random
-import fs.textfunctions.scraper_helpers as scraphlp
+import fs.numberfunctions.numbermod as nmod
 
 
 def convert_datetime_to_date(pdatetime):
@@ -168,7 +168,7 @@ def get_refdate_from_strdate(strdate=None):
     pp = strdate.split('-')
     year = int(pp[0])
     month = int(pp[1])
-    day = scraphlp.consume_left_side_int_number_w_optional_having_comma_or_point(pp[2])
+    day = nmod.consume_left_side_int_number_w_optional_having_comma_or_point(pp[2])
     return datetime.date(year, month, day)
   except IndexError:
     pass

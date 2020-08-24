@@ -85,6 +85,11 @@ def views_per_video(ytvideoid):
   return views.views_per_video(ytvideoid)
 
 
+@app.route('/channel/<ytchannelid>/subscribers')
+def subscribers_per_channel(ytchannelid):
+  return views.subscribers_per_channel(ytchannelid=ytchannelid)
+
+
 @app.route('/articles')
 def newsarticles():
   return views.newsarticles()

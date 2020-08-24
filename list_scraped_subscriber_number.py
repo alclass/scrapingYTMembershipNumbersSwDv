@@ -8,6 +8,7 @@ import fs.db.dbfetchers.centralfetchersmod as fetcher
 import fs.textfunctions.scraper_helpers as scrap
 import fs.datefunctions.datefs as dtfs
 import fs.filefunctions.autofinders as autof
+import fs.textfunctions.regexp_helpers as regexp
 import fs.db.sqlalchdb.sqlalchemy_conn as con
 import models.sa_models.ytchannelsubscribers_samodels as sam
 
@@ -171,13 +172,63 @@ def list_last_subscribers_for_ytchannel(ytchannel, session):
     print(i+1, subs.infodate, subs.infotime, subs.subscribers)
 
 
+def verify_videopagefiles_w_no_corresponding_dbsubs():
+  """
+  About 800 pages were committed with the function below, ie they received missing subscriber numbers.
+    There is one 'subscriber_number' per day per channel and some were missing within the last 3 months.
+  However, after about 800 recups, there are still 22 missing, with scraperesult returning None;
+    ie, there are yet 22 pages that maybe demand the old scraping routine for fetching n_of_subscribers;
+    it's probably possible to treat them, picking up the 'museum' code.
+  This above is a TO-DO (segunda, 24 de agosto de 2020 01:43), ie try to rescrape these with the old routine.
+  :return:
+  """
+  count = 0
+  n_commits = 0
+  session = con.Session()
+  for abspath in autof.generate_all_ytvideopages_abspath_asc_date():
+    strdate, sname, ytchannelid = regexp.find_triple_date_sname_n_ytchid_in_filepath(abspath)
+    subs = session.query(sam.YTDailySubscribersSA).\
+      filter(sam.YTDailySubscribersSA.ytchannelid == ytchannelid).\
+      filter(sam.YTDailySubscribersSA.infodate == strdate).\
+      first()
+    if subs:
+      continue
+    count += 1
+    print(count, strdate, sname, ytchannelid, abspath)
+    t_osstat = os.stat(abspath)
+    timestamp = t_osstat.st_mtime
+    dt = datetime.datetime.fromtimestamp(timestamp)
+    filedate = dtfs.convert_datetime_to_date(dt)
+    pdate = dtfs.get_refdate_from_strdate_or_none(strdate)
+    if pdate != filedate:
+      print('strdate', strdate, 'pdate', pdate, 'filedate', filedate, 'dt', dt)
+      continue
+    filetime = dtfs.extract_time_from_datetime(dt)
+    text = open(abspath, encoding='utf8').read()
+    n_of_subscribers = scrape_n_return_number_of_subscribers_from_channels_pagetext(text)
+    # print('n_of_subscribers', n_of_subscribers)
+    if n_of_subscribers is None:
+      continue
+    subs = sam.YTDailySubscribersSA()
+    subs.ytchannelid = ytchannelid
+    subs.infodate = pdate
+    subs.infotime = filetime
+    subs.subscribers = n_of_subscribers
+    session.add(subs)
+    n_commits += 1
+    print('n_commits', n_commits, 'committing', subs)
+    session.commit()
+  print('n_commits', n_commits, 'missing', count)
+  session.close()
+
+
+
 def list_last_subs():
   session = con.Session()
   ytchannels = fetcher.fetch_all_active_ytchannels_in_db(session)
   for ytchannel in ytchannels:
     list_last_subscribers_for_ytchannel(ytchannel, session)
   session.close()
-
 
 
 def adhoc_test():
@@ -187,6 +238,16 @@ def adhoc_test():
     _, timestamp = tupl
     dt = datetime.datetime.fromtimestamp(timestamp)
     print(refdate, dt)
+
+
+def adhoc_test2():
+
+  filepath = '/media/friend/SAMSUNG/Ytvideos BRA Politics/z Other ytchannels/000_scrape_ytdata/' \
+             '2020/2020-08/2020-08-14/2020-08-14 Leonel Rad [cUCEttBYmNrvFl9m9f7Uz4XJg] .html'
+  filepath = '/media/friend/SAMSUNG/Ytvideos BRA Politics/z Other ytchannels/000_scrape_ytdata/' \
+             '2020/2020-08/2020-08-14/2020-08-14 Jessé Souz [aJesséSouzaSociologo].html'
+  strdate, sname, ytchannelid = regexp.find_triple_date_sname_n_ytchid_in_filepath(filepath)
+  print(strdate, sname, ytchannelid)
 
 
 def process():
@@ -200,8 +261,9 @@ def process():
   # list_last_subs()
   # update_subscribers_scrape_for_months()
   # print('g_nsubs_is_none', g_nsubs_is_none)
-  transport_osdatetime_to_null_infotime_values_in_subscribers()
-  # adhoc_test()
+  # transport_osdatetime_to_null_infotime_values_in_subscribers()
+  verify_videopagefiles_w_no_corresponding_dbsubs()
+  # adhoc_test2()
 
 
 if __name__ == '__main__':

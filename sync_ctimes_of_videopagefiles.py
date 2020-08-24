@@ -62,8 +62,27 @@ def sync_dirs():
   print('src', src_mdt, 'trg', trg_mdt)
 
 
+def adhoc_test():
+  """
+  list atime ctime & mtime for Villa's videopage on 2020-08-23
+  :return:
+  """
+  filepath = '/media/friend/SAMSUNG/Ytvideos BRA Politics/z Other ytchannels/000_scrape_ytdata/' \
+             '2020/2020-08/2020-08-23/2020-08-23 Marco Vill [cUCVqNUy4-FTLMwMKX-krfB6A].html'
+  t = os.stat(filepath)
+  adt = datetime.datetime.fromtimestamp(t.st_atime)
+  cdt = datetime.datetime.fromtimestamp(t.st_ctime)
+  mdt = datetime.datetime.fromtimestamp(t.st_mtime)
+  text = open(filepath).read()
+  text = text if len(text) < 81 else text[:80]
+  print('text', text)
+  print('a', adt)
+  print('c', cdt)
+  print('m', mdt)
+
 def process():
-  sync_dirs()
+  # sync_dirs()
+  adhoc_test()
 
 
 if __name__ == '__main__':

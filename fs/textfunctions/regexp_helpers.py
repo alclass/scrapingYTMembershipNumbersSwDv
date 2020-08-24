@@ -104,7 +104,7 @@ def find_nsubscribers_via_two_words(phrase):
   return int(n_of_subscribers)
 
 
-regexp_ytchid_str = r'.+(\[[a-zA-Z0-9_\-]+\])$'
+regexp_ytchid_str = r'.+(\[[a-zA-Z0-9_é\-]+\])$'  # the é solved the case for c/JesséSouzaSociologo, rare case
 re_ytchid_compiled = re.compile(regexp_ytchid_str)
 
 
@@ -115,6 +115,12 @@ def find_ytchannelid_within_brackets_in_filename(name_without_ext):
   result = str(match.group(1))
   result = result.lstrip('[').rstrip(']')
   return result
+
+
+def find_triple_date_sname_n_ytchid_in_filepath(filepath):
+  _, filename = os.path.split(filepath)
+  name, _ = os.path.splitext(filename)
+  return find_triple_date_sname_n_ytchid_in_filename(name)
 
 
 def find_triple_date_sname_n_ytchid_in_filename(name_without_ext):
@@ -138,6 +144,8 @@ def find_triple_date_sname_n_ytchid_in_filename(name_without_ext):
       sname = sname.strip(' ')
     return strdate, sname, ytchid
   except IndexError:
+    pass
+  except TypeError:
     pass
   return None, None, None
 

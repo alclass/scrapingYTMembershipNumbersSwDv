@@ -29,7 +29,7 @@
     </td>
     <td>
       {% if ytchannel.current_subscribers_n > 0 %}
-        {{ ytchannel.current_subscribers_n }}
+      <a href="/channel/{{ ytchannel.ytchannelid }}/subscribers">{{ ytchannel.current_subscribers_n }}</a>
       {% else %}
         ---
       {% endif %}

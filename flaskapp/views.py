@@ -35,6 +35,21 @@ def list_ytchannels_view():
   return render_template('ytchannel_lister_tmpl.html', title='YouTube Channels Observed', ytchannels=ytchannels)
 
 
+def subscribers_per_channel(ytchannelid):
+  N_OF_SUBSCRIBERS_DAYS = 30
+  ytchannel = g.sa_ext_session.query(samodels.YTChannelSA). \
+    filter(samodels.YTChannelSA.ytchannelid == ytchannelid). \
+    first()
+  subscribers_list = ytchannel.daily_subscribers
+  if subscribers_list.count() > N_OF_SUBSCRIBERS_DAYS:
+    subscribers_list = subscribers_list[: N_OF_SUBSCRIBERS_DAYS]  # .query.paginate(1, 20).items
+  title_sent = ytchannel.nname + ' Subscribers'
+  return render_template(
+    'ytchannel_subscribers_tmpl.html', title=title_sent,
+    ytchannel=ytchannel, subscribers_list=subscribers_list
+  )
+
+
 def ytchannel_summary(ytchannelid):  # former output_ytchannel_videos
   ytchannel = g.sa_ext_session.query(samodels.YTChannelSA). \
     filter(samodels.YTChannelSA.ytchannelid == ytchannelid). \

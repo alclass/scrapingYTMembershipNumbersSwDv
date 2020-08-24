@@ -1,38 +1,39 @@
 {% extends "base.html" %}
-
 {% block content %}
-  <h1>Channel Summary</h1>
-  <h1 style="color:red;">{{ ytchannel.nname }}</h1>
-  <hr>
 
-  <table border="2">
-    <tr>
-      <th>nº vídeos</th>
-      <th>dias disp</th>
-      <th>nº inscritos últ</th>
-      <th>data últ</th>
-      <th>nº inscritos pri</th>
-      <th>data pri</th>
-      <th>delta inscr</th>
-    </tr>
-    <tr style="text-align:center;">
-      <td>{{ ytchannel.vinfolist.count() }}</td>
-      <td>{{ ytchannel.daily_subscribers.count() }}</td>
-      {% if ytchannel.daily_subscribers.count() > 0 %}
-        <td>{{ ytchannel.current_subscribers_n }}</td>
-        <td>{{ ytchannel.current_subscribers.infodate }}</td>
-        <td>{{ ytchannel.first_subscribers_n }}</td>
-        <td>{{ ytchannel.first_subscribers.infodate }}</td>
-        <td>{{ ytchannel.current_subscribers_n - ytchannel.first_subscribers_n }}</td>
-      {% else %}
-        <td>not known</td>
-        <td>unavailable</td>
-        <td>not known</td>
-        <td>unavailable</td>
-        <td>not known</td>
-      {% endif %}
-    </tr>
-  </table>
+<h1 style="color:red;">{{ ytchannel.nname }}</h1>
+<h2><a href="/clist">Channel's</a> Recent Videos</h2>
+<hr>
+<p><a href="/channel/{{ ytchannel.ytchannelid }}/subscribers">Subscribers Evolution</a></p>
+<table border="2">
+  <tr>
+    <th>nº vídeos</th>
+    <th>dias disp</th>
+    <th>nº inscritos últ</th>
+    <th>data últ</th>
+    <th>nº inscritos pri</th>
+    <th>data pri</th>
+    <th>delta inscr</th>
+  </tr>
+  <tr style="text-align:center;">
+    <td>{{ ytchannel.vinfolist.count() }}</td>
+    <td>{{ ytchannel.daily_subscribers.count() }}</td>
+    {% if ytchannel.daily_subscribers.count() > 0 %}
+      <td>{{ ytchannel.current_subscribers_n }}</td>
+      <td>{{ ytchannel.current_subscribers.infodate }}</td>
+      <td>{{ ytchannel.first_subscribers_n }}</td>
+      <td>{{ ytchannel.first_subscribers.infodate }}</td>
+      <td>{{ ytchannel.current_subscribers_n - ytchannel.first_subscribers_n }}</td>
+    {% else %}
+      <td>not known</td>
+      <td>unavailable</td>
+      <td>not known</td>
+      <td>unavailable</td>
+      <td>not known</td>
+    {% endif %}
+  </tr>
+</table>
+<hr>
 
   {% for vinfo in vinfolist %}
     <p style="color:orange;">{{ loop.index }} => <a href="{{ vinfo.ytvideo_url }}">{{ vinfo.title }}</a> <br>
