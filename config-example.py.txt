@@ -13,6 +13,7 @@ YTVIDEO_URL_BASE_TO_INTERPOLATE = 'https://www.youtube.com/watch?v=%s'
 
 # Section 2 Base directory for downloaded html files for local scraping
 # =====================================================================
+LOGSFOLDERNAME = 'logs'
 YTVIDEO_HTMLFILES_DIRS = [
   '/media/friend/SAMSUNG/Ytvideos BRA Politics/z Other ytchannels/000_scrape_ytdata',
   '/home/dados/Data_Archival/YTData/000_scrape_ytdata',
@@ -24,6 +25,13 @@ def get_ytvideo_datafolderbase_absdir():
     if os.path.isdir(abspath):
       return abspath
   return None
+
+
+def get_logfolder_abspath():
+  logfolder_abspath = os.path.join(get_ytvideo_datafolderbase_absdir(), LOGSFOLDERNAME)
+  if not os.path.isdir(logfolder_abspath):
+    os.makedirs(logfolder_abspath)
+  return logfolder_abspath
 
 
 STATICHTML_FOLDERNAME = 'ytchannels_statichtml'
