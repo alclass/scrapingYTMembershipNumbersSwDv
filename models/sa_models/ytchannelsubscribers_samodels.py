@@ -20,6 +20,25 @@ import fs.filefunctions.autofinders as autof
 Base = declarative_base()
 
 
+class DeputadoWhatsappSA(Base):
+
+  __tablename__ = 'deputadoswhatsapp'
+
+  id = Column(Integer, primary_key=True)
+  name = Column(String(70))
+  uf = Column(String(2))
+  partido = Column(String(30))
+  phone = Column(String(13))
+  created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))  # func.now() | text('0')
+  updated_at = Column(TIMESTAMP, nullable=True, server_default=text('ON UPDATE CURRENT_TIMESTAMP'))
+
+  __table_args__ = (UniqueConstraint('name', 'uf', 'partido', 'phone', name='name_uf_part_n_phone_uniq'),)
+
+  def __repr__(self):
+    return '<DeputadoWA(name={name}, uf={uf}, partido={partido}, phone={phone})>'.\
+      format(name={self.name}, uf={self.uf}, partido={self.partido}, phone={self.phone})
+
+
 def get_all_ytchannelids():
   session = saconn.Session()
   ytchannels = session.query(YTChannelSA).order_by(YTChannelSA.nname).all()
