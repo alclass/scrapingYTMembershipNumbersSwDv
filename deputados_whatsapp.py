@@ -15,26 +15,26 @@ lineendswith = '</option>'
 
 class DeputadoWhatsapp:
 
-  def __init__(self, name, uf, partido, phone):
-    self.name = name
+  def __init__(self, nomeparlamentar, uf, partido, cellphone):
+    self.nomeparlamentar = nomeparlamentar
     self.uf = uf
     self.partido = partido
-    self.phone = phone
+    self.cellphone = cellphone
 
   @staticmethod
   def get_name_partido_dash_separated(line):
-    pp = line.split('-')
-    name = pp[0]
-    name = name.lstrip(' ').rstrip(' ')
+    pp = line.split(' - ')
+    nomeparlamentar = pp[0]
+    nomeparlamentar = nomeparlamentar.lstrip(' ').rstrip(' ')
     partido = 's/n'
     if len(pp) > 1:
       partido = pp[1]
       partido = partido.lstrip(' ').rstrip(' ')
-    return name, partido
+    return nomeparlamentar, partido
 
   def __str__(self):
-    outstr = '[{phone}] [{name}] [{uf}] [{partido}]'\
-      .format(name=self.name, uf=self.uf, partido=self.partido, phone=self.phone)
+    outstr = '<DeputWA n="{nomeparlamentar}" e="{uf}" p="{partido}" whatsapp="{cellphone}">'\
+      .format(nomeparlamentar=self.nomeparlamentar, uf=self.uf, partido=self.partido, cellphone=self.cellphone)
     return outstr
 
 
@@ -49,7 +49,7 @@ def parse_input_file():
       line = line.rstrip(' \t\r\n')
       if line.endswith(lineendswith):
         line = line.rstrip(lineendswith)
-      phone = line[:13]
+      phone = line[2:13]  # leave out the first 2 digits (the phone's country code) for they are all 55!
       uf = line[15:17]
       line = line[20:]
       name, partido = DeputadoWhatsapp.get_name_partido_dash_separated(line)
@@ -66,37 +66,45 @@ def parse_input_file():
 
   print('total', len(phonesdict))
   for repeat in repeats:
-    print('repeated', repeat, phonesdict[repeat.phone])
+    print('repeated', repeat, phonesdict[repeat.cellphone])
   return phonesdict
 
 
-def insert_into_db(phonesdict):
+def db_insert_or_update_if_needed(phonesdict):
   session = Session()
-  for i, phone in enumerate(phonesdict):
+  n_not_inserted = 0
+  n_updates = 0
+  for i, cellphone in enumerate(phonesdict):
     seq = i + 1
-    dw = phonesdict[phone]
-    existent = session.query(SADeput) \
+    dw = phonesdict[cellphone]
+    do_commit = False
+    sadeput = session.query(SADeput) \
         .filter(
-          SADeput.name == dw.name, SADeput.uf == dw.uf, SADeput.partido == dw.partido, SADeput.phone == dw.phone
+          SADeput.nomeparlamentar == dw.nomeparlamentar,
+          # SADeput.uf == dw.uf,
+          # SADeput.partido == dw.partido,
         ) \
         .first()
-    if existent:
-      print(seq, 'exists', str(dw))
+    if sadeput is None:
+      n_not_inserted += 1
+      print(n_not_inserted, seq,
+            'this script does not insert '
+            '(either nomeparlamentar is wrong or outdated or needs polishing) =>', str(dw))
       continue
-    sadeput = SADeput()
-    sadeput.name = dw.name
-    sadeput.uf = dw.uf
-    sadeput.partido = dw.partido
-    sadeput.phone = dw.phone
-    session.add(sadeput)
-    session.commit()
-    print(seq, 'inserted', str(dw))
+    if sadeput.cellphone != dw.cellphone:
+      do_commit = True
+      sadeput.cellphone = dw.cellphone
+    if do_commit:
+      n_updates += 1
+      print('n_updates', n_updates, 'committing', sadeput)
+      session.commit()
+  print('n_updates', n_updates, 'n_not_inserted', n_not_inserted)
   session.close()
 
 
 def process():
   phonesdict = parse_input_file()
-  insert_into_db(phonesdict)
+  db_insert_or_update_if_needed(phonesdict)
 
 
 if __name__ == '__main__':

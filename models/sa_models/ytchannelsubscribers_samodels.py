@@ -16,27 +16,34 @@ import config
 import fs.db.sqlalchdb.sqlalchemy_conn as saconn
 import fs.filefunctions.pathfunctions as pathfs
 import fs.filefunctions.autofinders as autof
+from sqlalchemy.types import Enum
 
 Base = declarative_base()
 
 
 class DeputadoWhatsappSA(Base):
 
-  __tablename__ = 'deputadoswhatsapp'
+  __tablename__ = 'deputadosfederaisbr'
 
   id = Column(Integer, primary_key=True)
-  name = Column(String(70))
+  nomeparlamentar = Column(String(70), nullable=True)
+  nomecivil = Column(String(140), nullable=True)
   uf = Column(String(2))
   partido = Column(String(30))
-  phone = Column(String(13))
+  cellphone = Column(String(13), nullable=True)
+  fixphone = Column(String(8))
+  titular_outro = Column(Enum('T', 'S', 'E'), nullable=True)
+  ngabinete = Column(Integer, nullable=True)
+  anexopredio = Column(Integer, nullable=True)
+  emlmidstr = Column(String(50), nullable=True)
   created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))  # func.now() | text('0')
   updated_at = Column(TIMESTAMP, nullable=True, server_default=text('ON UPDATE CURRENT_TIMESTAMP'))
 
-  __table_args__ = (UniqueConstraint('name', 'uf', 'partido', 'phone', name='name_uf_part_n_phone_uniq'),)
+  __table_args__ = (UniqueConstraint('nomeparlamentar', 'uf', 'partido', name='nomep_uf_n_part_uniq'),)
 
   def __repr__(self):
-    return '<DeputadoWA(name={name}, uf={uf}, partido={partido}, phone={phone})>'.\
-      format(name={self.name}, uf={self.uf}, partido={self.partido}, phone={self.phone})
+    return '<Deputado Federal(name={nomeparlamentar}, uf={uf}, partido={partido})>'.\
+      format(nomeparlamentar={self.nomeparlamentar}, uf={self.uf}, partido={self.partido})
 
 
 def get_all_ytchannelids():
