@@ -1,2 +1,15 @@
-# scrapingYTMembershipNumbersSwDv
-A Python statistics gatherer (views thru time, members, ups and downs) command line system for a set of configured youtubers
+# 🚀 Welcome to your new awesome project!
+
+This project has been created using **webpack-cli**, you can now run
+
+```
+npm run build
+```
+
+or
+
+```
+yarn build
+```
+
+to bundle your application
