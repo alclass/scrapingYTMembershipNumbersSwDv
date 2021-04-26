@@ -22,8 +22,16 @@
   "author": "Luiz Lewis",
   "license": "ISC",
   "dependencies": {
+    "dropzone": "^5.9.2",
+    "markdown": "^0.5.0",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "react-image-crop": "^8.6.6",
+    "react-markdown": "^5.0.3",
+    "react-router": "^5.2.0",
+    "react-router-dom": "^5.2.0",
+    "react-youtube": "^7.13.1",
+    "whatwg-fetch": "^3.6.2"
   },
   "devDependencies": {
     "@babel/core": "^7.13.14",

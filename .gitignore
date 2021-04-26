@@ -2,6 +2,8 @@ data/
 dados/
 migrations/
 node_modules/
+public/
+src/
 venv/
 .idea/
 config.py
